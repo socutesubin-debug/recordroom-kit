@@ -163,7 +163,9 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
         <button id="fitAll">전체가 보이게</button><button id="fitCover">꽉 채우기</button><button id="playBtn" hidden>멈춤</button>
         <button class="ghost" id="prevPhoto">앞 카드 사진 쓰기</button><button class="ghost" id="rmPhoto">사진 빼기</button>
       </div>
-      <div class="ai">
+      <div class="row" id="slotRow" hidden><span class="hint">사진 칸</span>
+        <div class="seg" role="group" aria-label="사진 칸"><button data-slot="0" aria-pressed="true">왼쪽</button><button data-slot="1" aria-pressed="false">오른쪽 위</button><button data-slot="2" aria-pressed="false">오른쪽 아래</button></div></div>
+      <div class="ai" id="aiBox">
         <div class="row"><button class="primary" id="aiFill">AI로 빈 곳 채우기</button><button class="ghost" id="aiUndo" hidden>AI 채우기 되돌리기</button></div>
         <p class="hint">사진을 줄이거나 옮겨서 생긴 빈 곳을 AI가 이어 그려요. 처음 한 번 모델(약 30MB)을 내려받고, 사진은 이 기기 밖으로 나가지 않아요.</p>
       </div>
@@ -173,7 +175,7 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
       </div>
       <p class="status" id="mediaStatus"></p>
       <label for="zoom">확대 · 축소 <output id="zoomV"></output><input type="range" id="zoom" min="25" max="250"></label>
-      <div class="group">
+      <div class="group" id="gradGroup">
         <div class="row" style="justify-content:space-between"><h2>하단 그라데이션</h2><button class="ghost" id="gradAll">모든 카드에 같게</button></div>
         <label for="dim">진하기 <output id="dimV"></output><input type="range" id="dim" min="0" max="100"></label>
         <label for="gh">높이 (아래에서 얼마나 올라올지) <output id="ghV"></output><input type="range" id="gh" min="10" max="100"></label>
@@ -366,6 +368,7 @@ const TYPES={
   qa:{label:"질문·정보",dim:85,fields:[["q","질문 제목",0],["text","설명",1],["note","작은 주석",0]]},
   product:{label:"제품",dim:78,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격",0]]},
   intro:{label:"가운데 글",dim:72,fields:[["title","제목",0],["text","본문",1]]},
+  grid:{label:"제품 3컷",dim:0,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격 (예: KRW 48,000)",0],["foot","맨 아래 글자",0]],def:{brand:"BRAND",name:"PRODUCT NAME",price:"KRW 00,000",foot:"recordroom.mag"}},
   outro:{label:"마무리",dim:42,fields:[["text","고정 멘트",1],["mark","로고 글자",0]],def:{text:"오늘 놓치면 아까운 것들,\n취향과 쓸모 사이의 큐레이션",mark:"RecordRoom.mag"}}
 };
 const SAMPLE={id:"",corner:"옷장 기록",hl:"#8B0A7E",showHeader:true,sample:true,check:[],caption:"",cards:[
@@ -379,7 +382,7 @@ let S, cur=0, sel=-1;
 const $=id=>document.getElementById(id);
 const off=document.createElement("canvas");off.width=W;off.height=H;
 
-function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??(type==="outro"?0:-20),lh:d.lh??100};const df=Object.assign({},TYPES[type].def,(getStyle().defF||{})[type]);for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:(df[k]||"");return c}
+function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??(type==="outro"?0:-20),lh:d.lh??100};if(type==="grid"){c.slots=[0,1,2].map(()=>({img:null,px:50,py:50,zoom:100}));c.si=0}const df=Object.assign({},TYPES[type].def,(getStyle().defF||{})[type]);for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:(df[k]||"");return c}
 function fromData(d){
   const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{const t=TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
     if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1});
@@ -399,9 +402,10 @@ function near(family,w){const f=FONTS.find(x=>x.n===family);return f?f.w.reduce(
 /* role: "t" 제목 글꼴, "b" 본문 글꼴, "x" 고정(Pretendard, 상단 표기·자리 표시) */
 let FB0={w:400,s:30,role:"b"};
 /* role "s": 표지 작은 줄 — 본문 글꼴, 원본처럼 자간을 4% 더 좁힘 */
-function font(ctx,w,s,role,st){const fixed=role==="x",family=fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);
+/* role "x0"/"x1": 고정 글꼴에 자간 0 / +1% (제품 3컷 글자) */
+function font(ctx,w,s,role,st){const fixed=role==="x"||role==="x0"||role==="x1",family=fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);
   if(!st)FB0={w,s,role};const ww=st&&st.b?Math.min(900,Math.max(w+300,700)):w;
-  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=s*((fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
+  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
 function M(ctx,t){const w=ctx.measureText(t).width;return NATIVE_LS?w:w+LS*[...t].length}
 function T(ctx,t,x,y){if(NATIVE_LS||!LS){ctx.fillText(t,x,y);return}for(const ch of t){ctx.fillText(ch,x,y);x+=ctx.measureText(ch).width+LS}}
 function TC(ctx,t,x,y){T(ctx,t,x-(M(ctx,t)-LS)/2,y)}
@@ -467,6 +471,10 @@ function drawRich(ctx,lines,x,y,lh,o){
   useBase(ctx);
 }
 const isVid=c=>!!(c&&c.img&&c.img.tagName==="VIDEO");
+/* 제품 3컷: 왼쪽 세로 1장 + 오른쪽 2장. 원본 레이아웃에서 잰 칸 위치 */
+const SLOTS=[{x:42,y:265,w:530,h:943},{x:598,y:265,w:441,h:553},{x:598,y:855,w:441,h:353}];
+const ph=c=>c&&c.type==="grid"&&c.slots?c.slots[c.si||0]:c;
+function slotAt(p){return SLOTS.findIndex(r=>p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h)}
 const tA=document.createElement("canvas");tA.width=24;tA.height=30;const tB=document.createElement("canvas");tB.width=96;tB.height=120;const t1=document.createElement("canvas");t1.width=1;t1.height=1;const tG=document.createElement("canvas");tG.width=W;tG.height=H;
 function drawFill(ctx,c,im,iw,ih){
   if(c.fill==="black"||c.fill==="white"){ctx.fillStyle=c.fill==="black"?"#000":"#fff";ctx.fillRect(0,0,W,H);return}
@@ -611,10 +619,28 @@ function drawOutro(ctx,c){
   drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center"});
   if(hasM){font(ctx,800,ms,"x");drawRich(ctx,rich(ctx,f.mark,1e9).slice(0,1),W/2,y+(bl.length-1)*blh+gap,ms,{size:ms,align:"center"})}
 }
-const DRAW={cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
+/* 원본 실측: 브랜드 34px 굵게(기준선 191), 제품명 줄 23px·자간 0(기준선 226), 아래 글자 21px·자간 +1% 회색(기준선 1323) */
+function drawGrid(ctx,c,showSel,transparent){
+  const f=c.f;
+  SLOTS.forEach((r,i)=>{const sl=c.slots[i];
+    ctx.save();ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();
+    if(sl.img&&!transparent){const im=sl.img,iw=im.videoWidth||im.width,ih=im.videoHeight||im.height,sc=Math.max(r.w/iw,r.h/ih)*(sl.zoom/100),dw=iw*sc,dh=ih*sc;
+      ctx.fillStyle="#fff";ctx.fillRect(r.x,r.y,r.w,r.h);ctx.drawImage(im,r.x+(r.w-dw)*(sl.px/100),r.y+(r.h-dh)*(sl.py/100),dw,dh)}
+    else if(!transparent){ctx.fillStyle="#EDEDEF";ctx.fillRect(r.x,r.y,r.w,r.h);font(ctx,600,24,"x");ctx.fillStyle="#9a9ca3";TC(ctx,"+ 사진",r.x+r.w/2,r.y+r.h/2+8)}
+    ctx.restore();
+    shadow(ctx,false);ctx.strokeStyle="#151515";ctx.lineWidth=1.5;ctx.strokeRect(r.x+0.75,r.y+0.75,r.w-1.5,r.h-1.5);
+    if(showSel&&i===(c.si||0)){ctx.strokeStyle="#0A7CFF";ctx.lineWidth=6;ctx.strokeRect(r.x+3,r.y+3,r.w-6,r.h-6)}});
+  const ink="#141414";
+  if(plain(f.brand).trim()){font(ctx,800,34,"x");drawRich(ctx,rich(ctx,f.brand,W-84).slice(0,1),42,191,34,{size:34,color:ink,shadow:false})}
+  const line=[plain(f.name).trim()?f.name:"",plain(f.price).trim()?f.price:""].filter(Boolean).join(" | ");
+  if(line){font(ctx,500,23,"x0");drawRich(ctx,rich(ctx,line,W-84).slice(0,1),42,226,23,{size:23,color:ink,shadow:false})}
+  if(plain(f.foot).trim()){font(ctx,400,21,"x1");drawRich(ctx,rich(ctx,f.foot,W-84).slice(0,1),W/2,1323,21,{size:21,align:"center",color:"#4a4a4a",shadow:false})}
+}
+const DRAW={grid:drawGrid,cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
 function render(c,canvas,transparent,showSel){
   CC=c;const ctx=canvas.getContext("2d");ctx.save();ctx.textBaseline="alphabetic";ctx.textAlign="left";shadow(ctx,false);
-  drawPhoto(ctx,c,transparent);drawDim(ctx,c);DRAW[c.type](ctx,c);c.decos.forEach((d,i)=>drawDeco(ctx,d,!!showSel&&i===sel));ctx.restore();
+  if(c.type==="grid"){ctx.clearRect(0,0,W,H);if(!transparent){ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H)}}else{drawPhoto(ctx,c,transparent);drawDim(ctx,c)}
+  DRAW[c.type](ctx,c,!!showSel&&!transparent,transparent);c.decos.forEach((d,i)=>drawDeco(ctx,d,!!showSel&&i===sel));ctx.restore();
 }
 
 /* ---------- 화면 ---------- */
@@ -624,7 +650,9 @@ let raf=0,recording=false;
 function loop(){raf=0;const c=S.cards[cur];if(isVid(c)&&!c.img.paused&&!recording){render(c,$("preview"),false,true);raf=requestAnimationFrame(loop)}}
 function kick(){if(!raf)raf=requestAnimationFrame(loop)}
 function draw(){if(!S.cards[cur])cur=0;render(S.cards[cur],$("preview"),false,true);clearTimeout(thumbTimer);thumbTimer=setTimeout(drawThumbs,160);kick()}
-function showMedia(){const c=S.cards[cur],v=isVid(c);$("aiUndo").hidden=!c.orig;$("aiFill").disabled=v||aiBusy;$("zoomV").textContent=c.zoom+"%";$("fill").value=c.fill;$("playBtn").hidden=!v;if(v)$("playBtn").textContent=c.img.paused?"재생":"멈춤";
+function showMedia(){const c0=S.cards[cur],grid=c0.type==="grid";$("slotRow").hidden=!grid;$("aiBox").hidden=grid;$("gradGroup").hidden=grid;
+  if(grid)for(const b of document.querySelectorAll("#slotRow [data-slot]"))b.setAttribute("aria-pressed",+b.dataset.slot===(c0.si||0));
+  const c=ph(c0),v=isVid(c);$("aiUndo").hidden=!c.orig;$("aiFill").disabled=v||aiBusy;$("zoomV").textContent=c.zoom+"%";$("fill").value=c.fill;$("playBtn").hidden=!v;if(v)$("playBtn").textContent=c.img.paused?"재생":"멈춤";
   $("saveOne").textContent=v?"이 카드 영상 저장":(/iPad|iPhone|iPod|Android/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)?"사진에 저장":"이 카드 저장");
   S.cards.forEach((o,i)=>{if(isVid(o)&&i!==cur&&o.img!==c.img)o.img.pause()})}
 function paint(){draw();persist();loadFonts()}
@@ -671,7 +699,7 @@ function buildFields(){
     const l=document.createElement("label");l.htmlFor="f-"+k;l.textContent=lab;
     const el=document.createElement(area?"textarea":"input");if(!area)el.type="text";el.id="f-"+k;el.value=c.f[k];el.dataset.fmt="1";
     el.oninput=()=>{c.f[k]=el.value;S.sample=false;$("sampleTag").hidden=true;paint()};l.append(el);box.append(l)}
-  $("px").value=c.px;$("py").value=c.py;$("zoom").value=c.zoom;$("dim").value=c.dim;showGrad();showTypo();showMedia();
+  {const q=ph(c);$("px").value=q.px;$("py").value=q.py;$("zoom").value=q.zoom}$("dim").value=c.dim;showGrad();showTypo();showMedia();
   $("prevPhoto").disabled=cur===0||!S.cards[cur-1].img;$("rmPhoto").disabled=!c.img;
   buildDecos();$("moveL").disabled=cur===0;$("moveR").disabled=cur===S.cards.length-1;$("delBtn").disabled=S.cards.length<2;
 }
@@ -805,16 +833,18 @@ for(const k in DECO){const b=document.createElement("button");b.textContent="+ "
     if(pts.size===2&&sel>=0&&ds[sel]){const [a,b]=[...pts.values()];drag={mode:"pinch",d0:Math.hypot(a.x-b.x,a.y-b.y)||1,s0:ds[sel].s};return}
     if(sel>=0&&ds[sel]&&ds[sel]._b){const b=ds[sel]._b;if(Math.hypot(p.x-(b.x+b.w+10),p.y-(b.y+b.h+10))<62){drag={mode:"size",d0:Math.hypot(p.x-ds[sel].x,p.y-ds[sel].y)||1,s0:ds[sel].s};try{pv.setPointerCapture(e.pointerId)}catch(x){}return}}
     const i=hit(p);
-    if(i<0){const c=S.cards[cur];if(sel>=0){sel=-1;buildDecos();draw()}
+    if(i<0){const c0=S.cards[cur];if(sel>=0){sel=-1;buildDecos();draw()}
+      if(c0.type==="grid"){const k=slotAt(p);if(k<0){drag=null;return}if((c0.si||0)!==k){c0.si=k;buildFields();draw()}}
+      const c=ph(c0);
       if(pts.size>=2&&c.img){const [a,b]=[...pts.values()];drag={mode:"pzoom",d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:c.zoom};return}
       drag=c.img?{mode:"photo",x0:p.x,y0:p.y,px0:c.px,py0:c.py,moved:false}:{mode:"tap",x0:p.x,y0:p.y,moved:false};
       try{pv.setPointerCapture(e.pointerId)}catch(x){}return}
     sel=i;drag={mode:"move",ox:p.x-ds[i].x,oy:p.y-ds[i].y};try{pv.setPointerCapture(e.pointerId)}catch(x){}buildDecos();draw()});
   pv.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId))return;const p=pos(e);pts.set(e.pointerId,p);if(!drag)return;
-    if(drag.mode==="photo"||drag.mode==="tap"||drag.mode==="pzoom"){const c=S.cards[cur];
+    if(drag.mode==="photo"||drag.mode==="tap"||drag.mode==="pzoom"){const c0=S.cards[cur],c=ph(c0),R=c0.type==="grid"?SLOTS[c0.si||0]:{w:W,h:H};
       if(Math.hypot(p.x-(drag.x0||0),p.y-(drag.y0||0))>12)drag.moved=true;
       if(drag.mode==="pzoom"&&pts.size>=2){const [a,b]=[...pts.values()];c.zoom=Math.round(Math.min(250,Math.max(25,drag.z0*Math.hypot(a.x-b.x,a.y-b.y)/drag.d0)));$("zoom").value=c.zoom;$("zoomV").textContent=c.zoom+"%";draw()}
-      else if(drag.mode==="photo"&&c.img){const iw=c.img.videoWidth||c.img.width,ih=c.img.videoHeight||c.img.height,sc=Math.max(W/iw,H/ih)*(c.zoom/100),spx=W-iw*sc,spy=H-ih*sc;
+      else if(drag.mode==="photo"&&c.img){const iw=c.img.videoWidth||c.img.width,ih=c.img.videoHeight||c.img.height,sc=Math.max(R.w/iw,R.h/ih)*(c.zoom/100),spx=R.w-iw*sc,spy=R.h-ih*sc;
         if(Math.abs(spx)>1)c.px=Math.min(100,Math.max(0,drag.px0+(p.x-drag.x0)/spx*100));
         if(Math.abs(spy)>1)c.py=Math.min(100,Math.max(0,drag.py0+(p.y-drag.y0)/spy*100));draw()}
       return}
@@ -825,7 +855,7 @@ for(const k in DECO){const b=document.createElement("button");b.textContent="+ "
     draw()});
   const end=e=>{pts.delete(e.pointerId);if(!drag)return;
     if(drag.mode==="tap"){const open=!drag.moved&&e.type==="pointerup";drag=null;if(open)$("photo").click();return}
-    if(drag.mode==="photo"||drag.mode==="pzoom"){if(drag.mode==="pzoom"&&pts.size>=2)return;drag=null;$("px").value=Math.round(S.cards[cur].px);$("py").value=Math.round(S.cards[cur].py);paint();return}
+    if(drag.mode==="photo"||drag.mode==="pzoom"){if(drag.mode==="pzoom"&&pts.size>=2)return;drag=null;const q=ph(S.cards[cur]);$("px").value=Math.round(q.px);$("py").value=Math.round(q.py);paint();return}
     if(drag.mode!=="pinch"||pts.size<2){drag=null;buildDecos();paint()}};
   pv.addEventListener("pointerup",end);pv.addEventListener("pointercancel",end);
   for(const ev of ["touchstart","touchmove"])pv.addEventListener(ev,e=>{if(drag)e.preventDefault()},{passive:false});
@@ -847,7 +877,7 @@ $("saveStyle").onclick=()=>{const types={};for(const c of S.cards)types[c.type]=
   catch(e){say("styleStatus","이 브라우저에는 저장할 수 없어요. 'KIT 코드로 복사'로 보관해 주세요.",true)}};
 $("resetStyle").onclick=()=>{try{localStorage.removeItem("rr-style")}catch(e){}say("styleStatus","기본값을 지웠어요. 새 원고는 처음 설정으로 시작합니다.")};
 for(const sel of [$("typeSel"),$("addType")])for(const k in TYPES){const o=document.createElement("option");o.value=k;o.textContent=TYPES[k].label;sel.append(o)}
-$("typeSel").onchange=e=>{const o=S.cards[cur],n=newCard(e.target.value);n.decos=o.decos;n.img=o.img;n.px=o.px;n.py=o.py;n.zoom=o.zoom;
+$("typeSel").onchange=e=>{const o=S.cards[cur],n=newCard(e.target.value);if(n.type==="grid"&&o.img&&!isVid(o))n.slots[0].img=o.img;n.decos=o.decos;n.img=o.type==="grid"?(o.slots.find(x=>x.img&&true)||{}).img||null:o.img;n.px=o.px;n.py=o.py;n.zoom=o.zoom;
   const txt=o.f.text||o.f.title||o.f.comment||"";if(n.type==="outro"){S.cards[cur]=n;buildAll();if(!n.img)fillOutroPhotos();return}if("text" in n.f)n.f.text=o.f.text||"";if("title" in n.f)n.f.title=o.f.title||o.f.q||"";if("q" in n.f)n.f.q=o.f.q||o.f.title||"";
   S.cards[cur]=n;buildAll()};
 $("addBtn").onclick=()=>{S.cards.splice(cur+1,0,newCard($("addType").value));cur++;buildAll();fillOutroPhotos()};
@@ -864,10 +894,12 @@ for(const [hex,name] of [["#000000","검정"],["#151a2e","남색"],["#3a2a1f","�
   b.style.cssText="width:28px;height:28px;padding:0;border-radius:50%;border:1px solid var(--line);background:"+hex;
   b.onclick=()=>{S.cards[cur].gc=hex;$("gc").value=hex;paint()};$("gcSw").append(b)}
 $("gradAll").onclick=()=>{const c=S.cards[cur];for(const o of S.cards){o.dim=c.dim;o.gc=c.gc;if(o.type!=="intro"&&o.type!=="outro"){o.gh=c.gh;o.gs=c.gs}}paint();say("mediaStatus","모든 카드의 그라데이션을 이 카드와 같게 맞췄어요.")};
-for(const k of ["px","py","zoom","dim"])$(k).oninput=e=>{S.cards[cur][k]=+e.target.value;$("zoomV").textContent=S.cards[cur].zoom+"%";paint()};
+for(const k of ["px","py","zoom"])$(k).oninput=e=>{const q=ph(S.cards[cur]);q[k]=+e.target.value;$("zoomV").textContent=q.zoom+"%";paint()};
+$("dim").addEventListener("input",e=>{S.cards[cur].dim=+e.target.value;paint()});
+for(const b of document.querySelectorAll("#slotRow [data-slot]"))b.onclick=()=>{S.cards[cur].si=+b.dataset.slot;buildFields();paint()};
 $("fill").onchange=e=>{S.cards[cur].fill=e.target.value;paint()};
-$("fitCover").onclick=()=>{const c=S.cards[cur];c.zoom=100;c.px=50;c.py=50;buildFields();paint()};
-$("fitAll").onclick=()=>{const c=S.cards[cur],im=c.img;if(!im)return;const iw=im.videoWidth||im.width,ih=im.videoHeight||im.height;c.zoom=Math.max(25,Math.round(100*Math.min(W/iw,H/ih)/Math.max(W/iw,H/ih)));c.px=50;c.py=50;buildFields();paint()};
+$("fitCover").onclick=()=>{const c=ph(S.cards[cur]);c.zoom=100;c.px=50;c.py=50;buildFields();paint()};
+$("fitAll").onclick=()=>{const c0=S.cards[cur],c=ph(c0),im=c.img;if(!im)return;const iw=im.videoWidth||im.width,ih=im.videoHeight||im.height,R=c0.type==="grid"?SLOTS[c0.si||0]:{w:W,h:H};c.zoom=Math.max(25,Math.round(100*Math.min(R.w/iw,R.h/ih)/Math.max(R.w/iw,R.h/ih)));c.px=50;c.py=50;buildFields();paint()};
 $("playBtn").onclick=()=>{const c=S.cards[cur];if(!isVid(c))return;if(c.img.paused)c.img.play().then(kick).catch(()=>{});else c.img.pause();setTimeout(showMedia,60)};
 $("kid").oninput=e=>{S.id=e.target.value;persist()};
 $("corner").oninput=e=>{S.corner=e.target.value;paint()};
@@ -893,13 +925,17 @@ const BADFILE="이 파일은 열 수 없어요. JPG·PNG 사진이나 MP4·MOV �
 $("pickPhoto").onclick=()=>$("photo").click();
 $("pickMulti").onclick=()=>$("photoMulti").click();
 $("photo").onchange=async e=>{const file=e.target.files[0];e.target.value="";if(!file)return;
-  const m=await loadMedia(S.cards[cur],file);if(!m){say("mediaStatus",BADFILE,true);return}
+  if(S.cards[cur].type==="grid"&&file.type.startsWith("video/")){say("mediaStatus","제품 3컷 카드에는 사진만 넣을 수 있어요.",true);return}
+  const m=await loadMedia(ph(S.cards[cur]),file);if(!m){say("mediaStatus",BADFILE,true);return}
   say("mediaStatus",isVid(S.cards[cur])?"영상 "+m.duration.toFixed(1)+"초. 글자와 꾸미기 요소가 영상 위에 그대로 얹혀 저장됩니다.":"");buildAll()};
 $("photoMulti").onchange=async e=>{const files=[...e.target.files];e.target.value="";if(!files.length)return;
-  let bad=0;for(let i=0;i<files.length;i++){const idx=cur+i;if(!S.cards[idx])S.cards.push(newCard("body"));say("mediaStatus","사진 넣는 중… "+(i+1)+"/"+files.length);if(!await loadMedia(S.cards[idx],files[i]))bad++}
-  buildAll();say("mediaStatus",(files.length-bad)+"장을 "+(cur+1)+"번 카드부터 차례로 넣었어요."+(bad?" 열 수 없는 파일 "+bad+"개는 건너뛰었어요.":""),!!bad)};
-$("prevPhoto").onclick=()=>{const p=S.cards[cur-1],c=S.cards[cur];c.img=p.img;c.px=p.px;c.py=p.py;c.zoom=p.zoom;buildFields();paint()};
-$("rmPhoto").onclick=()=>{S.cards[cur].img=null;buildFields();paint()};
+  /* 제품 3컷 카드면 남은 칸부터 채우고, 나머지는 다음 카드로 */
+  const targets=[];let idx=cur;const c0=S.cards[cur];if(c0.type==="grid"){for(let j=c0.si||0;j<3;j++)targets.push(c0.slots[j]);idx++}
+  while(targets.length<files.length){if(!S.cards[idx])S.cards.push(newCard("body"));const c=S.cards[idx++];if(c.type==="grid")targets.push(...c.slots);else targets.push(c)}
+  let bad=0;for(let i=0;i<files.length;i++){say("mediaStatus","사진 넣는 중… "+(i+1)+"/"+files.length);if(!await loadMedia(targets[i],files[i]))bad++}
+  buildAll();say("mediaStatus",(files.length-bad)+"장을 "+(c0.type==="grid"?"지금 칸부터":(cur+1)+"번 카드부터")+" 차례로 넣었어요."+(bad?" 열 수 없는 파일 "+bad+"개는 건너뛰었어요.":""),!!bad)};
+$("prevPhoto").onclick=()=>{const p=ph(S.cards[cur-1]),c=ph(S.cards[cur]);c.img=p.img;c.px=p.px;c.py=p.py;c.zoom=p.zoom;buildFields();paint()};
+$("rmPhoto").onclick=()=>{ph(S.cards[cur]).img=null;buildFields();paint()};
 
 /* ---------- 복사 ---------- */
 async function copyText(t,statusId,okMsg){try{await navigator.clipboard.writeText(t);say(statusId,okMsg)}catch(e){say(statusId,"자동 복사가 막혀 있어요. 글을 길게 눌러 직접 복사해 주세요.",true)}}

@@ -159,6 +159,10 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
         <div class="row"><button class="primary" id="aiFill">AI로 빈 곳 채우기</button><button class="ghost" id="aiUndo" hidden>AI 채우기 되돌리기</button></div>
         <p class="hint">사진을 줄이거나 옮겨서 생긴 빈 곳을 AI가 이어 그려요. 처음 한 번 모델(약 30MB)을 내려받고, 사진은 이 기기 밖으로 나가지 않아요.</p>
       </div>
+      <div class="ai" id="outroBox" hidden>
+        <div class="row"><button id="outroSave">이 사진을 마무리 카드 고정 사진으로</button><button class="ghost" id="outroClear">고정 사진 지우기</button></div>
+        <p class="hint">고정해 두면 새 마무리 카드에 이 사진이 위치·크기 그대로 자동으로 들어가요. 이 기기에만 저장돼요.</p>
+      </div>
       <p class="status" id="mediaStatus"></p>
       <label for="zoom">확대 · 축소 <output id="zoomV"></output><input type="range" id="zoom" min="25" max="250"></label>
       <div class="group">
@@ -276,6 +280,7 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
           <button id="applyBtn">적용</button>
           <button id="copyCodeBtn">지금 원고를 코드로 복사</button>
         </div>
+        <label class="chk" for="autoOutro"><input type="checkbox" id="autoOutro" checked>원고를 불러오면 마지막에 마무리 카드 자동으로 넣기</label>
         <p class="status" id="codeStatus"></p>
         <details id="genBox"><summary class="hint">브리핑으로 원고 만들기 (Claude 안에서 연 KIT 전용)</summary>
           <label for="brief">브리핑 내용<textarea id="brief" placeholder="예) 04 〈옷장 기록〉 오도어 × 이크닉 레인부츠 11/26 공개 …"></textarea></label>
@@ -340,7 +345,8 @@ const TYPES={
   body:{label:"본문",dim:80,fields:[["text","본문",1]]},
   qa:{label:"질문·정보",dim:85,fields:[["q","질문 제목",0],["text","설명",1],["note","작은 주석",0]]},
   product:{label:"제품",dim:78,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격",0]]},
-  intro:{label:"가운데 글",dim:72,fields:[["title","제목",0],["text","본문",1]]}
+  intro:{label:"가운데 글",dim:72,fields:[["title","제목",0],["text","본문",1]]},
+  outro:{label:"마무리",dim:42,fields:[["text","고정 멘트",1],["mark","로고 글자",0]],def:{text:"오늘 놓치면 아까운 것들,\n취향과 쓸모 사이의 큐레이션",mark:"RecordRoom.mag"}}
 };
 const SAMPLE={id:"",corner:"옷장 기록",hl:"#8B0A7E",showHeader:true,sample:true,check:[],caption:"",cards:[
   {type:"cover",f:{badge:"D-4",sub:"",title:"느좋 레인부츠를\n찾는다면",bubble:""}},
@@ -353,7 +359,7 @@ let S, cur=0, sel=-1;
 const $=id=>document.getElementById(id);
 const off=document.createElement("canvas");off.width=W;off.height=H;
 
-function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??-20,lh:d.lh??100};for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:"";return c}
+function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??(type==="outro"?0:-20),lh:d.lh??100};const df=Object.assign({},TYPES[type].def,(getStyle().defF||{})[type]);for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:(df[k]||"");return c}
 function fromData(d){
   const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{const t=TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
     if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1});
@@ -472,7 +478,7 @@ function drawPhoto(ctx,c,transparent){
 }
 function drawDim(ctx,c){
   const a=c.dim/100,hx=c.gc||"#000000",rgb=parseInt(hx.slice(1,3),16)+","+parseInt(hx.slice(3,5),16)+","+parseInt(hx.slice(5,7),16),col=al=>"rgba("+rgb+","+al+")";
-  if(c.type==="intro"){ctx.fillStyle=col(a);ctx.fillRect(0,0,W,H);return}
+  if(c.type==="intro"||c.type==="outro"){ctx.fillStyle=col(a);ctx.fillRect(0,0,W,H);return}
   /* gh: 아래에서 올라오는 높이(%), gs: 0이면 위로 길게 번지고 100이면 아래쪽에 모여 또렷해진다 */
   const top=H*(1-(c.gh??58)/100),k=(c.gs??40)/100,mid=0.65-0.45*k,midA=0.45+0.5*k;
   const g=ctx.createLinearGradient(0,top,0,H);g.addColorStop(0,col(0));g.addColorStop(mid,col(a*midA));g.addColorStop(1,col(a));
@@ -548,7 +554,15 @@ function drawIntro(ctx,c){
   if(hasT){font(ctx,700,tsz,"t");drawRich(ctx,rich(ctx,f.title,maxW).slice(0,1),W/2,y,tsz,{size:tsz,align:"center"});y+=96+bs}
   font(ctx,500,bs,"b");drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center"});
 }
-const DRAW={cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro};
+/* 마무리: 가운데 두 줄 멘트 + 굵은 로고 글자 (기존 마무리 카드 비율에 맞춤) */
+function drawOutro(ctx,c){
+  const f=c.f,k=c.scale/100,L=c.lh/100,bs=37.5*k,blh=bs*1.57*L,ms=51*k,gap=ms*1.52*L;
+  font(ctx,400,bs,"b");const bl=rich(ctx,f.text,940);const hasM=plain(f.mark).trim();
+  const total=bs*0.9+(bl.length-1)*blh+(hasM?gap:0);let y=H*0.465-total/2+bs*0.9;
+  drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center"});
+  if(hasM){font(ctx,800,ms,"x");drawRich(ctx,rich(ctx,f.mark,1e9).slice(0,1),W/2,y+(bl.length-1)*blh+gap,ms,{size:ms,align:"center"})}
+}
+const DRAW={cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
 function render(c,canvas,transparent,showSel){
   CC=c;const ctx=canvas.getContext("2d");ctx.save();ctx.textBaseline="alphabetic";ctx.textAlign="left";shadow(ctx,false);
   drawPhoto(ctx,c,transparent);drawDim(ctx,c);DRAW[c.type](ctx,c);c.decos.forEach((d,i)=>drawDeco(ctx,d,!!showSel&&i===sel));ctx.restore();
@@ -761,27 +775,27 @@ $("fontFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;co
     say("fontStatus","'"+name+"'을 "+(role==="fontT"?"제목":"본문")+" 글꼴로 넣었어요. 목록 맨 아래 '내 글꼴'에서 다시 고를 수 있고, 페이지를 다시 열면 한 번 더 올려야 합니다.")}
   catch(err){say("fontStatus","이 글꼴 파일은 열 수 없어요. ttf, otf, woff2 파일인지 확인해 주세요.",true)}e.target.value=""};
 $("saveStyle").onclick=()=>{const types={};for(const c of S.cards)types[c.type]={scale:c.scale,ls:c.ls,lh:c.lh,dim:c.dim,gh:c.gh,gs:c.gs,gc:c.gc};
-  try{const old=getStyle();localStorage.setItem("rr-style",JSON.stringify({fontT:S.fontT,fontB:S.fontB,hdr:S.hdr,types:Object.assign({},old.types,types)}));say("styleStatus","저장했어요. 새 원고는 이 글꼴과 유형별 크기·자간·행간으로 시작합니다.")}
+  try{const old=getStyle(),oc=S.cards.find(c=>c.type==="outro"),defF=Object.assign({},old.defF);if(oc)defF.outro={...oc.f};localStorage.setItem("rr-style",JSON.stringify({fontT:S.fontT,fontB:S.fontB,hdr:S.hdr,defF,types:Object.assign({},old.types,types)}));say("styleStatus","저장했어요. 새 원고는 이 글꼴과 유형별 크기·자간·행간으로 시작합니다.")}
   catch(e){say("styleStatus","이 브라우저에는 저장할 수 없어요. 'KIT 코드로 복사'로 보관해 주세요.",true)}};
 $("resetStyle").onclick=()=>{try{localStorage.removeItem("rr-style")}catch(e){}say("styleStatus","기본값을 지웠어요. 새 원고는 처음 설정으로 시작합니다.")};
 for(const sel of [$("typeSel"),$("addType")])for(const k in TYPES){const o=document.createElement("option");o.value=k;o.textContent=TYPES[k].label;sel.append(o)}
 $("typeSel").onchange=e=>{const o=S.cards[cur],n=newCard(e.target.value);n.decos=o.decos;n.img=o.img;n.px=o.px;n.py=o.py;n.zoom=o.zoom;
-  const txt=o.f.text||o.f.title||o.f.comment||"";if("text" in n.f)n.f.text=o.f.text||"";if("title" in n.f)n.f.title=o.f.title||o.f.q||"";if("q" in n.f)n.f.q=o.f.q||o.f.title||"";
+  const txt=o.f.text||o.f.title||o.f.comment||"";if(n.type==="outro"){S.cards[cur]=n;buildAll();if(!n.img)fillOutroPhotos();return}if("text" in n.f)n.f.text=o.f.text||"";if("title" in n.f)n.f.title=o.f.title||o.f.q||"";if("q" in n.f)n.f.q=o.f.q||o.f.title||"";
   S.cards[cur]=n;buildAll()};
-$("addBtn").onclick=()=>{S.cards.splice(cur+1,0,newCard($("addType").value));cur++;buildAll()};
+$("addBtn").onclick=()=>{S.cards.splice(cur+1,0,newCard($("addType").value));cur++;buildAll();fillOutroPhotos()};
 $("delBtn").onclick=()=>{S.cards.splice(cur,1);cur=Math.max(0,cur-1);buildAll()};
 $("moveL").onclick=()=>{const a=S.cards;[a[cur-1],a[cur]]=[a[cur],a[cur-1]];cur--;buildAll()};
 $("moveR").onclick=()=>{const a=S.cards;[a[cur+1],a[cur]]=[a[cur],a[cur+1]];cur++;buildAll()};
-$("clearBtn").onclick=()=>{S=fromData({cards:[{type:"cover"},{type:"body"},{type:"body"},{type:"qa"}],corner:S.corner,hl:S.hl,fontT:S.fontT,fontB:S.fontB});cur=0;buildAll()};
+$("clearBtn").onclick=()=>{S=fromData({cards:[{type:"cover"},{type:"body"},{type:"body"},{type:"qa"},{type:"outro"}],corner:S.corner,hl:S.hl,fontT:S.fontT,fontB:S.fontB});cur=0;buildAll()};
 function showGrad(){const c=S.cards[cur];$("gh").value=c.gh;$("gs").value=c.gs;$("gc").value=c.gc;$("dimV").textContent=c.dim+"%";$("ghV").textContent=c.gh+"%";$("gsV").textContent=c.gs;
-  const intro=c.type==="intro";$("gh").disabled=intro;$("gs").disabled=intro}
+  const intro=c.type==="intro"||c.type==="outro";$("gh").disabled=intro;$("gs").disabled=intro;$("outroBox").hidden=c.type!=="outro"}
 for(const k of ["dim","gh","gs"])$(k).addEventListener("input",()=>{S.cards[cur][k]=+$(k).value;showGrad();paint()});
 $("gc").oninput=e=>{S.cards[cur].gc=e.target.value;paint()};
 for(const [hex,name] of [["#000000","검정"],["#151a2e","남색"],["#3a2a1f","브라운"],["#ffffff","흰색"],["#8B0A7E","보라"]]){
   const b=document.createElement("button");b.type="button";b.title=name;b.setAttribute("aria-label","그라데이션 색 "+name);
   b.style.cssText="width:28px;height:28px;padding:0;border-radius:50%;border:1px solid var(--line);background:"+hex;
   b.onclick=()=>{S.cards[cur].gc=hex;$("gc").value=hex;paint()};$("gcSw").append(b)}
-$("gradAll").onclick=()=>{const c=S.cards[cur];for(const o of S.cards){o.dim=c.dim;o.gc=c.gc;if(o.type!=="intro"){o.gh=c.gh;o.gs=c.gs}}paint();say("mediaStatus","모든 카드의 그라데이션을 이 카드와 같게 맞췄어요.")};
+$("gradAll").onclick=()=>{const c=S.cards[cur];for(const o of S.cards){o.dim=c.dim;o.gc=c.gc;if(o.type!=="intro"&&o.type!=="outro"){o.gh=c.gh;o.gs=c.gs}}paint();say("mediaStatus","모든 카드의 그라데이션을 이 카드와 같게 맞췄어요.")};
 for(const k of ["px","py","zoom","dim"])$(k).oninput=e=>{S.cards[cur][k]=+e.target.value;$("zoomV").textContent=S.cards[cur].zoom+"%";paint()};
 $("fill").onchange=e=>{S.cards[cur].fill=e.target.value;paint()};
 $("fitCover").onclick=()=>{const c=S.cards[cur];c.zoom=100;c.px=50;c.py=50;buildFields();paint()};
@@ -820,7 +834,8 @@ $("rmPhoto").onclick=()=>{S.cards[cur].img=null;buildFields();paint()};
 async function copyText(t,statusId,okMsg){try{await navigator.clipboard.writeText(t);say(statusId,okMsg)}catch(e){say(statusId,"자동 복사가 막혀 있어요. 글을 길게 눌러 직접 복사해 주세요.",true)}}
 $("copyCap").onclick=()=>copyText(S.caption,"capStatus","캡션을 복사했어요.");
 $("copyCodeBtn").onclick=()=>{const t=JSON.stringify(toData());$("code").value=t;copyText(t,"codeStatus","지금 원고를 코드로 복사했어요. 사진은 코드에 들어가지 않습니다.")};
-function applyKit(d){S=fromData(d);S.sample=false;cur=0;buildAll()}
+function applyKit(d){S=fromData(d);S.sample=false;cur=0;
+  if($("autoOutro").checked&&!S.cards.some(c=>c.type==="outro"))S.cards.push(newCard("outro"));buildAll();fillOutroPhotos()}
 $("applyBtn").onclick=()=>{let t=$("code").value.trim();const a=t.indexOf("{"),b=t.lastIndexOf("}");
   try{if(a<0||b<0)throw 0;const d=JSON.parse(t.slice(a,b+1));if(!Array.isArray(d.cards)||!d.cards.length)throw 0;applyKit(d);say("codeStatus","적용했어요. 카드 "+S.cards.length+"장.")}
   catch(e){say("codeStatus","코드를 읽지 못했어요. { 로 시작해 } 로 끝나는 전체를 붙여넣어 주세요.",true)}};
@@ -1020,6 +1035,21 @@ function initGen(sample){
   };
 }
 
+/* ---------- 마무리 카드 고정 사진 (이 기기의 IndexedDB) ---------- */
+const kv={db:null,open(){return this.db||(this.db=new Promise((res,rej)=>{try{const r=indexedDB.open("rrkit",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))},
+  async run(mode,fn){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction("kv",mode),q=fn(t.objectStore("kv"));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)})},
+  get(k){return this.run("readonly",s=>s.get(k))},set(k,v){return this.run("readwrite",s=>s.put(v,k))},del(k){return this.run("readwrite",s=>s.delete(k))}};
+async function fillOutroPhotos(){let o;try{o=await kv.get("outroPhoto")}catch(e){return}if(!o||!o.blob)return;
+  let n=0;for(const c of S.cards)if(c.type==="outro"&&!c.img){if(await loadMedia(c,o.blob)){c.px=o.px;c.py=o.py;c.zoom=o.zoom;if(typeof o.dim==="number")c.dim=o.dim;n++}}
+  if(n)buildAll()}
+$("outroSave").onclick=async()=>{const c=S.cards[cur];if(!c.img||isVid(c)){say("mediaStatus","먼저 마무리 카드에 사진을 올려 주세요. 영상은 고정할 수 없어요.",true);return}
+  const blob=await new Promise(r=>c.img.toBlob(r,"image/jpeg",0.92));
+  try{await kv.set("outroPhoto",{blob,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim});say("mediaStatus","고정했어요. 새 마무리 카드에 이 사진이 자동으로 들어가요.")}
+  catch(e){say("mediaStatus","이 브라우저에는 사진을 저장할 수 없어요.",true)}};
+$("outroClear").onclick=async()=>{try{await kv.del("outroPhoto")}catch(e){}say("mediaStatus","고정 사진을 지웠어요.")};
+try{const v=localStorage.getItem("rr-outro");if(v!==null)$("autoOutro").checked=v==="1"}catch(e){}
+$("autoOutro").onchange=e=>{try{localStorage.setItem("rr-outro",e.target.checked?"1":"0")}catch(x){}};
+
 /* ---------- 탭 ---------- */
 function showTab(name){for(const b of document.querySelectorAll(".tabs button")){const on=b.dataset.tab===name;b.setAttribute("aria-selected",on);$("tab-"+b.dataset.tab).hidden=!on}
   $("sheet").scrollTop=0;try{localStorage.setItem("rr-tab",name)}catch(e){}}
@@ -1029,7 +1059,7 @@ document.addEventListener("focusin",e=>{if(e.target.closest&&e.target.closest("#
 if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 
 /* ---------- 시작 ---------- */
-S=restore();buildAll();
+S=restore();buildAll();fillOutroPhotos();
 if(document.fonts&&document.fonts.load){Promise.all([300,400,500,600,700,800].map(w=>document.fonts.load(w+' 40px Pretendard',"가A"))).then(()=>{draw()}).catch(()=>{})}
 (async()=>{const C=window.claude;if(!C||!C.use){initGen(null);return}
   C.use("downloads").then(d=>{downloads=d}).catch(()=>{});

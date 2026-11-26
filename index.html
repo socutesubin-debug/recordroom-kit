@@ -126,6 +126,7 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
 .fmt{display:inline-flex;gap:2px;align-items:center;align-self:flex-start;background:#1c1c1e;border-radius:999px;padding:4px;box-shadow:0 2px 10px rgba(0,0,0,.18)}
 .fmt button{width:40px;height:40px;border-radius:50%;border:0;background:transparent;color:#fff;font-size:18px;line-height:1;padding:0;display:grid;place-items:center}
 .fmt .f-b{font-weight:900}.fmt .f-i{font-style:italic;font-family:Georgia,"Times New Roman",serif}.fmt .f-u{text-decoration:underline;text-underline-offset:3px}.fmt .f-s{text-decoration:line-through}
+.fmt .f-c{width:auto;padding:0 11px;border-radius:999px;font-size:13px;font-weight:800;color:#DDF53F}
 .fmt .f-hl{width:auto;padding:0 12px;border-radius:999px;font-size:13px;font-weight:700}
 .fmt button[aria-pressed=true]{background:#E9B93A;color:#1c1c1e}
 .chk{flex-direction:row;align-items:center;gap:8px;font-weight:500;color:var(--ink);font-size:13.5px}
@@ -222,6 +223,12 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
           <span class="row" id="hdrSwatches"></span>
           <label class="chk" for="showHeader"><input type="checkbox" id="showHeader">표시</label>
         </div>
+        <div class="row"><span class="hint">위치</span><div class="seg" role="group" aria-label="코너 위치"><button id="hdrTop" aria-pressed="true">위</button><button id="hdrBottom" aria-pressed="false">아래</button></div></div>
+      </div>
+      <div class="group">
+        <h2>표지 작은 줄</h2>
+        <div class="row"><div class="seg" role="group" aria-label="작은 줄 모양"><button id="subPlain" aria-pressed="true">글자만</button><button id="subBoxBtn" aria-pressed="false">검은 상자</button></div></div>
+        <label class="chk" for="ac" style="gap:10px">강조 글자 색 (도구 막대의 '색')<input type="color" id="ac"></label>
       </div>
       <div class="group">
         <div class="row" style="justify-content:space-between">
@@ -378,10 +385,10 @@ function fromData(d){
     if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1});
     for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;return n});
   const st=getStyle();
-  return {id:String(d.id||""),corner:String(d.corner||"옷장 기록"),hl:/^#[0-9a-f]{6}$/i.test(d.hl)?d.hl:"#8B0A7E",showHeader:d.showHeader!==false,hdr:/^#[0-9a-f]{6}$/i.test(d.hdr)?d.hdr:(/^#[0-9a-f]{6}$/i.test(st.hdr||"")?st.hdr:"#ffffff"),sample:!!d.sample,fontT:String(d.fontT||st.fontT||"Pretendard"),fontB:String(d.fontB||st.fontB||"Pretendard"),
+  return {id:String(d.id||""),corner:String(d.corner||"옷장 기록"),hl:/^#[0-9a-f]{6}$/i.test(d.hl)?d.hl:"#8B0A7E",showHeader:d.showHeader!==false,hdrPos:d.hdrPos==="bottom"?"bottom":(d.hdrPos==="top"?"top":(st.hdrPos||"top")),subBox:typeof d.subBox==="boolean"?d.subBox:!!st.subBox,ac:/^#[0-9a-f]{6}$/i.test(d.ac||"")?d.ac:(st.ac||"#DDF53F"),hdr:/^#[0-9a-f]{6}$/i.test(d.hdr)?d.hdr:(/^#[0-9a-f]{6}$/i.test(st.hdr||"")?st.hdr:"#ffffff"),sample:!!d.sample,fontT:String(d.fontT||st.fontT||"Pretendard"),fontB:String(d.fontB||st.fontB||"Pretendard"),
     check:Array.isArray(d.check)?d.check.map(String):[],caption:String(d.caption||""),cards:cards.length?cards:[newCard("cover")]};
 }
-function toData(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,fontT:S.fontT,fontB:S.fontB,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s}))}))}}
+function toData(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s}))}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
 
@@ -393,7 +400,7 @@ function near(family,w){const f=FONTS.find(x=>x.n===family);return f?f.w.reduce(
 let FB0={w:400,s:30,role:"b"};
 function font(ctx,w,s,role,st){const fixed=role==="x",family=fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);
   if(!st)FB0={w,s,role};const ww=st&&st.b?Math.min(900,Math.max(w+300,700)):w;
-  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=s*(fixed||!CC?-20:CC.ls)/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
+  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=s*((fixed||!CC?-20:CC.ls)+(role==="t"?-15:0))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
 function M(ctx,t){const w=ctx.measureText(t).width;return NATIVE_LS?w:w+LS*[...t].length}
 function T(ctx,t,x,y){if(NATIVE_LS||!LS){ctx.fillText(t,x,y);return}for(const ch of t){ctx.fillText(ch,x,y);x+=ctx.measureText(ch).width+LS}}
 function TC(ctx,t,x,y){T(ctx,t,x-(M(ctx,t)-LS)/2,y)}
@@ -402,18 +409,18 @@ function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w
 function breakWord(ctx,word,maxW){const out=[];let c="";for(const ch of word){if(c&&M(ctx,c+ch)>maxW){out.push(c);c=ch}else c+=ch}if(c)out.push(c);return out}
 function wrap(ctx,text,maxW){const lines=[];for(const para of String(text||"").split("\n")){if(!para.trim()){lines.push("");continue}let c="";for(const w0 of para.split(/\s+/).filter(Boolean)){const parts=M(ctx,w0)>maxW?breakWord(ctx,w0,maxW):[w0];for(const w of parts){const t=c?c+" "+w:w;if(c&&M(ctx,t)>maxW){lines.push(c);c=w}else c=t}}lines.push(c)}return lines}
 /* 글자 꾸미기 표시: ==형광펜== <b>굵게</b> <i>기울임</i> <u>밑줄</u> <s>취소선</s> */
-const FMT_KEYS=["hl","b","i","u","s"];
+const FMT_KEYS=["hl","b","i","u","s","c"];
 function fmtStep(str,i,st){
   if(str[i]==="="&&str[i+1]==="="){st.hl=!st.hl;return 2}
-  if(str[i]==="<"){const m=/^<(\/?)([bius])>/.exec(str.slice(i,i+4));if(m){st[m[2]]=!m[1];return m[0].length}}
+  if(str[i]==="<"){const m=/^<(\/?)([biusc])>/.exec(str.slice(i,i+4));if(m){st[m[2]]=!m[1];return m[0].length}}
   return 0}
-function fmtState(str,pos){const st={hl:false,b:false,i:false,u:false,s:false};for(let i=0;i<pos;){const n=fmtStep(str,i,st);i+=n||1}return st}
+function fmtState(str,pos){const st={hl:false,b:false,i:false,u:false,s:false,c:false};for(let i=0;i<pos;){const n=fmtStep(str,i,st);i+=n||1}return st}
 const sameSt=(a,b)=>FMT_KEYS.every(k=>!!a[k]===!!b[k]);
 const useRun=(ctx,r)=>font(ctx,FB0.w,FB0.s,FB0.role,r);
 const useBase=ctx=>font(ctx,FB0.w,FB0.s,FB0.role);
 const plain=t=>{let o="",st={};for(let i=0;i<t.length;){const n=fmtStep(t,i,st);if(n){i+=n;continue}o+=t[i++]}return o};
 function rich(ctx,text,maxW){
-  const lines=[],st={hl:false,b:false,i:false,u:false,s:false};useBase(ctx);const sw=M(ctx," ");
+  const lines=[],st={hl:false,b:false,i:false,u:false,s:false,c:false};useBase(ctx);const sw=M(ctx," ");
   for(const para of String(text??"").split("\n")){
     const words=[];let w=null,spSt=null;
     for(let i=0;i<para.length;){
@@ -454,7 +461,7 @@ function drawRich(ctx,lines,x,y,lh,o){
   lines.forEach((ln,i)=>{let cx=o.align==="center"?x-ln.width/2:x;const by=y+i*lh;
     ln.words.forEach((wd,j)=>{
       if(j>0&&!wd.join){if(wd.sp){decoBg(ctx,wd.sp,cx,by,sw,size,o);decoLines(ctx,wd.sp,cx,by,sw,size,o)}cx+=sw}
-      for(const r of wd.runs){decoBg(ctx,r,cx,by,r.w,size,o);useRun(ctx,r);shadow(ctx,!!o.shadow&&!r.hl);ctx.fillStyle=o.color;T(ctx,r.t,cx,by);decoLines(ctx,r,cx,by,r.w,size,o);cx+=r.w}
+      for(const r of wd.runs){decoBg(ctx,r,cx,by,r.w,size,o);useRun(ctx,r);shadow(ctx,!!o.shadow&&!r.hl);ctx.fillStyle=r.c?(S.ac||"#DDF53F"):o.color;T(ctx,r.t,cx,by);decoLines(ctx,r,cx,by,r.w,size,o);cx+=r.w}
     })});
   useBase(ctx);
 }
@@ -498,7 +505,7 @@ function drawDim(ctx,c){
   ctx.fillStyle=g;ctx.fillRect(0,top,W,H-top);
 }
 function drawHeader(ctx){
-  const y=78,a="RecordRoom.mag",b=S.corner||"",gap=17;
+  const y=S.hdrPos==="bottom"?H-80:78,a="RecordRoom.mag",b=S.corner||"",gap=17;
   font(ctx,800,25,"x");const wa=M(ctx,a);font(ctx,300,25,"x");const wb=M(ctx,b);
   const hx=S.hdr||"#ffffff",lum=(parseInt(hx.slice(1,3),16)*299+parseInt(hx.slice(3,5),16)*587+parseInt(hx.slice(5,7),16)*114)/255000;
   let x=(W-(wa+(b?gap*2+2+wb:0)))/2;ctx.fillStyle=hx;shadow(ctx,lum>0.55);
@@ -548,17 +555,28 @@ function drawDeco(ctx,d,selected){
   if(selected){const q=d._b;ctx.save();shadow(ctx,false);ctx.lineWidth=3;ctx.setLineDash([14,10]);ctx.strokeStyle="rgba(0,0,0,.55)";ctx.strokeRect(q.x-10,q.y-10,q.w+20,q.h+20);ctx.lineDashOffset=12;ctx.strokeStyle="#fff";ctx.strokeRect(q.x-10,q.y-10,q.w+20,q.h+20);
     ctx.setLineDash([]);ctx.fillStyle="#fff";ctx.strokeStyle="#141414";ctx.lineWidth=3;ctx.beginPath();ctx.arc(q.x+q.w+10,q.y+q.h+10,20,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore()}
 }
+/* 원본 표지 실측: 제목 96px·줄 간격 123px, 마지막 줄 바닥에서 161px(코너가 아래면 195px),
+   작은 줄 35px, 작은 줄과 제목 사이 45px, 검은 상자는 높이 54px·좌우 여백 30px·제목과 39px */
 function drawCover(ctx,c){
   const f=c.f,x=110,maxW=W-x*2;
   if(S.showHeader)drawHeader(ctx);
   const k=c.scale/100,L=c.lh/100;
   let ts=96*k;font(ctx,700,ts,"t");
   while(ts>60&&widest(rich(ctx,f.title,1e9))>maxW){ts-=2;font(ctx,700,ts,"t")}
-  const tl=rich(ctx,f.title,maxW),tlh=ts*1.2*L;
-  let y=H-150-(tl.length-1)*tlh;
+  const tl=rich(ctx,f.title,maxW),tlh=ts*1.28*L,last=S.showHeader&&S.hdrPos==="bottom"?H-204:H-170;
+  const y=last-(tl.length-1)*tlh;
   drawRich(ctx,tl,x-4,y,tlh,{size:ts});
-  y-=ts+34;
-  if(plain(f.sub).trim()){const ss=29*k;font(ctx,400,ss,"b");const sl=rich(ctx,f.sub,maxW);y-=(sl.length-1)*ss*1.4*L;drawRich(ctx,sl,x,y,ss*1.4*L,{size:ss,color:"rgba(255,255,255,.94)"})}
+  const titleTop=y-ts*0.80;
+  if(!plain(f.sub).trim())return;
+  const ss=35*k,slh=ss*1.45*L;font(ctx,400,ss,"b");const sl=rich(ctx,f.sub,maxW-60);
+  if(S.subBox){
+    const padX=30*k,bh=54*k+(sl.length-1)*slh,bottom=titleTop-39*k,top=bottom-bh,bw=widest(sl)+padX+45*k;
+    shadow(ctx,false);ctx.fillStyle="#161616";ctx.fillRect(x-5,top,bw,bh);
+    drawRich(ctx,sl,x-5+padX,top+14*k+ss*0.80,slh,{size:ss,shadow:false});
+  }else{
+    const base=titleTop-45*k-ss*0.09-(sl.length-1)*slh;
+    drawRich(ctx,sl,x,base,slh,{size:ss,color:"rgba(255,255,255,.94)"});
+  }
 }
 function drawBody(ctx,c){
   const x=136,size=40*c.scale/100,lh=size*1.75*c.lh/100;font(ctx,500,size,"b");
@@ -657,10 +675,10 @@ function buildFields(){
   buildDecos();$("moveL").disabled=cur===0;$("moveR").disabled=cur===S.cards.length-1;$("delBtn").disabled=S.cards.length<2;
 }
 /* ---------- 글자 꾸미기 도구 막대 ---------- */
-const FMT_OPEN={b:"<b>",i:"<i>",u:"<u>",s:"<s>",hl:"=="},FMT_CLOSE={b:"</b>",i:"</i>",u:"</u>",s:"</s>",hl:"=="};
+const FMT_OPEN={b:"<b>",i:"<i>",u:"<u>",s:"<s>",c:"<c>",hl:"=="},FMT_CLOSE={b:"</b>",i:"</i>",u:"</u>",s:"</s>",c:"</c>",hl:"=="};
 const fmtBar=document.createElement("div");fmtBar.className="fmt";fmtBar.setAttribute("role","toolbar");fmtBar.setAttribute("aria-label","글자 꾸미기");
 let fmtTarget=null,fmtSel=[0,0];
-for(const [k,txt,lab] of [["b","B","굵게"],["i","I","기울임"],["u","U","밑줄"],["s","S","취소선"],["hl","형광","형광펜"]]){
+for(const [k,txt,lab] of [["b","B","굵게"],["i","I","기울임"],["u","U","밑줄"],["s","S","취소선"],["c","색","강조 글자 색"],["hl","형광","형광펜"]]){
   const b=document.createElement("button");b.type="button";b.className="f-"+k;b.textContent=txt;b.title=lab;b.setAttribute("aria-label",lab);b.setAttribute("aria-pressed","false");b.dataset.k=k;
   b.addEventListener("mousedown",e=>e.preventDefault());b.onclick=()=>applyFmt(k);fmtBar.append(b)}
 function fmtSync(){const el=fmtTarget;if(!el)return;if(document.activeElement===el)fmtSel=[el.selectionStart,el.selectionEnd];
@@ -811,7 +829,7 @@ for(const k in DECO){const b=document.createElement("button");b.textContent="+ "
   pv.addEventListener("pointerup",end);pv.addEventListener("pointercancel",end);
   for(const ev of ["touchstart","touchmove"])pv.addEventListener(ev,e=>{if(drag)e.preventDefault()},{passive:false});
 })();
-function buildAll(){buildStrip();buildFields();fillFontSelects();$("kid").value=S.id;$("corner").value=S.corner;$("hl").value=S.hl;$("showHeader").checked=S.showHeader;$("hdrColor").value=S.hdr;$("caption").value=S.caption;paint()}
+function buildAll(){buildStrip();buildFields();fillFontSelects();$("kid").value=S.id;$("corner").value=S.corner;$("hl").value=S.hl;$("showHeader").checked=S.showHeader;$("ac").value=S.ac;for(const [id,on] of [["hdrTop",S.hdrPos!=="bottom"],["hdrBottom",S.hdrPos==="bottom"],["subPlain",!S.subBox],["subBoxBtn",!!S.subBox]])$(id).setAttribute("aria-pressed",on);$("hdrColor").value=S.hdr;$("caption").value=S.caption;paint()}
 function say(id,t,warn){const e=$(id);e.textContent=t||"";e.classList.toggle("warn",!!warn)}
 
 for(const k of ["scale","ls","lh"])$(k).oninput=e=>{S.cards[cur][k]=+e.target.value;showTypo();paint()};
@@ -824,7 +842,7 @@ $("fontFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;co
     say("fontStatus","'"+name+"'을 "+(role==="fontT"?"제목":"본문")+" 글꼴로 넣었어요. 목록 맨 아래 '내 글꼴'에서 다시 고를 수 있고, 페이지를 다시 열면 한 번 더 올려야 합니다.")}
   catch(err){say("fontStatus","이 글꼴 파일은 열 수 없어요. ttf, otf, woff2 파일인지 확인해 주세요.",true)}e.target.value=""};
 $("saveStyle").onclick=()=>{const types={};for(const c of S.cards)types[c.type]={scale:c.scale,ls:c.ls,lh:c.lh,dim:c.dim,gh:c.gh,gs:c.gs,gc:c.gc};
-  try{const old=getStyle(),oc=S.cards.find(c=>c.type==="outro"),defF=Object.assign({},old.defF);if(oc)defF.outro={...oc.f};localStorage.setItem("rr-style",JSON.stringify({fontT:S.fontT,fontB:S.fontB,hdr:S.hdr,defF,types:Object.assign({},old.types,types)}));say("styleStatus","저장했어요. 새 원고는 이 글꼴과 유형별 크기·자간·행간으로 시작합니다.")}
+  try{const old=getStyle(),oc=S.cards.find(c=>c.type==="outro"),defF=Object.assign({},old.defF);if(oc)defF.outro={...oc.f};localStorage.setItem("rr-style",JSON.stringify({fontT:S.fontT,fontB:S.fontB,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,defF,types:Object.assign({},old.types,types)}));say("styleStatus","저장했어요. 새 원고는 이 글꼴과 유형별 크기·자간·행간으로 시작합니다.")}
   catch(e){say("styleStatus","이 브라우저에는 저장할 수 없어요. 'KIT 코드로 복사'로 보관해 주세요.",true)}};
 $("resetStyle").onclick=()=>{try{localStorage.removeItem("rr-style")}catch(e){}say("styleStatus","기본값을 지웠어요. 새 원고는 처음 설정으로 시작합니다.")};
 for(const sel of [$("typeSel"),$("addType")])for(const k in TYPES){const o=document.createElement("option");o.value=k;o.textContent=TYPES[k].label;sel.append(o)}
@@ -855,6 +873,9 @@ $("corner").oninput=e=>{S.corner=e.target.value;paint()};
 $("hl").oninput=e=>{S.hl=e.target.value;paint()};
 $("showHeader").onchange=e=>{S.showHeader=e.target.checked;paint()};
 $("hdrColor").oninput=e=>{S.hdr=e.target.value;paint()};
+$("hdrTop").onclick=()=>{S.hdrPos="top";buildAll()};$("hdrBottom").onclick=()=>{S.hdrPos="bottom";buildAll()};
+$("subPlain").onclick=()=>{S.subBox=false;buildAll()};$("subBoxBtn").onclick=()=>{S.subBox=true;buildAll()};
+$("ac").oninput=e=>{S.ac=e.target.value;paint()};
 for(const [hex,name] of [["#ffffff","흰색"],["#141414","검정"],["#0A7CFF","파랑"],["#E9B93A","노랑"],["#8B0A7E","보라"],["#D93A2B","빨강"]]){
   const b=document.createElement("button");b.type="button";b.title=name;b.setAttribute("aria-label","코너 색 "+name);
   b.style.cssText="width:28px;height:28px;padding:0;border-radius:50%;border:1px solid var(--line);background:"+hex;

@@ -110,6 +110,13 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
 .deco[data-on=true]{border-color:var(--ink)}
 .deco textarea{min-height:42px;grid-column:1/-1}
 .deco b{font-size:12.5px}
+.shapes{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.shapeBtn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;background:var(--bg)}
+.shapeBtn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.shapeBtn small{font-size:11px;font-weight:600;color:var(--muted)}
+.shapeBtn[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.deco .shapes{grid-column:1/-1}
+.deco .shapes .shapeBtn{padding:5px 0}.deco .shapes svg{width:20px;height:20px}
 .deco .thumbImg{grid-column:1/-1;max-height:90px;max-width:100%;justify-self:start;border-radius:6px;background:repeating-conic-gradient(#d9dadd 0 25%,#fff 0 50%) 0 0/14px 14px}
 .lib{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .lib button{border:0;border-radius:0;padding:7px 10px;font-weight:500;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -245,6 +252,12 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
         <p class="hint">처음 한 번 누끼 모델(약 47MB)을 내려받고, 사진은 이 기기 밖으로 나가지 않아요. 한 장에 폰에서는 10~30초쯤 걸릴 수 있어요.</p>
         <p class="status" id="stickerStatus"></p>
         <input type="file" id="stickerFile" accept="image/png,image/webp,image/*" multiple hidden>
+      </div>
+      <div class="group">
+        <h2>도형에 사진 넣기</h2>
+        <div class="shapes" id="shapeAdd"><button class="shapeBtn" data-shape="circle" aria-label="원 모양으로 사진 넣기" title="원"><svg viewBox="0 0 24 24"><circle cx='12' cy='12' r='8'/></svg><small>원</small></button><button class="shapeBtn" data-shape="rect" aria-label="네모 모양으로 사진 넣기" title="네모"><svg viewBox="0 0 24 24"><rect x='4' y='4' width='16' height='16'/></svg><small>네모</small></button><button class="shapeBtn" data-shape="round" aria-label="둥근 네모 모양으로 사진 넣기" title="둥근 네모"><svg viewBox="0 0 24 24"><rect x='4' y='4' width='16' height='16' rx='4.5'/></svg><small>둥근 네모</small></button><button class="shapeBtn" data-shape="star" aria-label="별 모양으로 사진 넣기" title="별"><svg viewBox="0 0 24 24"><path d='M12 3.5l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.8l6.1-.7z'/></svg><small>별</small></button><button class="shapeBtn" data-shape="heart" aria-label="하트 모양으로 사진 넣기" title="하트"><svg viewBox="0 0 24 24"><path d='M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z'/></svg><small>하트</small></button><button class="shapeBtn" data-shape="arch" aria-label="아치 모양으로 사진 넣기" title="아치"><svg viewBox="0 0 24 24"><path d='M5 20V11a7 7 0 0 1 14 0v9z'/></svg><small>아치</small></button></div>
+        <p class="hint">모양을 누르고 사진을 고르면 그 모양으로 잘려서 올라가요. 안쪽 사진 위치·테두리는 아래 목록에서 바꿔요.</p>
+        <input type="file" id="shapeFile" accept="image/*" hidden>
       </div>
       <div class="group">
         <h2>글 요소</h2>
@@ -493,8 +506,25 @@ function drawHeader(ctx){
 }
 function selFrame(ctx,q){ctx.save();shadow(ctx,false);ctx.lineWidth=3;ctx.setLineDash([14,10]);ctx.strokeStyle="rgba(0,0,0,.55)";ctx.strokeRect(q.x-10,q.y-10,q.w+20,q.h+20);ctx.lineDashOffset=12;ctx.strokeStyle="#fff";ctx.strokeRect(q.x-10,q.y-10,q.w+20,q.h+20);
   ctx.setLineDash([]);ctx.fillStyle="#fff";ctx.strokeStyle="#141414";ctx.lineWidth=3;ctx.beginPath();ctx.arc(q.x+q.w+10,q.y+q.h+10,20,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore()}
+/* 크기 S인 정사각형 안의 도형 경로 (가운데 0,0) */
+function shapePath(ctx,shape,S){const r=S/2;ctx.beginPath();
+  if(shape==="circle")ctx.arc(0,0,r,0,Math.PI*2);
+  else if(shape==="rect")ctx.rect(-r,-r,S,S);
+  else if(shape==="round")rr(ctx,-r,-r,S,S,S*0.17);
+  else if(shape==="arch"){ctx.moveTo(-r*0.82,r);ctx.lineTo(-r*0.82,-r*0.18);ctx.arc(0,-r*0.18,r*0.82,Math.PI,0);ctx.lineTo(r*0.82,r);ctx.closePath()}
+  else if(shape==="star"){for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rad=i%2?r*0.48:r;const px=Math.cos(a)*rad,py=Math.sin(a)*rad+r*0.07;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath()}
+  else if(shape==="heart"){const k=S/24;ctx.moveTo(0,8.6*k);ctx.bezierCurveTo(-1.2*k,7.6*k,-11.5*k,1.8*k,-11.5*k,-4.2*k);ctx.bezierCurveTo(-11.5*k,-9.6*k,-4.6*k,-11.6*k,0,-6.4*k);ctx.bezierCurveTo(4.6*k,-11.6*k,11.5*k,-9.6*k,11.5*k,-4.2*k);ctx.bezierCurveTo(11.5*k,1.8*k,1.2*k,7.6*k,0,8.6*k);ctx.closePath()}}
+function drawShapeDeco(ctx,d,selected){
+  const im=d.img,S=440*d.s;if(d.x==null||d.y==null){d.x=W/2;d.y=H*0.42}
+  ctx.save();ctx.translate(d.x,d.y);shadow(ctx,false);
+  if(d.sh){ctx.save();ctx.shadowColor="rgba(0,0,0,.38)";ctx.shadowBlur=36;ctx.shadowOffsetY=16;shapePath(ctx,d.shape,S);ctx.fillStyle="#000";ctx.fill();ctx.restore()}
+  ctx.save();shapePath(ctx,d.shape,S);ctx.clip();
+  const iw=im.width,ih=im.height,sc=Math.max(S/iw,S/ih)*(d.iz||100)/100,dw=iw*sc,dh=ih*sc;
+  if(d.flip)ctx.scale(-1,1);ctx.drawImage(im,-S/2+(S-dw)*(d.ix??50)/100,-S/2+(S-dh)*(d.iy??50)/100,dw,dh);ctx.restore();
+  if(d.bw>0){shapePath(ctx,d.shape,S);ctx.lineWidth=d.bw*2;ctx.strokeStyle=d.bc||"#ffffff";ctx.save();shapePath(ctx,d.shape,S);ctx.clip();ctx.stroke();ctx.restore()}
+  ctx.restore();d._b={x:d.x-S/2,y:d.y-S/2,w:S,h:S};if(selected)selFrame(ctx,d._b)}
 function drawImgDeco(ctx,d,selected){
-  const im=d.img;if(!im)return;const base=Math.min(1,640/Math.max(im.width,im.height)),w=im.width*base*d.s,h=im.height*base*d.s;
+  const im=d.img;if(!im)return;if(d.shape&&d.shape!=="none")return drawShapeDeco(ctx,d,selected);const base=Math.min(1,640/Math.max(im.width,im.height)),w=im.width*base*d.s,h=im.height*base*d.s;
   if(d.x==null||d.y==null){d.x=W/2;d.y=H*0.42}
   ctx.save();shadow(ctx,false);if(d.sh){ctx.shadowColor="rgba(0,0,0,.38)";ctx.shadowBlur=36;ctx.shadowOffsetY=16}
   ctx.translate(d.x,d.y);if(d.flip)ctx.scale(-1,1);ctx.drawImage(im,-w/2,-h/2,w,h);ctx.restore();
@@ -674,7 +704,18 @@ function imgDecoRow(c,d,i){
   const sh=document.createElement("label");sh.className="chk";const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!d.sh;cb.onchange=()=>{d.sh=cb.checked;paint()};sh.append(cb,"그림자");
   const bg2=document.createElement("div");bg2.className="row";bg2.style.gridColumn="1/-1";bg2.append(ai,back,sh);
   bg.append(rm,tl);
-  return [name,btns,th,lab,bg2,bg]}
+  /* 모양 고르기 */
+  const shp=document.createElement("div");shp.className="shapes";
+  for(const [k,n] of [["none","원본"],["circle","원"],["rect","네모"],["round","둥근"],["star","별"],["heart","하트"],["arch","아치"]]){
+    const b=document.createElement("button");b.className="shapeBtn";b.type="button";b.setAttribute("aria-pressed",(d.shape||"none")===k);b.title=n;b.setAttribute("aria-label",n+" 모양");
+    b.innerHTML=k==="none"?"<svg viewBox='0 0 24 24'><path d='M5 7h14v10H5z' stroke-dasharray='2 2'/></svg>":document.querySelector('#shapeAdd [data-shape="'+k+'"] svg').outerHTML;
+    const sm=document.createElement("small");sm.textContent=n;b.append(sm);b.onclick=()=>{d.shape=k;sel=i;buildDecos();paint()};shp.append(b)}
+  shp.style.gridTemplateColumns="repeat(7,1fr)";
+  if(!d.shape||d.shape==="none")return [name,btns,th,shp,lab,bg2,bg];
+  const sl=(lab0,key,min,max,def)=>{const l=document.createElement("label");l.style.gridColumn="1/-1";l.textContent=lab0;const r=document.createElement("input");r.type="range";r.min=min;r.max=max;r.value=d[key]??def;r.oninput=()=>{d[key]=+r.value;sel=i;paint()};l.append(r);return l};
+  const bc=document.createElement("label");bc.className="chk";bc.style.gap="10px";bc.textContent="테두리 색";const ci=document.createElement("input");ci.type="color";ci.value=d.bc||"#ffffff";ci.oninput=()=>{d.bc=ci.value;paint()};bc.append(ci);
+  const row3=document.createElement("div");row3.className="row";row3.style.gridColumn="1/-1";row3.append(bc,sh,flip);
+  return [name,btns,th,shp,lab,sl("안쪽 사진 확대","iz",100,300,100),sl("안쪽 좌우","ix",0,100,50),sl("안쪽 상하","iy",0,100,50),sl("테두리 두께","bw",0,30,0),row3]}
 function buildDecos(){buildLib();
   const c=S.cards[cur],box=$("decoList");box.textContent="";
   c.decos.forEach((d,i)=>{const row=document.createElement("div");row.className="deco";row.dataset.on=i===sel;
@@ -718,6 +759,14 @@ async function addSticker(blob){
   if($("autoCut").checked&&!hasAlpha(cv))await cutDeco(d);return d}
 try{const v=localStorage.getItem("rr-autocut");if(v!==null)$("autoCut").checked=v==="1"}catch(e){}
 $("autoCut").onchange=e=>{try{localStorage.setItem("rr-autocut",e.target.checked?"1":"0")}catch(x){}};
+let pendingShape="circle";
+for(const b of document.querySelectorAll("#shapeAdd .shapeBtn"))b.onclick=()=>{pendingShape=b.dataset.shape;$("shapeFile").click()};
+$("shapeFile").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{const src=await decodeImg(f),sw=src.width||src.naturalWidth,shh=src.height||src.naturalHeight,k=Math.min(1,1600/Math.max(sw,shh));
+    const cv=document.createElement("canvas");cv.width=Math.max(1,Math.round(sw*k));cv.height=Math.max(1,Math.round(shh*k));cv.getContext("2d").drawImage(src,0,0,cv.width,cv.height);
+    const c=S.cards[cur];c.decos.push({t:"img",text:"",img:cv,shape:pendingShape,iz:100,ix:50,iy:50,bw:0,bc:"#ffffff",x:null,y:null,s:1});sel=c.decos.length-1;buildDecos();paint();showTab("deco");
+    say("stickerStatus","올렸어요. 미리보기에서 옮기고 크기를 맞춰요. 안쪽 사진 위치는 목록의 슬라이더로 바꿔요.")}
+  catch(x){say("stickerStatus","이 사진은 열 수 없어요. JPG·PNG로 올려 주세요.",true)}};
 $("stickerPick").onclick=()=>$("stickerFile").click();
 $("stickerFile").onchange=async e=>{const files=[...e.target.files];e.target.value="";let bad=0;
   for(const f of files){try{await addSticker(f)}catch(x){bad++}}

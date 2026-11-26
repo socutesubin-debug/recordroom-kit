@@ -398,9 +398,10 @@ let CC=null,LS=0;
 function near(family,w){const f=FONTS.find(x=>x.n===family);return f?f.w.reduce((a,b)=>Math.abs(b-w)<Math.abs(a-w)?b:a):w}
 /* role: "t" 제목 글꼴, "b" 본문 글꼴, "x" 고정(Pretendard, 상단 표기·자리 표시) */
 let FB0={w:400,s:30,role:"b"};
+/* role "s": 표지 작은 줄 — 본문 글꼴, 원본처럼 자간을 4% 더 좁힘 */
 function font(ctx,w,s,role,st){const fixed=role==="x",family=fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);
   if(!st)FB0={w,s,role};const ww=st&&st.b?Math.min(900,Math.max(w+300,700)):w;
-  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=s*((fixed||!CC?-20:CC.ls)+(role==="t"?-15:0))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
+  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=s*((fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
 function M(ctx,t){const w=ctx.measureText(t).width;return NATIVE_LS?w:w+LS*[...t].length}
 function T(ctx,t,x,y){if(NATIVE_LS||!LS){ctx.fillText(t,x,y);return}for(const ch of t){ctx.fillText(ch,x,y);x+=ctx.measureText(ch).width+LS}}
 function TC(ctx,t,x,y){T(ctx,t,x-(M(ctx,t)-LS)/2,y)}
@@ -556,7 +557,7 @@ function drawDeco(ctx,d,selected){
     ctx.setLineDash([]);ctx.fillStyle="#fff";ctx.strokeStyle="#141414";ctx.lineWidth=3;ctx.beginPath();ctx.arc(q.x+q.w+10,q.y+q.h+10,20,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore()}
 }
 /* 원본 표지 실측: 제목 96px·줄 간격 123px, 마지막 줄 바닥에서 161px(코너가 아래면 195px),
-   작은 줄 35px, 작은 줄과 제목 사이 45px, 검은 상자는 높이 54px·좌우 여백 30px·제목과 39px */
+   작은 줄 37px 세미볼드·자간 -6%, 작은 줄과 제목 사이 45px, 검은 상자는 높이 54px·좌우 여백 30px·제목과 39px */
 function drawCover(ctx,c){
   const f=c.f,x=110,maxW=W-x*2;
   if(S.showHeader)drawHeader(ctx);
@@ -568,7 +569,7 @@ function drawCover(ctx,c){
   drawRich(ctx,tl,x-4,y,tlh,{size:ts});
   const titleTop=y-ts*0.80;
   if(!plain(f.sub).trim())return;
-  const ss=35*k,slh=ss*1.45*L;font(ctx,400,ss,"b");const sl=rich(ctx,f.sub,maxW-60);
+  const ss=37*k,slh=ss*1.4*L;font(ctx,600,ss,"s");const sl=rich(ctx,f.sub,maxW-60);
   if(S.subBox){
     const padX=30*k,bh=54*k+(sl.length-1)*slh,bottom=titleTop-39*k,top=bottom-bh,bw=widest(sl)+padX+45*k;
     shadow(ctx,false);ctx.fillStyle="#161616";ctx.fillRect(x-5,top,bw,bh);

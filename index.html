@@ -2,7 +2,14 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#151517">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RR KIT">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>레코드룸 카드뉴스 KIT</title>
 <style>
 @font-face{font-family:"Pretendard";src:url("fonts/PretendardVariable.woff2") format("woff2");font-weight:45 920;font-display:swap}
@@ -18,7 +25,36 @@
 [hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
-.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 64px;display:flex;flex-direction:column;gap:18px}
+/* layout: 위 막대 → 미리보기 → 카드 줄 → 도구 칸(스크롤) → 아래 탭. 넓은 화면에서는 미리보기 왼쪽, 도구 오른쪽 */
+html,body{height:100%}
+body{overscroll-behavior:none}
+.app{display:grid;height:100dvh;grid-template-rows:auto auto auto minmax(0,1fr) auto;grid-template-areas:"bar" "stage" "strip" "sheet" "tabs";padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.bar{grid-area:bar;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 14px 8px;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar h1{font-size:16px}
+.bar .spacer{flex:1}
+.stage{grid-area:stage;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 12px 4px}
+#preview{height:min(46dvh,calc((100vw - 24px)*1.25));width:auto;max-width:100%;aspect-ratio:4/5;border-radius:6px;display:block;background:#c9cbce;touch-action:none;box-shadow:0 1px 8px rgba(0,0,0,.12)}
+.stage .status{text-align:center;min-height:1.2em;font-size:12.5px}
+.strip{grid-area:strip;display:flex;gap:8px;overflow-x:auto;padding:4px 12px 8px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.sheet{grid-area:sheet;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 20px;display:flex;flex-direction:column;gap:14px;background:var(--surface);border-top:1px solid var(--line)}
+.tab{display:flex;flex-direction:column;gap:12px}
+.group{display:flex;flex-direction:column;gap:10px;padding-top:12px;border-top:1px solid var(--line)}
+.group:first-child{border-top:0;padding-top:0}
+.tabs{grid-area:tabs;display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs button{border:0;border-radius:0;background:none;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;font-weight:600;color:var(--muted)}
+.tabs svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabs button[aria-selected=true]{color:var(--ink)}
+.big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;flex:1;font-size:14px}
+.bigrow{display:flex;gap:10px}
+@media (min-width:900px){
+  .app{grid-template-columns:minmax(0,1fr) 440px;grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"bar bar" "stage tabs" "stage sheet" "strip sheet"}
+  .stage{justify-content:center}
+  #preview{height:min(74dvh,calc(100vw - 500px)*1.25)}
+  .tabs{border-top:0;border-bottom:1px solid var(--line);border-left:1px solid var(--line)}
+  .sheet{border-left:1px solid var(--line);border-top:0}
+  .strip{justify-content:center}
+}
 header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
 h1{font-size:20px;font-weight:800;margin:0;letter-spacing:-.02em}
 h1 span{font-weight:300}
@@ -45,14 +81,15 @@ button.ghost{border-color:transparent;color:var(--accent);padding:6px 8px}
 button:disabled{opacity:.45;cursor:default}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .strip{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px}
-.thumb{flex:0 0 auto;width:92px;padding:0;border:2px solid transparent;border-radius:8px;background:none;display:flex;flex-direction:column;gap:4px;align-items:stretch}
+.thumb{flex:0 0 auto;width:58px;padding:0;border:2px solid transparent;border-radius:8px;background:none;display:flex;flex-direction:column;gap:4px;align-items:stretch}
 .thumb canvas{width:100%;aspect-ratio:4/5;border-radius:5px;display:block;background:#c9cbce}
-.thumb span{font-size:11.5px;font-weight:600;color:var(--muted);text-align:center}
+.thumb.add{width:58px;aspect-ratio:4/5;border:1.5px dashed var(--line);font-size:24px;font-weight:300;color:var(--muted);align-items:center;justify-content:center;align-self:flex-start;margin-top:0}
+.thumb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;font-weight:600;color:var(--muted);text-align:center}
 .thumb[aria-pressed=true]{border-color:var(--ink)}
 .thumb[aria-pressed=true] span{color:var(--ink)}
 .work{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:18px;align-items:start}
 .stage{position:sticky;top:12px;display:flex;flex-direction:column;gap:8px}
-#preview{width:100%;aspect-ratio:4/5;border-radius:6px;display:block;background:#c9cbce;border:1px solid var(--line)}
+
 .status{font-size:13px;min-height:1.4em;margin:0}
 .status.warn{color:var(--warn)}
 .pill{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
@@ -76,7 +113,7 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
 .lib{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .lib button{border:0;border-radius:0;padding:7px 10px;font-weight:500;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lib button+button{border-left:1px solid var(--line);color:var(--muted)}
-#preview{touch-action:pan-y}
+
 .ai{display:flex;flex-direction:column;gap:6px;padding:10px;border:1px dashed var(--line);border-radius:8px}
 .fmt{display:inline-flex;gap:2px;align-items:center;align-self:flex-start;background:#1c1c1e;border-radius:999px;padding:4px;box-shadow:0 2px 10px rgba(0,0,0,.18)}
 .fmt button{width:40px;height:40px;border-radius:50%;border:0;background:transparent;color:#fff;font-size:18px;line-height:1;padding:0;display:grid;place-items:center}
@@ -84,131 +121,90 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
 .fmt .f-hl{width:auto;padding:0 12px;border-radius:999px;font-size:13px;font-weight:700}
 .fmt button[aria-pressed=true]{background:#E9B93A;color:#1c1c1e}
 .chk{flex-direction:row;align-items:center;gap:8px;font-weight:500;color:var(--ink);font-size:13.5px}
-@media (max-width:760px){.work,.two{grid-template-columns:1fr}.stage{position:static;max-width:420px;margin:0 auto;width:100%}}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <h1>RecordRoom.mag <span>| 카드뉴스 KIT</span></h1>
-    <p class="hint">1080×1350 · 원고를 넣고 사진을 올리면 기존 게시물과 같은 틀로 나옵니다.</p>
+<div class="app">
+  <header class="bar">
+    <h1>RR <span>KIT</span></h1>
+    <span class="pill" id="sampleTag">예시 원고</span>
+    <span class="spacer"></span>
+    <button class="primary" id="saveOne">이 카드 저장</button>
   </header>
 
-  <details class="panel" id="srcPanel">
-    <summary>원고 불러오기</summary>
-    <div class="two">
-      <div class="col" id="genBox">
-        <h2>브리핑 한 꼭지로 원고 만들기</h2>
-        <label for="brief">브리핑 내용 (제목·사실·원문 링크까지 그대로 붙여넣기)
-          <textarea id="brief" placeholder="예) 04 〈옷장 기록〉 오도어 × 이크닉 레인부츠 11/26 공개 …"></textarea></label>
-        <label for="memo">에디터 메모 (내가 멈춘 장면이나 살리고 싶은 표현)
-          <textarea id="memo" style="min-height:56px" placeholder="예) 끈이 발등부터 무릎까지 올라가는 게 좋았음"></textarea></label>
-        <div class="row">
-          <button class="primary" id="genBtn" disabled>원고 만들기</button>
-          <button id="stopBtn" hidden>멈추기</button>
-        </div>
-        <p class="status" id="genStatus">붙여넣은 내용 안의 사실만 씁니다. 메모가 없으면 관찰 카드는 비워 둡니다.</p>
-      </div>
-      <div class="col">
-        <h2>KIT 코드 붙여넣기</h2>
-        <label for="code">대화에서 받은 KIT 코드
-          <textarea id="code" placeholder='{"id":"1122-04","corner":"옷장 기록","cards":[…],"caption":"…"}'></textarea></label>
-        <div class="row">
-          <button id="applyBtn">적용</button>
-          <button id="copyCodeBtn">지금 원고를 코드로 복사</button>
-        </div>
-        <p class="status" id="codeStatus"></p>
-      </div>
-    </div>
-  </details>
-
-  <section class="panel">
-    <div class="row" style="justify-content:space-between">
-      <div class="row">
-        <h2>카드</h2><span class="pill" id="sampleTag">예시 원고</span>
-      </div>
-      <div class="row">
-        <select id="addType" aria-label="추가할 카드 유형" style="width:auto"></select>
-        <button id="addBtn">카드 추가</button>
-        <button class="ghost" id="clearBtn">모두 비우기</button>
-      </div>
-    </div>
-    <div class="strip" id="strip"></div>
-    <ul class="check" id="checkList" hidden></ul>
+  <section class="stage">
+    <canvas id="preview" width="1080" height="1350" aria-label="선택한 카드 미리보기. 사진을 끌어 옮기고 두 손가락으로 크기를 바꿉니다"></canvas>
+    <p class="status" id="saveStatus"></p>
   </section>
 
-  <section class="work">
-    <div class="stage">
-      <canvas id="preview" width="1080" height="1350" aria-label="선택한 카드 미리보기"></canvas>
+  <nav class="strip" id="strip" aria-label="카드 목록"></nav>
+
+  <main class="sheet" id="sheet">
+    <ul class="check" id="checkList" hidden></ul>
+
+    <section class="tab" id="tab-photo" role="tabpanel" aria-label="사진">
+      <div class="bigrow">
+        <button class="big primary" id="pickPhoto">이 카드에 사진·영상</button>
+        <button class="big" id="pickMulti">여러 장 한번에<small class="hint">지금 카드부터 차례로</small></button>
+      </div>
+      <p class="hint">미리보기에서 사진을 끌어 옮기고, 두 손가락으로 벌리거나 오므려 크기를 바꿔요. 사진 없는 카드는 미리보기를 누르면 바로 고를 수 있어요.</p>
       <div class="row">
-        <button class="primary" id="saveOne">이 카드 저장</button>
-        <button id="saveAll">전체 ZIP 저장</button>
+        <button id="fitAll">전체가 보이게</button><button id="fitCover">꽉 채우기</button><button id="playBtn" hidden>멈춤</button>
+        <button class="ghost" id="prevPhoto">앞 카드 사진 쓰기</button><button class="ghost" id="rmPhoto">사진 빼기</button>
       </div>
-      <label class="chk" for="transparent"><input type="checkbox" id="transparent">사진 없이 글자만 투명 PNG로 저장 (피그마에 얹을 때)</label>
-      <p class="status" id="saveStatus"></p>
-    </div>
+      <div class="ai">
+        <div class="row"><button class="primary" id="aiFill">AI로 빈 곳 채우기</button><button class="ghost" id="aiUndo" hidden>AI 채우기 되돌리기</button></div>
+        <p class="hint">사진을 줄이거나 옮겨서 생긴 빈 곳을 AI가 이어 그려요. 처음 한 번 모델(약 30MB)을 내려받고, 사진은 이 기기 밖으로 나가지 않아요.</p>
+      </div>
+      <p class="status" id="mediaStatus"></p>
+      <label for="zoom">확대 · 축소 <output id="zoomV"></output><input type="range" id="zoom" min="25" max="250"></label>
+      <label for="dim">글자 뒤 어둡게<input type="range" id="dim" min="0" max="100"></label>
+      <label for="fill">AI 없이 빈 곳 채우기<select id="fill"><option value="blur">같은 사진을 흐리게 깔기</option><option value="mirror">가장자리를 뒤집어 이어 붙이기 (바닥·벽처럼 단순한 배경용)</option><option value="color">사진과 비슷한 색</option><option value="black">검정</option><option value="white">흰색</option></select></label>
+      <details><summary class="hint">위치를 숫자로 맞추기</summary>
+        <label for="px">좌우 위치<input type="range" id="px" min="0" max="100"></label>
+        <label for="py">상하 위치<input type="range" id="py" min="0" max="100"></label>
+      </details>
+      <input type="file" id="photo" accept="image/*,video/*" hidden>
+      <input type="file" id="photoMulti" accept="image/*,video/*" multiple hidden>
+    </section>
 
-    <div class="col" style="gap:14px">
-      <div class="panel">
-        <div class="row" style="justify-content:space-between">
-          <h2 id="cardTitle">카드</h2>
-          <div class="row">
-            <button class="ghost" id="moveL">앞으로</button>
-            <button class="ghost" id="moveR">뒤로</button>
-            <button class="ghost" id="delBtn">삭제</button>
-          </div>
+    <section class="tab" id="tab-text" role="tabpanel" aria-label="글" hidden>
+      <div class="row" style="justify-content:space-between">
+        <h2 id="cardTitle">카드</h2>
+        <div class="row">
+          <button class="ghost" id="moveL">앞으로</button>
+          <button class="ghost" id="moveR">뒤로</button>
+          <button class="ghost" id="delBtn">삭제</button>
         </div>
-        <label for="typeSel">유형<select id="typeSel"></select></label>
-        <div class="col" id="fields"></div>
       </div>
+      <label for="typeSel">유형<select id="typeSel"></select></label>
+      <div class="col" id="fields"></div>
+      <div class="row group">
+        <select id="addType" aria-label="추가할 카드 유형" style="width:auto"></select>
+        <button id="addBtn">이 뒤에 카드 추가</button>
+      </div>
+    </section>
 
-      <div class="panel">
-        <div class="row" style="justify-content:space-between"><h2>글자</h2>
+    <section class="tab" id="tab-type" role="tabpanel" aria-label="글자" hidden>
+      <div class="group">
+        <div class="row" style="justify-content:space-between"><h2>이 카드 글자</h2>
           <div class="row"><button class="ghost" id="typoReset">처음 값으로</button><button class="ghost" id="typoAll">모든 카드에 같은 값</button></div></div>
         <label for="scale">크기 <output id="scaleV"></output><input type="range" id="scale" min="60" max="160"></label>
         <label for="ls">자간 <output id="lsV"></output><input type="range" id="ls" min="-100" max="300" step="5"></label>
         <label for="lh">행간 <output id="lhV"></output><input type="range" id="lh" min="70" max="180"></label>
       </div>
-
-      <div class="panel">
-        <h2>꾸미기 요소</h2>
-        <div class="row" id="decoAdd"></div>
-        <p class="hint">미리보기에서 끌어서 옮기고, 오른쪽 아래 점을 끌거나 두 손가락으로 벌려 크기를 바꿉니다.</p>
-        <div class="col" id="decoList"></div>
-        <h2>보관함</h2>
-        <div class="row" id="decoLib"></div>
-        <p class="status" id="libStatus"></p>
-      </div>
-
-      <div class="panel">
-        <h2>사진 · 영상</h2>
-        <div class="row">
-          <input type="file" id="photo" accept="image/*,video/*" style="max-width:100%">
-          <button id="prevPhoto">앞 카드 사진 쓰기</button>
-          <button class="ghost" id="rmPhoto">사진 빼기</button>
-        </div>
-        <label for="px">좌우 위치<input type="range" id="px" min="0" max="100"></label>
-        <label for="py">상하 위치<input type="range" id="py" min="0" max="100"></label>
-        <label for="zoom">확대 · 축소 <output id="zoomV"></output><input type="range" id="zoom" min="25" max="250"></label>
-        <div class="row">
-          <button id="fitAll">전체가 보이게</button><button id="fitCover">화면 꽉 채우기</button><button id="playBtn" hidden>멈춤</button>
-        </div>
-        <label for="fill">줄였을 때 빈 곳 채우기<select id="fill"><option value="blur">같은 사진을 흐리게 깔기</option><option value="mirror">가장자리를 뒤집어 이어 붙이기 (바닥·벽처럼 단순한 배경용)</option><option value="color">사진과 비슷한 색</option><option value="black">검정</option><option value="white">흰색</option></select></label>
-        <div class="ai">
-          <div class="row"><button class="primary" id="aiFill">AI로 빈 곳 채우기</button><button class="ghost" id="aiUndo" hidden>AI 채우기 되돌리기</button></div>
-          <p class="hint">사진을 줄이거나 옮겨서 생긴 빈 곳을 AI가 이어 그려요. 처음 한 번 모델(약 30MB)을 내려받고, 사진은 이 기기 밖으로 나가지 않아요.</p>
-        </div>
-        <p class="status" id="mediaStatus"></p>
-        <label for="dim">어둡게<input type="range" id="dim" min="0" max="100"></label>
-      </div>
-
-      <div class="panel">
-        <h2>공통</h2>
-        <div class="two">
-          <label for="kid">저장 파일 이름 (브리핑 날짜-번호를 쓰면 찾기 쉬워요)<input type="text" id="kid" placeholder="1122-04"></label>
-          <label for="corner">코너 (표지 상단)<input type="text" id="corner" list="corners"></label>
-        </div>
+      <div class="group">
+        <h2>표지 상단 코너</h2>
+        <label for="corner">코너 이름<input type="text" id="corner" list="corners"></label>
         <datalist id="corners"><option value="옷장 기록"></option><option value="생활 기록"></option><option value="Fashion"></option><option value="ISSUE"></option></datalist>
+        <div class="row">
+          <label class="chk" for="hdrColor" style="gap:10px">색<input type="color" id="hdrColor"></label>
+          <span class="row" id="hdrSwatches"></span>
+          <label class="chk" for="showHeader"><input type="checkbox" id="showHeader">표시</label>
+        </div>
+      </div>
+      <div class="group">
         <div class="row" style="justify-content:space-between">
           <div class="seg" role="group" aria-label="바꿀 글꼴">
             <button id="roleT" aria-pressed="true">제목 글꼴</button><button id="roleB" aria-pressed="false">본문 글꼴</button>
@@ -218,26 +214,73 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
         <div id="fontGrid"></div>
         <label for="fontFile">내 글꼴 파일 올리기 (.ttf · .otf · .woff2)<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2"></label>
         <p class="status" id="fontStatus"></p>
-        <div class="row">
-          <label class="chk" for="hl" style="gap:10px">형광펜 색<input type="color" id="hl"></label>
-          <label class="chk" for="showHeader"><input type="checkbox" id="showHeader">표지 상단에 코너 표시</label>
-        </div>
+        <label class="chk" for="hl" style="gap:10px">형광펜 색<input type="color" id="hl"></label>
+      </div>
+      <div class="group">
         <div class="row"><button id="saveStyle">지금 스타일을 내 기본값으로 저장</button><button class="ghost" id="resetStyle">기본값 지우기</button></div>
         <p class="status" id="styleStatus"></p>
       </div>
+    </section>
 
-      <div class="panel">
+    <section class="tab" id="tab-deco" role="tabpanel" aria-label="꾸미기" hidden>
+      <div class="row" id="decoAdd"></div>
+      <p class="hint">미리보기에서 끌어서 옮기고, 오른쪽 아래 점을 끌거나 두 손가락으로 벌려 크기를 바꿉니다.</p>
+      <div class="col" id="decoList"></div>
+      <div class="group">
+        <h2>보관함</h2>
+        <div class="row" id="decoLib"></div>
+        <p class="status" id="libStatus"></p>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-more" role="tabpanel" aria-label="더보기" hidden>
+      <div class="group">
+        <h2>저장</h2>
+        <label for="kid">저장 파일 이름 (브리핑 날짜-번호를 쓰면 찾기 쉬워요)<input type="text" id="kid" placeholder="1122-04"></label>
+        <div class="row"><button class="primary" id="saveAll">전체 ZIP 저장</button></div>
+        <label class="chk" for="transparent"><input type="checkbox" id="transparent">사진 없이 글자만 투명 PNG로 저장 (피그마에 얹을 때)</label>
+      </div>
+      <div class="group">
         <div class="row" style="justify-content:space-between"><h2>캡션</h2><button id="copyCap">캡션 복사</button></div>
         <textarea id="caption" style="min-height:140px" aria-label="캡션" placeholder="선택한 이유로 시작 → 카드에 못 넣은 이야기 하나 → 원문 출처"></textarea>
         <p class="status" id="capStatus"></p>
       </div>
-    </div>
-  </section>
+      <div class="group">
+        <h2>원고 불러오기</h2>
+        <label for="code">대화에서 받은 KIT 코드
+          <textarea id="code" placeholder='{"id":"1122-04","corner":"옷장 기록","cards":[…],"caption":"…"}'></textarea></label>
+        <div class="row">
+          <button id="applyBtn">적용</button>
+          <button id="copyCodeBtn">지금 원고를 코드로 복사</button>
+        </div>
+        <p class="status" id="codeStatus"></p>
+        <details id="genBox"><summary class="hint">브리핑으로 원고 만들기 (Claude 안에서 연 KIT 전용)</summary>
+          <label for="brief">브리핑 내용<textarea id="brief" placeholder="예) 04 〈옷장 기록〉 오도어 × 이크닉 레인부츠 11/26 공개 …"></textarea></label>
+          <label for="memo">에디터 메모<textarea id="memo" style="min-height:56px" placeholder="예) 끈이 발등부터 무릎까지 올라가는 게 좋았음"></textarea></label>
+          <div class="row"><button class="primary" id="genBtn" disabled>원고 만들기</button><button id="stopBtn" hidden>멈추기</button></div>
+          <p class="status" id="genStatus">붙여넣은 내용 안의 사실만 씁니다.</p>
+        </details>
+      </div>
+      <div class="group">
+        <h2>앱처럼 쓰기</h2>
+        <p class="hint">아이폰: Safari 공유 버튼 → 홈 화면에 추가. 갤럭시: Chrome 메뉴 → 홈 화면에 추가 또는 앱 설치. 한 번 연 뒤에는 AI 모델이 저장돼서 다음부터 빨라져요.</p>
+        <button class="ghost" id="clearBtn" style="align-self:flex-start">원고 모두 비우기</button>
+      </div>
+    </section>
 
-  <section class="panel" id="outPanel" hidden>
-    <h2>이미지로 펼치기 — 길게 눌러 저장</h2>
-    <div class="out" id="out"></div>
-  </section>
+    <section class="group" id="outPanel" hidden>
+      <h2>이미지로 펼치기 — 길게 눌러 저장</h2>
+      <div class="out" id="out"></div>
+    </section>
+  </main>
+
+  <nav class="tabs" role="tablist" aria-label="도구">
+    <button role="tab" data-tab="photo" aria-selected="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg>사진</button>
+    <button role="tab" data-tab="text" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>글</button>
+    <button role="tab" data-tab="type" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 19L11 5l6 14M7.5 14h7"/></svg>글자</button>
+    <button role="tab" data-tab="deco" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>꾸미기</button>
+    <button role="tab" data-tab="more" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>더보기</button>
+  </nav>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -293,10 +336,10 @@ function fromData(d){
     if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1});
     for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","zoom","dim","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;return n});
   const st=getStyle();
-  return {id:String(d.id||""),corner:String(d.corner||"옷장 기록"),hl:/^#[0-9a-f]{6}$/i.test(d.hl)?d.hl:"#8B0A7E",showHeader:d.showHeader!==false,sample:!!d.sample,fontT:String(d.fontT||st.fontT||"Pretendard"),fontB:String(d.fontB||st.fontB||"Pretendard"),
+  return {id:String(d.id||""),corner:String(d.corner||"옷장 기록"),hl:/^#[0-9a-f]{6}$/i.test(d.hl)?d.hl:"#8B0A7E",showHeader:d.showHeader!==false,hdr:/^#[0-9a-f]{6}$/i.test(d.hdr)?d.hdr:(/^#[0-9a-f]{6}$/i.test(st.hdr||"")?st.hdr:"#ffffff"),sample:!!d.sample,fontT:String(d.fontT||st.fontT||"Pretendard"),fontB:String(d.fontB||st.fontB||"Pretendard"),
     check:Array.isArray(d.check)?d.check.map(String):[],caption:String(d.caption||""),cards:cards.length?cards:[newCard("cover")]};
 }
-function toData(){return {id:S.id,corner:S.corner,hl:S.hl,fontT:S.fontT,fontB:S.fontB,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,fill:c.fill,decos:c.decos.map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s}))}))}}
+function toData(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,fontT:S.fontT,fontB:S.fontB,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,fill:c.fill,decos:c.decos.map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s}))}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
 
@@ -414,7 +457,8 @@ function drawDim(ctx,c){
 function drawHeader(ctx){
   const y=78,a="RecordRoom.mag",b=S.corner||"",gap=17;
   font(ctx,800,25,"x");const wa=M(ctx,a);font(ctx,300,25,"x");const wb=M(ctx,b);
-  let x=(W-(wa+(b?gap*2+2+wb:0)))/2;ctx.fillStyle="#fff";shadow(ctx,true);
+  const hx=S.hdr||"#ffffff",lum=(parseInt(hx.slice(1,3),16)*299+parseInt(hx.slice(3,5),16)*587+parseInt(hx.slice(5,7),16)*114)/255000;
+  let x=(W-(wa+(b?gap*2+2+wb:0)))/2;ctx.fillStyle=hx;shadow(ctx,lum>0.55);
   font(ctx,800,25,"x");T(ctx,a,x,y);if(!b)return;x+=wa+gap;ctx.fillRect(x,y-22,1.5,28);x+=gap+2;font(ctx,300,25,"x");T(ctx,b,x,y);
 }
 function drawDeco(ctx,d,selected){
@@ -519,6 +563,8 @@ function buildStrip(){
   S.cards.forEach((c,i)=>{const b=document.createElement("button");b.className="thumb";b.dataset.i=i;b.setAttribute("aria-pressed",i===cur);
     const cv=document.createElement("canvas");cv.width=216;cv.height=270;const sp=document.createElement("span");sp.textContent=(i+1)+" · "+TYPES[c.type].label;
     b.append(cv,sp);b.onclick=()=>{cur=i;sel=-1;buildAll()};st.append(b)});
+  const add=document.createElement("button");add.className="thumb add";add.textContent="+";add.setAttribute("aria-label","카드 추가");add.title="카드 추가";
+  add.onclick=()=>{S.cards.splice(cur+1,0,newCard("body"));cur++;sel=-1;buildAll();const t=document.querySelector('.thumb[data-i="'+cur+'"]');if(t)t.scrollIntoView({inline:"center",block:"nearest"})};st.append(add);
   $("sampleTag").hidden=!S.sample;
   const cl=$("checkList");cl.textContent="";cl.hidden=!S.check.length;S.check.forEach(t=>{const li=document.createElement("li");li.textContent="검수: "+t;cl.append(li)});
 }
@@ -583,18 +629,33 @@ for(const k in DECO){const b=document.createElement("button");b.textContent="+ "
   pv.addEventListener("pointerdown",e=>{const p=pos(e),ds=S.cards[cur].decos;pts.set(e.pointerId,p);
     if(pts.size===2&&sel>=0&&ds[sel]){const [a,b]=[...pts.values()];drag={mode:"pinch",d0:Math.hypot(a.x-b.x,a.y-b.y)||1,s0:ds[sel].s};return}
     if(sel>=0&&ds[sel]&&ds[sel]._b){const b=ds[sel]._b;if(Math.hypot(p.x-(b.x+b.w+10),p.y-(b.y+b.h+10))<62){drag={mode:"size",d0:Math.hypot(p.x-ds[sel].x,p.y-ds[sel].y)||1,s0:ds[sel].s};try{pv.setPointerCapture(e.pointerId)}catch(x){}return}}
-    const i=hit(p);if(i<0){drag=null;if(sel>=0){sel=-1;buildDecos();draw()}return}
+    const i=hit(p);
+    if(i<0){const c=S.cards[cur];if(sel>=0){sel=-1;buildDecos();draw()}
+      if(pts.size>=2&&c.img){const [a,b]=[...pts.values()];drag={mode:"pzoom",d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:c.zoom};return}
+      drag=c.img?{mode:"photo",x0:p.x,y0:p.y,px0:c.px,py0:c.py,moved:false}:{mode:"tap",x0:p.x,y0:p.y,moved:false};
+      try{pv.setPointerCapture(e.pointerId)}catch(x){}return}
     sel=i;drag={mode:"move",ox:p.x-ds[i].x,oy:p.y-ds[i].y};try{pv.setPointerCapture(e.pointerId)}catch(x){}buildDecos();draw()});
-  pv.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId))return;const p=pos(e);pts.set(e.pointerId,p);const d=S.cards[cur].decos[sel];if(!drag||!d)return;
+  pv.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId))return;const p=pos(e);pts.set(e.pointerId,p);if(!drag)return;
+    if(drag.mode==="photo"||drag.mode==="tap"||drag.mode==="pzoom"){const c=S.cards[cur];
+      if(Math.hypot(p.x-(drag.x0||0),p.y-(drag.y0||0))>12)drag.moved=true;
+      if(drag.mode==="pzoom"&&pts.size>=2){const [a,b]=[...pts.values()];c.zoom=Math.round(Math.min(250,Math.max(25,drag.z0*Math.hypot(a.x-b.x,a.y-b.y)/drag.d0)));$("zoom").value=c.zoom;$("zoomV").textContent=c.zoom+"%";draw()}
+      else if(drag.mode==="photo"&&c.img){const iw=c.img.videoWidth||c.img.width,ih=c.img.videoHeight||c.img.height,sc=Math.max(W/iw,H/ih)*(c.zoom/100),spx=W-iw*sc,spy=H-ih*sc;
+        if(Math.abs(spx)>1)c.px=Math.min(100,Math.max(0,drag.px0+(p.x-drag.x0)/spx*100));
+        if(Math.abs(spy)>1)c.py=Math.min(100,Math.max(0,drag.py0+(p.y-drag.y0)/spy*100));draw()}
+      return}
+    const d=S.cards[cur].decos[sel];if(!d)return;
     if(drag.mode==="move"){d.x=Math.min(W+200,Math.max(-200,p.x-drag.ox));d.y=Math.min(H+100,Math.max(-100,p.y-drag.oy))}
     else if(drag.mode==="size")d.s=clampS(drag.s0*Math.hypot(p.x-d.x,p.y-d.y)/drag.d0);
     else if(pts.size>=2){const [a,b]=[...pts.values()];d.s=clampS(drag.s0*Math.hypot(a.x-b.x,a.y-b.y)/drag.d0)}
     draw()});
-  const end=e=>{pts.delete(e.pointerId);if(drag&&(drag.mode!=="pinch"||pts.size<2)){drag=null;buildDecos();paint()}};
+  const end=e=>{pts.delete(e.pointerId);if(!drag)return;
+    if(drag.mode==="tap"){const open=!drag.moved&&e.type==="pointerup";drag=null;if(open)$("photo").click();return}
+    if(drag.mode==="photo"||drag.mode==="pzoom"){if(drag.mode==="pzoom"&&pts.size>=2)return;drag=null;$("px").value=Math.round(S.cards[cur].px);$("py").value=Math.round(S.cards[cur].py);paint();return}
+    if(drag.mode!=="pinch"||pts.size<2){drag=null;buildDecos();paint()}};
   pv.addEventListener("pointerup",end);pv.addEventListener("pointercancel",end);
   for(const ev of ["touchstart","touchmove"])pv.addEventListener(ev,e=>{if(drag)e.preventDefault()},{passive:false});
 })();
-function buildAll(){buildStrip();buildFields();fillFontSelects();$("kid").value=S.id;$("corner").value=S.corner;$("hl").value=S.hl;$("showHeader").checked=S.showHeader;$("caption").value=S.caption;paint()}
+function buildAll(){buildStrip();buildFields();fillFontSelects();$("kid").value=S.id;$("corner").value=S.corner;$("hl").value=S.hl;$("showHeader").checked=S.showHeader;$("hdrColor").value=S.hdr;$("caption").value=S.caption;paint()}
 function say(id,t,warn){const e=$(id);e.textContent=t||"";e.classList.toggle("warn",!!warn)}
 
 for(const k of ["scale","ls","lh"])$(k).oninput=e=>{S.cards[cur][k]=+e.target.value;showTypo();paint()};
@@ -607,7 +668,7 @@ $("fontFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;co
     say("fontStatus","'"+name+"'을 "+(role==="fontT"?"제목":"본문")+" 글꼴로 넣었어요. 목록 맨 아래 '내 글꼴'에서 다시 고를 수 있고, 페이지를 다시 열면 한 번 더 올려야 합니다.")}
   catch(err){say("fontStatus","이 글꼴 파일은 열 수 없어요. ttf, otf, woff2 파일인지 확인해 주세요.",true)}e.target.value=""};
 $("saveStyle").onclick=()=>{const types={};for(const c of S.cards)types[c.type]={scale:c.scale,ls:c.ls,lh:c.lh,dim:c.dim};
-  try{const old=getStyle();localStorage.setItem("rr-style",JSON.stringify({fontT:S.fontT,fontB:S.fontB,types:Object.assign({},old.types,types)}));say("styleStatus","저장했어요. 새 원고는 이 글꼴과 유형별 크기·자간·행간으로 시작합니다.")}
+  try{const old=getStyle();localStorage.setItem("rr-style",JSON.stringify({fontT:S.fontT,fontB:S.fontB,hdr:S.hdr,types:Object.assign({},old.types,types)}));say("styleStatus","저장했어요. 새 원고는 이 글꼴과 유형별 크기·자간·행간으로 시작합니다.")}
   catch(e){say("styleStatus","이 브라우저에는 저장할 수 없어요. 'KIT 코드로 복사'로 보관해 주세요.",true)}};
 $("resetStyle").onclick=()=>{try{localStorage.removeItem("rr-style")}catch(e){}say("styleStatus","기본값을 지웠어요. 새 원고는 처음 설정으로 시작합니다.")};
 for(const sel of [$("typeSel"),$("addType")])for(const k in TYPES){const o=document.createElement("option");o.value=k;o.textContent=TYPES[k].label;sel.append(o)}
@@ -628,15 +689,28 @@ $("kid").oninput=e=>{S.id=e.target.value;persist()};
 $("corner").oninput=e=>{S.corner=e.target.value;paint()};
 $("hl").oninput=e=>{S.hl=e.target.value;paint()};
 $("showHeader").onchange=e=>{S.showHeader=e.target.checked;paint()};
+$("hdrColor").oninput=e=>{S.hdr=e.target.value;paint()};
+for(const [hex,name] of [["#ffffff","흰색"],["#141414","검정"],["#0A7CFF","파랑"],["#E9B93A","노랑"],["#8B0A7E","보라"],["#D93A2B","빨강"]]){
+  const b=document.createElement("button");b.type="button";b.title=name;b.setAttribute("aria-label","코너 색 "+name);
+  b.style.cssText="width:28px;height:28px;padding:0;border-radius:50%;border:1px solid var(--line);background:"+hex;
+  b.onclick=()=>{S.hdr=hex;$("hdrColor").value=hex;paint()};$("hdrSwatches").append(b)}
 $("caption").oninput=e=>{S.caption=e.target.value;persist()};
-$("photo").onchange=e=>{const file=e.target.files[0];if(!file)return;const url=URL.createObjectURL(file),c=S.cards[cur];
-  const set=m=>{c.orig=null;c.img=m;c.px=50;c.py=50;c.zoom=100;e.target.value="";buildFields();paint()};
-  const fail=()=>{URL.revokeObjectURL(url);say("mediaStatus","이 파일은 열 수 없어요. JPG·PNG 사진이나 MP4·MOV 영상으로 다시 올려 주세요.",true)};
-  if(file.type.startsWith("video/")){const v=document.createElement("video");v.muted=true;v.loop=true;v.playsInline=true;v.preload="auto";
-    v.onloadeddata=()=>{set(v);v.play().then(kick).catch(()=>{});say("mediaStatus","영상 "+v.duration.toFixed(1)+"초. 글자와 꾸미기 요소가 영상 위에 그대로 얹혀 저장됩니다.")};v.onerror=fail;v.src=url;return}
+function loadMedia(c,file){return new Promise(res=>{
+  const url=URL.createObjectURL(file),set=m=>{c.orig=null;c.img=m;c.px=50;c.py=50;c.zoom=100;res(m)},fail=()=>{URL.revokeObjectURL(url);res(null)};
+  if(file.type.startsWith("video/")){const v=document.createElement("video");v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute("playsinline","");v.preload="auto";
+    v.onloadeddata=()=>{set(v);v.play().then(kick).catch(()=>{})};v.onerror=fail;v.src=url;return}
   const im=new Image();
-  im.onload=()=>{const k=Math.min(1,2400/Math.max(im.naturalWidth,im.naturalHeight)),cv=document.createElement("canvas");cv.width=Math.round(im.naturalWidth*k);cv.height=Math.round(im.naturalHeight*k);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);URL.revokeObjectURL(url);say("mediaStatus","");set(cv)};
-  im.onerror=fail;im.src=url};
+  im.onload=()=>{const k=Math.min(1,2400/Math.max(im.naturalWidth,im.naturalHeight)),cv=document.createElement("canvas");cv.width=Math.round(im.naturalWidth*k);cv.height=Math.round(im.naturalHeight*k);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);URL.revokeObjectURL(url);set(cv)};
+  im.onerror=fail;im.src=url})}
+const BADFILE="이 파일은 열 수 없어요. JPG·PNG 사진이나 MP4·MOV 영상으로 다시 올려 주세요.";
+$("pickPhoto").onclick=()=>$("photo").click();
+$("pickMulti").onclick=()=>$("photoMulti").click();
+$("photo").onchange=async e=>{const file=e.target.files[0];e.target.value="";if(!file)return;
+  const m=await loadMedia(S.cards[cur],file);if(!m){say("mediaStatus",BADFILE,true);return}
+  say("mediaStatus",isVid(S.cards[cur])?"영상 "+m.duration.toFixed(1)+"초. 글자와 꾸미기 요소가 영상 위에 그대로 얹혀 저장됩니다.":"");buildAll()};
+$("photoMulti").onchange=async e=>{const files=[...e.target.files];e.target.value="";if(!files.length)return;
+  let bad=0;for(let i=0;i<files.length;i++){const idx=cur+i;if(!S.cards[idx])S.cards.push(newCard("body"));say("mediaStatus","사진 넣는 중… "+(i+1)+"/"+files.length);if(!await loadMedia(S.cards[idx],files[i]))bad++}
+  buildAll();say("mediaStatus",(files.length-bad)+"장을 "+(cur+1)+"번 카드부터 차례로 넣었어요."+(bad?" 열 수 없는 파일 "+bad+"개는 건너뛰었어요.":""),!!bad)};
 $("prevPhoto").onclick=()=>{const p=S.cards[cur-1],c=S.cards[cur];c.img=p.img;c.px=p.px;c.py=p.py;c.zoom=p.zoom;buildFields();paint()};
 $("rmPhoto").onclick=()=>{S.cards[cur].img=null;buildFields();paint()};
 
@@ -788,6 +862,14 @@ function initGen(sample){
     finally{$("genBtn").disabled=false;$("stopBtn").hidden=true}
   };
 }
+
+/* ---------- 탭 ---------- */
+function showTab(name){for(const b of document.querySelectorAll(".tabs button")){const on=b.dataset.tab===name;b.setAttribute("aria-selected",on);$("tab-"+b.dataset.tab).hidden=!on}
+  $("sheet").scrollTop=0;try{localStorage.setItem("rr-tab",name)}catch(e){}}
+for(const b of document.querySelectorAll(".tabs button"))b.onclick=()=>showTab(b.dataset.tab);
+try{const t=localStorage.getItem("rr-tab");if(t&&$("tab-"+t))showTab(t)}catch(e){}
+document.addEventListener("focusin",e=>{if(e.target.closest&&e.target.closest("#decoList")&&$("tab-deco").hidden)showTab("deco")});
+if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 
 /* ---------- 시작 ---------- */
 S=restore();buildAll();

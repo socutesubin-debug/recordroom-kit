@@ -84,6 +84,10 @@ output{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
 label{font-size:12.5px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;gap:5px}
 label:has(output){display:grid;grid-template-columns:1fr auto;align-items:center}
 label:has(output) input{grid-column:1/-1}
+label.wrow{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 10px;margin-top:-4px;font-size:13px;color:var(--muted)}
+label.wrow output{color:var(--ink);font-size:13px}
+label.wrow input{grid-column:1/3}
+label.wrow button{min-height:32px;padding:0 10px;font-size:13px}
 input[type=text],textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
 textarea{resize:vertical;min-height:84px;line-height:1.5}
 input[type=range]{width:100%;accent-color:var(--accent)}
@@ -243,6 +247,7 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
           <label class="chk" for="showHeader"><input type="checkbox" id="showHeader">표시</label>
         </div>
         <div class="row"><span class="hint">위치</span><div class="seg" role="group" aria-label="코너 위치"><button id="hdrTop" aria-pressed="true">위</button><button id="hdrBottom" aria-pressed="false">아래</button></div></div>
+        <div id="hdrWeights"></div>
       </div>
       <div class="group">
         <h2>표지 작은 줄</h2>
@@ -400,16 +405,16 @@ let S, cur=0, sel=-1;
 const $=id=>document.getElementById(id);
 const off=document.createElement("canvas");off.width=W;off.height=H;
 
-function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??(type==="outro"?0:-20),lh:d.lh??100};if(type==="grid"){c.slots=[0,1,2].map(()=>({img:null,px:50,py:50,zoom:100}));c.si=0}const df=Object.assign({},TYPES[type].def,(getStyle().defF||{})[type]);for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:(df[k]||"");return c}
+function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??(type==="outro"?0:-20),lh:d.lh??100};if(d.fw)c.fw={...d.fw};if(type==="grid"){c.slots=[0,1,2].map(()=>({img:null,px:50,py:50,zoom:100}));c.si=0}const df=Object.assign({},TYPES[type].def,(getStyle().defF||{})[type]);for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:(df[k]||"");return c}
 function fromData(d){
   const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{const t=TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
-    if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1});
-    for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;return n});
+    if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined});
+    for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;if(c.fw&&typeof c.fw==="object"){n.fw={};for(const k in c.fw)if(+c.fw[k]>=100&&+c.fw[k]<=900)n.fw[k]=+c.fw[k]}return n});
   const st=getStyle();
-  return {id:String(d.id||""),corner:String(d.corner||"옷장 기록"),hl:/^#[0-9a-f]{6}$/i.test(d.hl)?d.hl:"#8B0A7E",showHeader:d.showHeader!==false,hdrPos:d.hdrPos==="bottom"?"bottom":(d.hdrPos==="top"?"top":(st.hdrPos||"top")),subBox:typeof d.subBox==="boolean"?d.subBox:!!st.subBox,ac:/^#[0-9a-f]{6}$/i.test(d.ac||"")?d.ac:(st.ac||"#DDF53F"),hdr:/^#[0-9a-f]{6}$/i.test(d.hdr)?d.hdr:(/^#[0-9a-f]{6}$/i.test(st.hdr||"")?st.hdr:"#ffffff"),sample:!!d.sample,fontT:String(d.fontT||st.fontT||"Pretendard"),fontB:String(d.fontB||st.fontB||"Pretendard"),
+  return {id:String(d.id||""),corner:String(d.corner||"옷장 기록"),hl:/^#[0-9a-f]{6}$/i.test(d.hl)?d.hl:"#8B0A7E",showHeader:d.showHeader!==false,hdrPos:d.hdrPos==="bottom"?"bottom":(d.hdrPos==="top"?"top":(st.hdrPos||"top")),subBox:typeof d.subBox==="boolean"?d.subBox:!!st.subBox,ac:/^#[0-9a-f]{6}$/i.test(d.ac||"")?d.ac:(st.ac||"#DDF53F"),hdr:/^#[0-9a-f]{6}$/i.test(d.hdr)?d.hdr:(/^#[0-9a-f]{6}$/i.test(st.hdr||"")?st.hdr:"#ffffff"),sample:!!d.sample,fontT:String(d.fontT||st.fontT||"Pretendard"),fontB:String(d.fontB||st.fontB||"Pretendard"),hwa:+(d.hwa||st.hwa)||800,hwb:+(d.hwb||st.hwb)||300,
     check:Array.isArray(d.check)?d.check.map(String):[],caption:String(d.caption||""),cards:cards.length?cards:[newCard("cover")]};
 }
-function toData(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s}))}))}}
+function toData(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
 
@@ -421,6 +426,9 @@ function near(family,w){const f=FONTS.find(x=>x.n===family);return f?f.w.reduce(
 let FB0={w:400,s:30,role:"b"};
 /* role "s": 표지 작은 줄 — 본문 글꼴, 원본처럼 자간을 4% 더 좁힘 */
 /* role "x0"/"x1": 고정 글꼴에 자간 0 / +1% (제품 3컷 글자) */
+/* 글 굵기: 카드마다 칸별로 바꿀 수 있음(c.fw). 없으면 원래 디자인 굵기 */
+const DEFW={cover:{title:700,sub:600},body:{text:500},qa:{q:700,text:500,note:400},product:{brand:800,name:400,price:500},intro:{title:700,text:500},outro:{text:400,mark:800},grid:{brand:800,name:500,foot:400}};
+function fw(f,w){return (CC&&CC.fw&&CC.fw[f])||w}
 function font(ctx,w,s,role,st){const fixed=role==="x"||role==="x0"||role==="x1",family=fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);
   if(!st)FB0={w,s,role};const ww=st&&st.b?Math.min(900,Math.max(w+300,700)):w;
   ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
@@ -534,10 +542,10 @@ function drawDim(ctx,c){
 }
 function drawHeader(ctx){
   const y=S.hdrPos==="bottom"?H-80:78,a="RecordRoom.mag",b=S.corner||"",gap=17;
-  font(ctx,800,25,"x");const wa=M(ctx,a);font(ctx,300,25,"x");const wb=M(ctx,b);
+  const WA=S.hwa||800,WB=S.hwb||300;font(ctx,WA,25,"x");const wa=M(ctx,a);font(ctx,WB,25,"x");const wb=M(ctx,b);
   const hx=S.hdr||"#ffffff",lum=(parseInt(hx.slice(1,3),16)*299+parseInt(hx.slice(3,5),16)*587+parseInt(hx.slice(5,7),16)*114)/255000;
   let x=(W-(wa+(b?gap*2+2+wb:0)))/2;ctx.fillStyle=hx;shadow(ctx,lum>0.55);
-  font(ctx,800,25,"x");T(ctx,a,x,y);if(!b)return;x+=wa+gap;ctx.fillRect(x,y-22,1.5,28);x+=gap+2;font(ctx,300,25,"x");T(ctx,b,x,y);
+  font(ctx,WA,25,"x");T(ctx,a,x,y);if(!b)return;x+=wa+gap;ctx.fillRect(x,y-22,1.5,28);x+=gap+2;font(ctx,WB,25,"x");T(ctx,b,x,y);
 }
 function selFrame(ctx,q){ctx.save();shadow(ctx,false);ctx.lineWidth=3;ctx.setLineDash([14,10]);ctx.strokeStyle="rgba(0,0,0,.55)";ctx.strokeRect(q.x-10,q.y-10,q.w+20,q.h+20);ctx.lineDashOffset=12;ctx.strokeStyle="#fff";ctx.strokeRect(q.x-10,q.y-10,q.w+20,q.h+20);
   ctx.setLineDash([]);ctx.fillStyle="#fff";ctx.strokeStyle="#141414";ctx.lineWidth=3;ctx.beginPath();ctx.arc(q.x+q.w+10,q.y+q.h+10,20,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore()}
@@ -566,7 +574,7 @@ function drawImgDeco(ctx,d,selected){
   d._b={x:d.x-w/2,y:d.y-h/2,w,h};if(selected)selFrame(ctx,d._b)}
 function drawDeco(ctx,d,selected){
   if(d.t==="img")return drawImgDeco(ctx,d,selected);
-  const t=d.t,fs=t==="badge"||t==="bubble"?31:t==="text"?30:29,wt=t==="badge"||t==="text"?600:400;
+  const t=d.t,fs=t==="badge"||t==="bubble"?31:t==="text"?30:29,wt=d.fw||(t==="badge"||t==="text"?600:400);
   font(ctx,wt,fs,"b");
   const lines=rich(ctx,d.text||" ",t==="box"?720:560),lh=fs*1.4,padX=t==="text"?6:t==="badge"?26:t==="bubble"?46:40,padY=t==="text"?4:t==="badge"?13:t==="bubble"?31:26;
   const tw=widest(lines),w=tw+padX*2,h=(lines.length-1)*lh+fs*1.12+padY*2;
@@ -589,14 +597,14 @@ function drawCover(ctx,c){
   const f=c.f,x=110,maxW=W-x*2;
   if(S.showHeader)drawHeader(ctx);
   const k=c.scale/100,L=c.lh/100;
-  let ts=96*k;font(ctx,700,ts,"t");
-  while(ts>60&&widest(rich(ctx,f.title,1e9))>maxW){ts-=2;font(ctx,700,ts,"t")}
+  let ts=96*k;font(ctx,fw("title",700),ts,"t");
+  while(ts>60&&widest(rich(ctx,f.title,1e9))>maxW){ts-=2;font(ctx,fw("title",700),ts,"t")}
   const tl=rich(ctx,f.title,maxW),tlh=ts*1.28*L,last=S.showHeader&&S.hdrPos==="bottom"?H-204:H-170;
   const y=last-(tl.length-1)*tlh;
   drawRich(ctx,tl,x-4,y,tlh,{size:ts,field:"title"});
   const titleTop=y-ts*0.80;
   if(!plain(f.sub).trim())return;
-  const ss=37*k,slh=ss*1.4*L;font(ctx,600,ss,"s");const sl=rich(ctx,f.sub,maxW-60);
+  const ss=37*k,slh=ss*1.4*L;font(ctx,fw("sub",600),ss,"s");const sl=rich(ctx,f.sub,maxW-60);
   if(S.subBox){
     const padX=30*k,bh=54*k+(sl.length-1)*slh,bottom=titleTop-39*k,top=bottom-bh,bw=widest(sl)+padX+45*k;
     shadow(ctx,false);ctx.fillStyle="#161616";ctx.fillRect(x-5,top,bw,bh);
@@ -607,36 +615,36 @@ function drawCover(ctx,c){
   }
 }
 function drawBody(ctx,c){
-  const x=136,size=40*c.scale/100,lh=size*1.75*c.lh/100;font(ctx,500,size,"b");
+  const x=136,size=40*c.scale/100,lh=size*1.75*c.lh/100;font(ctx,fw("text",500),size,"b");
   const lines=rich(ctx,c.f.text,W-x-104);
   drawRich(ctx,lines,x,H-178-(lines.length-1)*lh,lh,{size,field:"text"});
 }
 function drawQA(ctx,c){
   const f=c.f,x=136,maxW=W-x-104,k=c.scale/100,L=c.lh/100,ns=27*k,nlh=42*k*L,bs=38*k,blh=64*k*L,qs=50*k,qlh=66*k*L;let y=H-176;
-  if(plain(f.note).trim()){font(ctx,400,ns,"b");const nl=rich(ctx,f.note,maxW);y-=(nl.length-1)*nlh;drawRich(ctx,nl,x,y,nlh,{size:ns,color:"rgba(255,255,255,.95)",field:"note"});y-=ns+40}
-  font(ctx,500,bs,"b");const bl=rich(ctx,f.text,maxW);y-=(bl.length-1)*blh;drawRich(ctx,bl,x,y,blh,{size:bs,field:"text"});y-=bs+34;
+  if(plain(f.note).trim()){font(ctx,fw("note",400),ns,"b");const nl=rich(ctx,f.note,maxW);y-=(nl.length-1)*nlh;drawRich(ctx,nl,x,y,nlh,{size:ns,color:"rgba(255,255,255,.95)",field:"note"});y-=ns+40}
+  font(ctx,fw("text",500),bs,"b");const bl=rich(ctx,f.text,maxW);y-=(bl.length-1)*blh;drawRich(ctx,bl,x,y,blh,{size:bs,field:"text"});y-=bs+34;
   shadow(ctx,false);ctx.fillStyle="rgba(255,255,255,.9)";ctx.fillRect(x,y,maxW-58,2);y-=30;
-  font(ctx,700,qs,"t");const ql=rich(ctx,f.q,maxW);y-=(ql.length-1)*qlh;drawRich(ctx,ql,x,y,qlh,{size:qs,field:"q"});
+  font(ctx,fw("q",700),qs,"t");const ql=rich(ctx,f.q,maxW);y-=(ql.length-1)*qlh;drawRich(ctx,ql,x,y,qlh,{size:qs,field:"q"});
 }
 function drawProduct(ctx,c){
   const f=c.f,k=c.scale/100,lim=W-150;
-  if(plain(f.price).trim()){font(ctx,500,23,"b");const pl=rich(ctx,f.price,1e9).slice(0,1),pw=Math.max(207,widest(pl)+56);shadow(ctx,false);ctx.fillStyle="#141414";ctx.fillRect((W-pw)/2,1226,pw,40);drawRich(ctx,pl,W/2,1254,30,{size:23,align:"center",shadow:false,field:"price"})}
-  let s=41*k;font(ctx,400,s,"b");while(s>26&&widest(rich(ctx,f.name,1e9))>lim){s-=2;font(ctx,400,s,"b")}drawRich(ctx,rich(ctx,f.name,1e9).slice(0,1),W/2,1188,s,{size:s,align:"center",field:"name"});
-  const nameS=s;s=64*k;font(ctx,800,s,"t");while(s>36&&widest(rich(ctx,f.brand,1e9))>lim){s-=2;font(ctx,800,s,"t")}drawRich(ctx,rich(ctx,f.brand,1e9).slice(0,1),W/2,1188-nameS*1.42*c.lh/100,s,{size:s,align:"center",field:"brand"});
+  if(plain(f.price).trim()){font(ctx,fw("price",500),23,"b");const pl=rich(ctx,f.price,1e9).slice(0,1),pw=Math.max(207,widest(pl)+56);shadow(ctx,false);ctx.fillStyle="#141414";ctx.fillRect((W-pw)/2,1226,pw,40);drawRich(ctx,pl,W/2,1254,30,{size:23,align:"center",shadow:false,field:"price"})}
+  let s=41*k;font(ctx,fw("name",400),s,"b");while(s>26&&widest(rich(ctx,f.name,1e9))>lim){s-=2;font(ctx,fw("name",400),s,"b")}drawRich(ctx,rich(ctx,f.name,1e9).slice(0,1),W/2,1188,s,{size:s,align:"center",field:"name"});
+  const nameS=s;s=64*k;font(ctx,fw("brand",800),s,"t");while(s>36&&widest(rich(ctx,f.brand,1e9))>lim){s-=2;font(ctx,fw("brand",800),s,"t")}drawRich(ctx,rich(ctx,f.brand,1e9).slice(0,1),W/2,1188-nameS*1.42*c.lh/100,s,{size:s,align:"center",field:"brand"});
 }
 function drawIntro(ctx,c){
-  const f=c.f,maxW=800,k=c.scale/100,bs=36*k,tsz=56*k,blh=68*k*c.lh/100;font(ctx,500,bs,"b");const bl=rich(ctx,f.text,maxW);
+  const f=c.f,maxW=800,k=c.scale/100,bs=36*k,tsz=56*k,blh=68*k*c.lh/100;font(ctx,fw("text",500),bs,"b");const bl=rich(ctx,f.text,maxW);
   const hasT=plain(f.title).trim(),total=(hasT?tsz+96:0)+(bl.length-1)*blh+bs;let y=(H-total)/2+(hasT?tsz:bs);
-  if(hasT){font(ctx,700,tsz,"t");drawRich(ctx,rich(ctx,f.title,maxW).slice(0,1),W/2,y,tsz,{size:tsz,align:"center",field:"title"});y+=96+bs}
-  font(ctx,500,bs,"b");drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center",field:"text"});
+  if(hasT){font(ctx,fw("title",700),tsz,"t");drawRich(ctx,rich(ctx,f.title,maxW).slice(0,1),W/2,y,tsz,{size:tsz,align:"center",field:"title"});y+=96+bs}
+  font(ctx,fw("text",500),bs,"b");drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center",field:"text"});
 }
 /* 마무리: 가운데 두 줄 멘트 + 굵은 로고 글자 (기존 마무리 카드 비율에 맞춤) */
 function drawOutro(ctx,c){
   const f=c.f,k=c.scale/100,L=c.lh/100,bs=37.5*k,blh=bs*1.57*L,ms=51*k,gap=ms*1.52*L;
-  font(ctx,400,bs,"b");const bl=rich(ctx,f.text,940);const hasM=plain(f.mark).trim();
+  font(ctx,fw("text",400),bs,"b");const bl=rich(ctx,f.text,940);const hasM=plain(f.mark).trim();
   const total=bs*0.9+(bl.length-1)*blh+(hasM?gap:0);let y=H*0.465-total/2+bs*0.9;
   drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center",field:"text"});
-  if(hasM){font(ctx,800,ms,"x");drawRich(ctx,rich(ctx,f.mark,1e9).slice(0,1),W/2,y+(bl.length-1)*blh+gap,ms,{size:ms,align:"center",field:"mark"})}
+  if(hasM){font(ctx,fw("mark",800),ms,"x");drawRich(ctx,rich(ctx,f.mark,1e9).slice(0,1),W/2,y+(bl.length-1)*blh+gap,ms,{size:ms,align:"center",field:"mark"})}
 }
 /* 원본 실측: 브랜드 34px 굵게(기준선 191), 제품명 줄 23px·자간 0(기준선 226), 아래 글자 21px·자간 +1% 회색(기준선 1323) */
 function drawGrid(ctx,c,showSel,transparent){
@@ -650,10 +658,10 @@ function drawGrid(ctx,c,showSel,transparent){
     shadow(ctx,false);ctx.strokeStyle="#151515";ctx.lineWidth=1.5;ctx.strokeRect(r.x+0.75,r.y+0.75,r.w-1.5,r.h-1.5);
     if(showSel&&i===(c.si||0)){ctx.strokeStyle="#0A7CFF";ctx.lineWidth=6;ctx.strokeRect(r.x+3,r.y+3,r.w-6,r.h-6)}});
   const ink="#141414";
-  if(plain(f.brand).trim()){font(ctx,800,34,"x");drawRich(ctx,rich(ctx,f.brand,W-84).slice(0,1),42,191,34,{size:34,color:ink,shadow:false,field:"brand"})}
+  if(plain(f.brand).trim()){font(ctx,fw("brand",800),34,"x");drawRich(ctx,rich(ctx,f.brand,W-84).slice(0,1),42,191,34,{size:34,color:ink,shadow:false,field:"brand"})}
   const line=[plain(f.name).trim()?f.name:"",plain(f.price).trim()?f.price:""].filter(Boolean).join(" | ");
-  if(line){font(ctx,500,23,"x0");drawRich(ctx,rich(ctx,line,W-84).slice(0,1),42,226,23,{size:23,color:ink,shadow:false,field:"name"})}
-  if(plain(f.foot).trim()){font(ctx,400,21,"x1");drawRich(ctx,rich(ctx,f.foot,W-84).slice(0,1),W/2,1323,21,{size:21,align:"center",color:"#4a4a4a",shadow:false,field:"foot"})}
+  if(line){font(ctx,fw("name",500),23,"x0");drawRich(ctx,rich(ctx,line,W-84).slice(0,1),42,226,23,{size:23,color:ink,shadow:false,field:"name"})}
+  if(plain(f.foot).trim()){font(ctx,fw("foot",400),21,"x1");drawRich(ctx,rich(ctx,f.foot,W-84).slice(0,1),W/2,1323,21,{size:21,align:"center",color:"#4a4a4a",shadow:false,field:"foot"})}
 }
 const DRAW={grid:drawGrid,cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
 function render(c,canvas,transparent,showSel){
@@ -717,11 +725,20 @@ function buildFields(){
   for(const [k,lab,area] of TYPES[c.type].fields){
     const l=document.createElement("label");l.htmlFor="f-"+k;l.textContent=lab;
     const el=document.createElement(area?"textarea":"input");if(!area)el.type="text";el.id="f-"+k;el.value=c.f[k];el.dataset.fmt="1";
-    el.oninput=()=>{c.f[k]=el.value;S.sample=false;$("sampleTag").hidden=true;paint()};l.append(el);box.append(l)}
+    el.oninput=()=>{c.f[k]=el.value;S.sample=false;$("sampleTag").hidden=true;paint()};l.append(el);box.append(l);
+    const dw=(DEFW[c.type]||{})[k];if(dw)box.append(weightRow("w-"+k,(c.fw&&c.fw[k])||dw,dw,v=>{c.fw=c.fw||{};if(v===dw)delete c.fw[k];else c.fw[k]=v;paint()},c.type==="grid"&&k==="name"?"제품명·가격 굵기":"굵기"))}
   {const q=ph(c);$("px").value=q.px;$("py").value=q.py;$("zoom").value=q.zoom}$("dim").value=c.dim;showGrad();showTypo();showMedia();
   $("prevPhoto").disabled=cur===0||!S.cards[cur-1].img;$("rmPhoto").disabled=!c.img;
   buildDecos();$("moveL").disabled=cur===0;$("moveR").disabled=cur===S.cards.length-1;$("delBtn").disabled=S.cards.length<2;
 }
+const WNAME={100:"아주 얇게",200:"얇게",300:"가늘게",400:"보통",500:"중간",600:"약간 굵게",700:"굵게",800:"아주 굵게",900:"가장 굵게"};
+function weightRow(id,val,def,on,label){const l=document.createElement("label");l.className="wrow";l.htmlFor=id;
+  const t=document.createElement("span");t.textContent=label||"굵기";const o=document.createElement("output");
+  const r=document.createElement("input");r.type="range";r.id=id;r.min=100;r.max=900;r.step=100;r.value=val;
+  const show=()=>{const v=+r.value;o.textContent=WNAME[v]+" "+v+(v===def?" (기본)":"");o.style.fontWeight=v};show();
+  r.oninput=()=>{show();on(+r.value)};
+  const z=document.createElement("button");z.type="button";z.className="ghost";z.textContent="기본";z.onclick=e=>{e.preventDefault();r.value=def;show();on(def)};
+  l.append(t,o,r,z);return l}
 /* ---------- 글자 꾸미기 도구 막대 ---------- */
 const FMT_OPEN={b:"<b>",i:"<i>",u:"<u>",s:"<s>",c:"<c>",hl:"=="},FMT_CLOSE={b:"</b>",i:"</i>",u:"</u>",s:"</s>",c:"</c>",hl:"=="};
 const fmtBar=document.createElement("div");fmtBar.className="fmt";fmtBar.setAttribute("role","toolbar");fmtBar.setAttribute("aria-label","글자 꾸미기");
@@ -793,7 +810,8 @@ function buildDecos(){buildLib();
     const rg=document.createElement("input");rg.type="range";rg.id="deco-s-"+i;rg.min=30;rg.max=300;rg.value=Math.round(d.s*100);rg.oninput=()=>{d.s=rg.value/100;sel=i;paint()};lab.append(rg);
     const keep=document.createElement("button");keep.className="ghost";keep.textContent="보관";keep.onclick=()=>{const a=getLib();a.push({t:d.t,text:d.text,x:d.x,y:d.y,s:d.s});say("libStatus",setLib(a)?"보관함에 넣었어요.":"이 브라우저에는 보관할 수 없어요.",!1);buildLib()};
     const btns=document.createElement("span");btns.append(keep,del);
-    row.append(name,btns,ta,lab);box.append(row)});
+    const dwd=d.t==="badge"||d.t==="text"?600:400;const wl=weightRow("deco-w-"+i,d.fw||dwd,dwd,v=>{if(v===dwd)delete d.fw;else d.fw=v;sel=i;paint()});wl.style.gridColumn="1/-1";
+    row.append(name,btns,ta,lab,wl);box.append(row)});
   if(!c.decos.length){const e=document.createElement("p");e.className="hint";e.textContent="이 카드에는 아직 꾸미기 요소가 없어요.";box.append(e)}
 }
 function trimAlpha(cv){const w=cv.width,h=cv.height,d=cv.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data;let x0=w,y0=h,x1=-1,y1=-1;
@@ -883,7 +901,9 @@ for(const k in DECO){const b=document.createElement("button");b.textContent="+ "
   pv.addEventListener("pointerup",end);pv.addEventListener("pointercancel",end);
   for(const ev of ["touchstart","touchmove"])pv.addEventListener(ev,e=>{if(drag)e.preventDefault()},{passive:false});
 })();
-function buildAll(){buildStrip();buildFields();fillFontSelects();$("kid").value=S.id;$("corner").value=S.corner;$("hl").value=S.hl;$("showHeader").checked=S.showHeader;$("ac").value=S.ac;for(const [id,on] of [["hdrTop",S.hdrPos!=="bottom"],["hdrBottom",S.hdrPos==="bottom"],["subPlain",!S.subBox],["subBoxBtn",!!S.subBox]])$(id).setAttribute("aria-pressed",on);$("hdrColor").value=S.hdr;$("caption").value=S.caption;paint()}
+function buildAll(){buildStrip();buildFields();fillFontSelects();$("kid").value=S.id;$("corner").value=S.corner;$("hl").value=S.hl;$("showHeader").checked=S.showHeader;$("ac").value=S.ac;for(const [id,on] of [["hdrTop",S.hdrPos!=="bottom"],["hdrBottom",S.hdrPos==="bottom"],["subPlain",!S.subBox],["subBoxBtn",!!S.subBox]])$(id).setAttribute("aria-pressed",on);$("hdrColor").value=S.hdr;$("caption").value=S.caption;
+  {const hw=$("hdrWeights");hw.textContent="";hw.append(weightRow("hwa",S.hwa||800,800,v=>{S.hwa=v;paint()},"RecordRoom.mag 굵기"),weightRow("hwb",S.hwb||300,300,v=>{S.hwb=v;paint()},"코너 이름 굵기"))}
+  paint()}
 function say(id,t,warn){const e=$(id);e.textContent=t||"";e.classList.toggle("warn",!!warn)}
 
 for(const k of ["scale","ls","lh"])$(k).oninput=e=>{S.cards[cur][k]=+e.target.value;showTypo();paint()};
@@ -895,8 +915,8 @@ $("fontFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;co
     if(!FONTS.some(f=>f.n===name))FONTS.push({n:name,g:"내 글꼴",w:[400],local:1});S[role]=name;fillFontSelects();paint();
     say("fontStatus","'"+name+"'을 "+(role==="fontT"?"제목":"본문")+" 글꼴로 넣었어요. 목록 맨 아래 '내 글꼴'에서 다시 고를 수 있고, 페이지를 다시 열면 한 번 더 올려야 합니다.")}
   catch(err){say("fontStatus","이 글꼴 파일은 열 수 없어요. ttf, otf, woff2 파일인지 확인해 주세요.",true)}e.target.value=""};
-$("saveStyle").onclick=()=>{const types={};for(const c of S.cards)types[c.type]={scale:c.scale,ls:c.ls,lh:c.lh,dim:c.dim,gh:c.gh,gs:c.gs,gc:c.gc};
-  try{const old=getStyle(),oc=S.cards.find(c=>c.type==="outro"),defF=Object.assign({},old.defF);if(oc)defF.outro={...oc.f};localStorage.setItem("rr-style",JSON.stringify({fontT:S.fontT,fontB:S.fontB,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,defF,types:Object.assign({},old.types,types)}));say("styleStatus","저장했어요. 새 원고는 이 글꼴과 유형별 크기·자간·행간으로 시작합니다.")}
+$("saveStyle").onclick=()=>{const types={};for(const c of S.cards)types[c.type]={scale:c.scale,ls:c.ls,lh:c.lh,dim:c.dim,gh:c.gh,gs:c.gs,gc:c.gc,fw:c.fw};
+  try{const old=getStyle(),oc=S.cards.find(c=>c.type==="outro"),defF=Object.assign({},old.defF);if(oc)defF.outro={...oc.f};localStorage.setItem("rr-style",JSON.stringify({fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,defF,types:Object.assign({},old.types,types)}));say("styleStatus","저장했어요. 새 원고는 이 글꼴과 유형별 크기·자간·행간으로 시작합니다.")}
   catch(e){say("styleStatus","이 브라우저에는 저장할 수 없어요. 'KIT 코드로 복사'로 보관해 주세요.",true)}};
 $("resetStyle").onclick=()=>{try{localStorage.removeItem("rr-style")}catch(e){}say("styleStatus","기본값을 지웠어요. 새 원고는 처음 설정으로 시작합니다.")};
 for(const sel of [$("typeSel"),$("addType")])for(const k in TYPES){const o=document.createElement("option");o.value=k;o.textContent=TYPES[k].label;sel.append(o)}

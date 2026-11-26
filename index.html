@@ -110,6 +110,7 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
 .deco[data-on=true]{border-color:var(--ink)}
 .deco textarea{min-height:42px;grid-column:1/-1}
 .deco b{font-size:12.5px}
+.deco .thumbImg{grid-column:1/-1;max-height:90px;max-width:100%;justify-self:start;border-radius:6px;background:repeating-conic-gradient(#d9dadd 0 25%,#fff 0 50%) 0 0/14px 14px}
 .lib{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .lib button{border:0;border-radius:0;padding:7px 10px;font-weight:500;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lib button+button{border-left:1px solid var(--line);color:var(--muted)}
@@ -223,7 +224,20 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
     </section>
 
     <section class="tab" id="tab-deco" role="tabpanel" aria-label="꾸미기" hidden>
-      <div class="row" id="decoAdd"></div>
+      <div class="group">
+        <h2>누끼 이미지 올리기</h2>
+        <div class="bigrow">
+          <button class="big primary" id="stickerPick">PNG 이미지 고르기</button>
+          <button class="big" id="stickerPaste">복사한 누끼 붙여넣기</button>
+        </div>
+        <p class="hint">휴대폰 사진첩에서 물건이나 사람을 길게 누르면 배경 없이 '복사'할 수 있어요(아이폰 iOS 16 이상, 갤럭시 최신 기종). 복사한 뒤 '붙여넣기'를 누르면 바로 올라가요. 흰 배경 제품 사진은 올린 뒤 '단색 배경 빼기'를 눌러 보세요.</p>
+        <p class="status" id="stickerStatus"></p>
+        <input type="file" id="stickerFile" accept="image/png,image/webp,image/*" multiple hidden>
+      </div>
+      <div class="group">
+        <h2>글 요소</h2>
+        <div class="row" id="decoAdd"></div>
+      </div>
       <p class="hint">미리보기에서 끌어서 옮기고, 오른쪽 아래 점을 끌거나 두 손가락으로 벌려 크기를 바꿉니다.</p>
       <div class="col" id="decoList"></div>
       <div class="group">
@@ -339,7 +353,7 @@ function fromData(d){
   return {id:String(d.id||""),corner:String(d.corner||"옷장 기록"),hl:/^#[0-9a-f]{6}$/i.test(d.hl)?d.hl:"#8B0A7E",showHeader:d.showHeader!==false,hdr:/^#[0-9a-f]{6}$/i.test(d.hdr)?d.hdr:(/^#[0-9a-f]{6}$/i.test(st.hdr||"")?st.hdr:"#ffffff"),sample:!!d.sample,fontT:String(d.fontT||st.fontT||"Pretendard"),fontB:String(d.fontB||st.fontB||"Pretendard"),
     check:Array.isArray(d.check)?d.check.map(String):[],caption:String(d.caption||""),cards:cards.length?cards:[newCard("cover")]};
 }
-function toData(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,fontT:S.fontT,fontB:S.fontB,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,fill:c.fill,decos:c.decos.map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s}))}))}}
+function toData(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,fontT:S.fontT,fontB:S.fontB,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s}))}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
 
@@ -461,7 +475,16 @@ function drawHeader(ctx){
   let x=(W-(wa+(b?gap*2+2+wb:0)))/2;ctx.fillStyle=hx;shadow(ctx,lum>0.55);
   font(ctx,800,25,"x");T(ctx,a,x,y);if(!b)return;x+=wa+gap;ctx.fillRect(x,y-22,1.5,28);x+=gap+2;font(ctx,300,25,"x");T(ctx,b,x,y);
 }
+function selFrame(ctx,q){ctx.save();shadow(ctx,false);ctx.lineWidth=3;ctx.setLineDash([14,10]);ctx.strokeStyle="rgba(0,0,0,.55)";ctx.strokeRect(q.x-10,q.y-10,q.w+20,q.h+20);ctx.lineDashOffset=12;ctx.strokeStyle="#fff";ctx.strokeRect(q.x-10,q.y-10,q.w+20,q.h+20);
+  ctx.setLineDash([]);ctx.fillStyle="#fff";ctx.strokeStyle="#141414";ctx.lineWidth=3;ctx.beginPath();ctx.arc(q.x+q.w+10,q.y+q.h+10,20,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore()}
+function drawImgDeco(ctx,d,selected){
+  const im=d.img;if(!im)return;const base=Math.min(1,640/Math.max(im.width,im.height)),w=im.width*base*d.s,h=im.height*base*d.s;
+  if(d.x==null||d.y==null){d.x=W/2;d.y=H*0.42}
+  ctx.save();shadow(ctx,false);if(d.sh){ctx.shadowColor="rgba(0,0,0,.38)";ctx.shadowBlur=36;ctx.shadowOffsetY=16}
+  ctx.translate(d.x,d.y);if(d.flip)ctx.scale(-1,1);ctx.drawImage(im,-w/2,-h/2,w,h);ctx.restore();
+  d._b={x:d.x-w/2,y:d.y-h/2,w,h};if(selected)selFrame(ctx,d._b)}
 function drawDeco(ctx,d,selected){
+  if(d.t==="img")return drawImgDeco(ctx,d,selected);
   const t=d.t,fs=t==="badge"||t==="bubble"?31:t==="text"?30:29,wt=t==="badge"||t==="text"?600:400;
   font(ctx,wt,fs,"b");
   const lines=rich(ctx,d.text||" ",t==="box"?720:560),lh=fs*1.4,padX=t==="text"?6:t==="badge"?26:t==="bubble"?46:40,padY=t==="text"?4:t==="badge"?13:t==="bubble"?31:26;
@@ -608,9 +631,28 @@ function buildLib(){const box=$("decoLib");box.textContent="";const lib=getLib()
     const del=document.createElement("button");del.textContent="×";del.setAttribute("aria-label","보관함에서 지우기");del.onclick=()=>{const a=getLib();a.splice(i,1);setLib(a);buildLib()};
     w.append(add,del);box.append(w)});
   if(!lib.length){const e=document.createElement("p");e.className="hint";e.textContent="자주 쓰는 요소를 '보관'해 두면 글·크기·위치 그대로 다른 카드에 꺼내 쓸 수 있어요.";box.append(e)}}
+function imgDecoRow(c,d,i){
+  const focus=()=>{if(sel!==i){sel=i;document.querySelectorAll(".deco").forEach((r,j)=>r.dataset.on=j===i);draw()}};
+  const name=document.createElement("b");name.textContent="이미지";
+  const flip=document.createElement("button");flip.className="ghost";flip.textContent="좌우 뒤집기";flip.onclick=()=>{d.flip=!d.flip;sel=i;paint()};
+  const del=document.createElement("button");del.className="ghost";del.textContent="삭제";del.onclick=()=>{c.decos.splice(i,1);sel=-1;buildDecos();paint()};
+  const btns=document.createElement("span");btns.append(flip,del);
+  const th=document.createElement("img");th.className="thumbImg";th.alt="올린 이미지";th.src=d.img.toDataURL("image/png");th.onclick=focus;
+  const lab=document.createElement("label");lab.htmlFor="deco-s-"+i;lab.style.gridColumn="1/-1";lab.textContent="크기";
+  const rg=document.createElement("input");rg.type="range";rg.id="deco-s-"+i;rg.min=10;rg.max=400;rg.value=Math.round(d.s*100);rg.oninput=()=>{d.s=rg.value/100;sel=i;paint()};lab.append(rg);
+  const bg=document.createElement("div");bg.className="row";bg.style.gridColumn="1/-1";
+  const rm=document.createElement("button");rm.textContent=d.src?"배경 다시 빼기":"단색 배경 빼기";
+  const tl=document.createElement("input");tl.type="range";tl.min=8;tl.max=90;tl.value=d.tol||34;tl.setAttribute("aria-label","배경 빼기 강도");tl.style.flex="1";tl.style.minWidth="90px";
+  const back=document.createElement("button");back.className="ghost";back.textContent="원래대로";back.hidden=!d.src;
+  rm.onclick=()=>{if(!d.src)d.src=d.img;d.tol=+tl.value;d.img=trimAlpha(removeFlatBg(d.src,d.tol));sel=i;buildDecos();paint();say("stickerStatus","배경을 뺐어요. 덜 빠지면 강도를 올리고, 물건까지 지워지면 내린 뒤 다시 눌러 주세요.")};
+  back.onclick=()=>{d.img=d.src;d.src=null;buildDecos();paint()};
+  const sh=document.createElement("label");sh.className="chk";const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!d.sh;cb.onchange=()=>{d.sh=cb.checked;paint()};sh.append(cb,"그림자");
+  bg.append(rm,tl,back,sh);
+  return [name,btns,th,lab,bg]}
 function buildDecos(){buildLib();
   const c=S.cards[cur],box=$("decoList");box.textContent="";
   c.decos.forEach((d,i)=>{const row=document.createElement("div");row.className="deco";row.dataset.on=i===sel;
+    if(d.t==="img"){row.append(...imgDecoRow(c,d,i));box.append(row);return}
     const name=document.createElement("b");name.textContent=DECO[d.t].label;
     const del=document.createElement("button");del.className="ghost";del.textContent="삭제";del.onclick=()=>{c.decos.splice(i,1);sel=-1;buildDecos();paint()};
     const ta=document.createElement("textarea");ta.id="deco-t-"+i;ta.value=d.text;ta.setAttribute("aria-label",DECO[d.t].label+" 글");ta.dataset.fmt="1";ta.onfocus=()=>{if(sel!==i){sel=i;document.querySelectorAll(".deco").forEach((r,j)=>r.dataset.on=j===i);draw()}};ta.oninput=()=>{d.text=ta.value;paint()};
@@ -621,11 +663,47 @@ function buildDecos(){buildLib();
     row.append(name,btns,ta,lab);box.append(row)});
   if(!c.decos.length){const e=document.createElement("p");e.className="hint";e.textContent="이 카드에는 아직 꾸미기 요소가 없어요.";box.append(e)}
 }
+function trimAlpha(cv){const w=cv.width,h=cv.height,d=cv.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data;let x0=w,y0=h,x1=-1,y1=-1;
+  for(let y=0;y<h;y++){const r=y*w;for(let x=0;x<w;x++)if(d[(r+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;y1=y}}
+  if(x1<0||(x0===0&&y0===0&&x1===w-1&&y1===h-1))return cv;const o=document.createElement("canvas");o.width=x1-x0+1;o.height=y1-y0+1;o.getContext("2d").drawImage(cv,-x0,-y0);return o}
+/* 가장자리에서 이어진, 가장자리 색과 비슷한 픽셀을 투명하게 만든다 (흰·회색 스튜디오 배경용) */
+function removeFlatBg(src,tol){
+  const w=src.width,h=src.height,cv=document.createElement("canvas");cv.width=w;cv.height=h;const x=cv.getContext("2d",{willReadFrequently:true});x.drawImage(src,0,0);
+  const id=x.getImageData(0,0,w,h),d=id.data,n=w*h,R=[],G=[],B=[];
+  for(let i=0;i<w;i+=Math.max(1,w>>6)){for(const y of [0,h-1]){const k=(y*w+i)*4;R.push(d[k]);G.push(d[k+1]);B.push(d[k+2])}}
+  for(let j=0;j<h;j+=Math.max(1,h>>6)){for(const xx of [0,w-1]){const k=(j*w+xx)*4;R.push(d[k]);G.push(d[k+1]);B.push(d[k+2])}}
+  const med=a=>a.sort((p,q)=>p-q)[a.length>>1],br=med(R),bg=med(G),bb=med(B);
+  const dist=k=>Math.hypot(d[k]-br,d[k+1]-bg,d[k+2]-bb),T=tol*1.6;
+  const seen=new Uint8Array(n),q=new Int32Array(n);let qh=0,qt=0;
+  const push=i=>{if(!seen[i]&&d[i*4+3]>0&&dist(i*4)<T){seen[i]=1;q[qt++]=i}};
+  for(let i=0;i<w;i++){push(i);push((h-1)*w+i)}for(let j=0;j<h;j++){push(j*w);push(j*w+w-1)}
+  while(qh<qt){const i=q[qh++],xx=i%w;if(xx>0)push(i-1);if(xx<w-1)push(i+1);if(i>=w)push(i-w);if(i<n-w)push(i+w)}
+  for(let i=0;i<n;i++)if(seen[i])d[i*4+3]=0;
+  for(let i=0;i<n;i++){if(seen[i])continue;const xx=i%w;
+    if((xx>0&&seen[i-1])||(xx<w-1&&seen[i+1])||(i>=w&&seen[i-w])||(i<n-w&&seen[i+w])){const a=Math.min(1,Math.max(0,(dist(i*4)-T*0.5)/(T*0.9)));d[i*4+3]=Math.round(d[i*4+3]*a)}}
+  x.putImageData(id,0,0);return cv}
+async function decodeImg(blob){
+  if(window.createImageBitmap){try{return await createImageBitmap(blob)}catch(e){}}
+  return await new Promise((res,rej)=>{const u=URL.createObjectURL(blob),im=new Image();im.onload=()=>{URL.revokeObjectURL(u);res(im)};im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("img"))};im.src=u})}
+async function addSticker(blob){
+  const src=await decodeImg(blob),sw=src.width||src.naturalWidth,shh=src.height||src.naturalHeight,k=Math.min(1,2000/Math.max(sw,shh));
+  const cv=document.createElement("canvas");cv.width=Math.max(1,Math.round(sw*k));cv.height=Math.max(1,Math.round(shh*k));cv.getContext("2d").drawImage(src,0,0,cv.width,cv.height);
+  const c=S.cards[cur];c.decos.push({t:"img",text:"",img:trimAlpha(cv),x:null,y:null,s:1});sel=c.decos.length-1;buildDecos();paint();showTab("deco")}
+$("stickerPick").onclick=()=>$("stickerFile").click();
+$("stickerFile").onchange=async e=>{const files=[...e.target.files];e.target.value="";let bad=0;
+  for(const f of files){try{await addSticker(f)}catch(x){bad++}}
+  say("stickerStatus",bad?"열 수 없는 파일 "+bad+"개는 건너뛰었어요. PNG·JPG·WEBP로 올려 주세요.":"올렸어요. 미리보기에서 끌어서 옮기고, 오른쪽 아래 점으로 크기를 바꿔요.",!!bad)};
+$("stickerPaste").onclick=async()=>{
+  if(!navigator.clipboard||!navigator.clipboard.read){say("stickerStatus","이 브라우저는 붙여넣기 버튼을 지원하지 않아요. 'PNG 이미지 고르기'로 올리거나, 컴퓨터에서는 Ctrl+V(맥은 ⌘+V)를 눌러 주세요.",true);return}
+  try{const items=await navigator.clipboard.read();for(const it of items){const t=it.types.find(x=>x.startsWith("image/"));if(t){await addSticker(await it.getType(t));say("stickerStatus","붙여넣었어요. 미리보기에서 위치와 크기를 맞춰 주세요.");return}}
+    say("stickerStatus","복사된 이미지가 없어요. 사진첩에서 피사체를 길게 눌러 '복사'한 뒤 다시 눌러 주세요.",true)}
+  catch(e){say("stickerStatus","붙여넣기를 허용하지 않았거나 읽을 수 없는 이미지예요. 'PNG 이미지 고르기'로 올려 주세요.",true)}};
+document.addEventListener("paste",async e=>{const f=[...(e.clipboardData&&e.clipboardData.files||[])].find(x=>x.type.startsWith("image/"));if(!f)return;e.preventDefault();try{await addSticker(f);say("stickerStatus","붙여넣었어요.")}catch(x){say("stickerStatus","이 이미지는 열 수 없어요.",true)}});
 for(const k in DECO){const b=document.createElement("button");b.textContent="+ "+DECO[k].label;b.onclick=()=>{const c=S.cards[cur];c.decos.push({t:k,text:DECO[k].text,x:null,y:null,s:1});sel=c.decos.length-1;buildDecos();paint()};$("decoAdd").append(b)}
 (function(){const pv=$("preview"),pts=new Map();let drag=null;
   const pos=e=>{const r=pv.getBoundingClientRect();return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}};
   const hit=p=>{const ds=S.cards[cur].decos;for(let i=ds.length-1;i>=0;i--){const b=ds[i]._b;if(b&&p.x>=b.x-16&&p.x<=b.x+b.w+16&&p.y>=b.y-16&&p.y<=b.y+b.h+16)return i}return -1};
-  const clampS=v=>Math.min(3,Math.max(.3,v));
+  const clampS=v=>Math.min(4,Math.max(.1,v));
   pv.addEventListener("pointerdown",e=>{const p=pos(e),ds=S.cards[cur].decos;pts.set(e.pointerId,p);
     if(pts.size===2&&sel>=0&&ds[sel]){const [a,b]=[...pts.values()];drag={mode:"pinch",d0:Math.hypot(a.x-b.x,a.y-b.y)||1,s0:ds[sel].s};return}
     if(sel>=0&&ds[sel]&&ds[sel]._b){const b=ds[sel]._b;if(Math.hypot(p.x-(b.x+b.w+10),p.y-(b.y+b.h+10))<62){drag={mode:"size",d0:Math.hypot(p.x-ds[sel].x,p.y-ds[sel].y)||1,s0:ds[sel].s};try{pv.setPointerCapture(e.pointerId)}catch(x){}return}}

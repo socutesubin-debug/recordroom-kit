@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795775069">
+<meta name="rr-build" content="1795775177">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -619,7 +619,7 @@ function fontChips(chips,curName,pick){
     for(const f of sec.list){linkFont(f.n);const c=document.createElement("button");c.className="chip";c.textContent=(isFav(f.n)?"★ ":"")+f.n;c.style.fontFamily='"'+f.n+'"'+FB;c.setAttribute("aria-pressed",curName===f.n);c.onclick=()=>{useFont(f.n);pick(f.n)};chips.append(c)}}
   setTimeout(()=>{chips.scrollLeft=0},0)}
 /* 제목·본문 따로: 모든 카드 공통 크기·자간·행간·정렬 */
-const FIELD_ROLE={cover:{title:"fontT",sub:"fontB"},body:{text:"fontB"},qa:{q:"fontT",text:"fontB",note:"fontB"},product:{brand:"fontT",name:"fontB",price:"fontB"},intro:{title:"fontT",text:"fontB"},outro:{text:"fontB"}};
+const FIELD_ROLE={cover:{title:"fontT",sub:"fontB"},body:{text:"fontB"},qa:{q:"fontT",text:"fontB",note:"fontB"},product:{brand:"fontT",name:"fontB",price:"fontB"},intro:{title:"fontT",text:"fontB"},outro:{text:"fontB"},note:{title:"fontT",text:"fontB"}};
 const TY0={ls:0,lh:100,sz:100,al:""};
 function normTy(t){const o={};for(const r of ["T","B"]){const q=(t&&t[r])||{};o[r]={ls:Math.max(-60,Math.min(150,+q.ls||0)),lh:Math.max(60,Math.min(200,+q.lh||100)),sz:Math.max(50,Math.min(200,+q.sz||100)),al:["left","center","right"].includes(q.al)?q.al:""}}return o}
 function tyR(f){if(CC&&CC.type==="outro")return null;const r=CC&&(FIELD_ROLE[CC.type]||{})[f];return r==="fontT"?"T":r==="fontB"?"B":null}
@@ -635,6 +635,7 @@ const TYPES={
   body:{label:"본문",dim:80,fields:[["text","본문",1]]},
   qa:{label:"질문·정보",dim:85,fields:[["q","질문 제목",0],["text","설명",1],["note","작은 주석",0]]},
   product:{label:"제품",dim:78,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격",0]]},
+  note:{label:"노트",dim:72,fields:[["title","제목",0],["text","본문",1]]},
   intro:{label:"가운데 글",dim:72,fields:[["title","제목",0],["text","본문",1]]},
   grid:{label:"제품 3컷",dim:0,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격 (예: KRW 48,000)",0],["foot","맨 아래 글자",0]],def:{brand:"BRAND",name:"PRODUCT NAME",price:"KRW 00,000",foot:"recordroom.mag"}},
   outro:{label:"마무리",dim:42,fields:[["text","고정 멘트",1],["mark","로고 글자",0]],def:{text:"오늘 놓치면 아까운 것들,\n취향과 쓸모 사이의 큐레이션",mark:"RecordRoom.mag"}}
@@ -652,7 +653,7 @@ const off=document.createElement("canvas");off.width=W;off.height=H;
 
 function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??(type==="outro"?0:-20),lh:d.lh??100};if(d.fw)c.fw={...d.fw};if(type==="grid"){c.slots=[0,1,2].map(()=>({img:null,px:50,py:50,zoom:100}));c.si=0}const df=Object.assign({},TYPES[type].def,(getStyle().defF||{})[type]);for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:(df[k]||"");return c}
 function fromData(d){
-  const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{const t=TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
+  const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{const t=c.type==="intro"&&c.note?"note":TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
     if(c.type==="checklist"){n.dim=0;n.decos.push({t:"memo",text:(String(raw.head||"").trim()?raw.head+"\n":"")+String(raw.item||""),x:null,y:null,s:(+c.ms||100)/100,chk:!!c.chk,hf:c.hf,hfH:c.hfH})}
     if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({mst:o.t==="memo"&&o.mst&&typeof o.mst==="object"?JSON.parse(JSON.stringify(o.mst)):undefined,chk:o.t==="memo"?!!o.chk:undefined,hf:typeof o.hf==="string"?o.hf:undefined,hfH:typeof o.hfH==="string"?o.hfH:undefined,t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined,rot:+o.rot||0,st:o.st&&typeof o.st==="object"?JSON.parse(JSON.stringify(o.st)):undefined});
     for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","ox","oy","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;if(c.fw&&typeof c.fw==="object"){n.fw={};for(const k in c.fw)if(+c.fw[k]>=100&&+c.fw[k]<=900)n.fw[k]=+c.fw[k]}
@@ -660,7 +661,7 @@ function fromData(d){
     if(c.off&&typeof c.off==="object"){n.off={};for(const k in c.off){const q=c.off[k];if(q&&isFinite(q.x)&&isFinite(q.y))n.off[k]={x:Math.max(-W,Math.min(W,+q.x)),y:Math.max(-H,Math.min(H,+q.y))}}}
     if(c.ty&&typeof c.ty==="object"){const t=normTy(c.ty);n.ty={};for(const r of ["T","B"])if(c.ty[r])n.ty[r]=t[r];tyClean(n)}
     if(n.type==="checklist"){n.chk=!!c.chk;if(typeof c.hf==="string"&&FONTS.some(x=>x.n===c.hf))n.hf=c.hf;if(typeof c.hfH==="string"&&FONTS.some(x=>x.n===c.hfH))n.hfH=c.hfH;if(+c.ms>=50&&+c.ms<=170)n.ms=+c.ms}
-    if(c.note&&n.type==="intro")n.note=true;
+
     if(/^#[0-9a-f]{6}$/i.test(c.bg||"")&&n.type!=="grid")n.bg=c.bg;
     if(typeof c.m==="string")n._m=c.m;
     if(Array.isArray(c.slots)&&n.slots)c.slots.slice(0,3).forEach((q,j)=>{if(!q)return;const t=n.slots[j];for(const k of ["px","py","zoom"])if(typeof q[k]==="number")t[k]=q[k];if(typeof q.m==="string")t._m=q.m});
@@ -673,7 +674,7 @@ function fromData(d){
 }
 function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
   o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
-function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,bg:c.bg||undefined,note:c.note||undefined,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,mst:o.mst||undefined,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
+function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,bg:c.bg||undefined,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,mst:o.mst||undefined,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function newPid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
@@ -687,7 +688,7 @@ let FB0={w:400,s:30,role:"b"};
 /* role "s": 표지 작은 줄 — 본문 글꼴, 원본처럼 자간을 4% 더 좁힘 */
 /* role "x0"/"x1": 고정 글꼴에 자간 0 / +1% (제품 3컷 글자) */
 /* 글 굵기: 카드마다 칸별로 바꿀 수 있음(c.fw). 없으면 원래 디자인 굵기 */
-const DEFW={checklist:{head:400,item:400},cover:{title:700,sub:600},body:{text:500},qa:{q:700,text:500,note:400},product:{brand:800,name:400,price:500},intro:{title:700,text:500},outro:{text:400,mark:800},grid:{brand:800,name:500,foot:400}};
+const DEFW={note:{title:700,text:500},checklist:{head:400,item:400},cover:{title:700,sub:600},body:{text:500},qa:{q:700,text:500,note:400},product:{brand:800,name:400,price:500},intro:{title:700,text:500},outro:{text:400,mark:800},grid:{brand:800,name:500,foot:400}};
 function fw(f,w){return (CC&&CC.fw&&CC.fw[f])||w}
 function fz(f){return ((CC&&CC.fs&&CC.fs[f])||100)/100*tyOf(f).sz/100}
 const HAND0="Pretendard";
@@ -802,7 +803,7 @@ function drawPhoto(ctx,c,transparent){
 }
 function drawDim(ctx,c){
   const a=c.dim/100,hx=c.gc||"#000000",rgb=parseInt(hx.slice(1,3),16)+","+parseInt(hx.slice(3,5),16)+","+parseInt(hx.slice(5,7),16),col=al=>"rgba("+rgb+","+al+")";
-  if(c.type==="intro"||c.type==="outro"){ctx.fillStyle=col(a);ctx.fillRect(0,0,W,H);return}
+  if(c.type==="intro"||c.type==="outro"||c.type==="note"){ctx.fillStyle=col(a);ctx.fillRect(0,0,W,H);return}
   /* gh: 아래에서 올라오는 높이(%), gs: 0이면 위로 길게 번지고 100이면 아래쪽에 모여 또렷해진다 */
   const top=H*(1-(c.gh??58)/100),k=(c.gs??40)/100,mid=0.65-0.45*k,midA=0.45+0.5*k;
   const g=ctx.createLinearGradient(0,top,0,H);g.addColorStop(0,col(0));g.addColorStop(mid,col(a*midA));g.addColorStop(1,col(a));
@@ -934,11 +935,11 @@ function drawProduct(ctx,c){
   let s=41*k*fz("name");font(ctx,fw("name",400),s,"b");while(s>26*fz("name")&&widest(rich(ctx,f.name,1e9))>lim){s-=2;font(ctx,fw("name",400),s,"b")}drawRich(ctx,rich(ctx,f.name,1e9).slice(0,1),W/2,1188,s,{size:s,align:"center",field:"name"});
   const nameS=s;s=64*k*fz("brand");font(ctx,fw("brand",800),s,"t");while(s>36*fz("brand")&&widest(rich(ctx,f.brand,1e9))>lim){s-=2;font(ctx,fw("brand",800),s,"t")}drawRich(ctx,rich(ctx,f.brand,1e9).slice(0,1),W/2,1188-nameS*1.42*c.lh/100,s,{size:s,align:"center",field:"brand"});
 }
-function drawIntro(ctx,c){
+function drawIntro(ctx,c,asNote){
   const f=c.f,maxW=800,k=c.scale/100,bs=36*k*fz("text"),tsz=56*k*fz("title"),blh=68*k*c.lh/100*fz("text")*LH("text");font(ctx,fw("text",500),bs,"b");const bl=rich(ctx,f.text,maxW);
   const hasT=plain(f.title).trim(),total=(hasT?tsz+96:0)+(bl.length-1)*blh+bs;let y=(H-total)/2+(hasT?tsz:bs);
   /* 노트 배경: 글 뒤에 네모난 종이 한 장 (체크리스트 메모와 같은 종이 질감), 글자는 검정 */
-  const note=!!c.note,col=note?INK:"#fff";
+  const note=!!asNote,col=note?INK:"#fff";
   if(note){font(ctx,fw("title",700),tsz,"t");const tw0=hasT?widest(rich(ctx,f.title,maxW).slice(0,1)):0;font(ctx,fw("text",500),bs,"b");
     const nw=Math.min(W-100,Math.max(760,Math.max(tw0,widest(bl))+180)),pv=96,ny=(H-total)/2-(hasT?tsz*0.2:bs*0.2)-pv,nh=total+pv*2+(hasT?tsz*0.1:0);paperRect(ctx,(W-nw)/2,ny,nw,nh,1)}
   if(hasT){font(ctx,fw("title",700),tsz,"t");drawRich(ctx,rich(ctx,f.title,maxW).slice(0,1),W/2,y,tsz,{size:tsz,align:"center",field:"title",color:col,shadow:!note});y+=96+bs}
@@ -1005,7 +1006,7 @@ function drawGrid(ctx,c,showSel,transparent){
   if(line){const nz=23*fz("name");font(ctx,fw("name",500),nz,"x0");drawRich(ctx,rich(ctx,line,W-84).slice(0,1),42,226,nz,{size:nz,color:ink,shadow:false,field:"name"})}
   if(plain(f.foot).trim()){const fz2=21*fz("foot");font(ctx,fw("foot",400),fz2,"x1");drawRich(ctx,rich(ctx,f.foot,W-84).slice(0,1),W/2,1323,fz2,{size:fz2,align:"center",color:"#4a4a4a",shadow:false,field:"foot"})}
 }
-const DRAW={grid:drawGrid,cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
+const DRAW={note:(ctx,c)=>drawIntro(ctx,c,true),grid:drawGrid,cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
 /* ---------- 가이드 선·자석·여러 개 정렬 ---------- */
 let guides=false,multi=false,msel=new Set(),mselCard=-1,snapX=null,snapY=null;
 try{guides=localStorage.getItem("rr-guide")==="1"}catch(e){}
@@ -1927,7 +1928,6 @@ const TOOLS={
   {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("card","full")}]};
 let dockCat="photo",dockTool=null;
 function renderDock(){const dt=$("dtools");if(!dt)return;let tools=TOOLS[dockCat]||[];dt.textContent="";
-  if(dockCat==="text"&&S&&S.cards[cur]&&S.cards[cur].type==="intro")tools=tools.slice(0,1).concat([{k:"note",l:S.cards[cur].note?"노트 배경 끄기":"노트 배경 켜기",ic:"bg",act:()=>{const c=S.cards[cur];c.note=!c.note;paint();renderDock();say("toast",c.note?"글 뒤에 노트를 깔았어요":"노트 배경을 껐어요")}}],tools.slice(1));
   if(dockCat==="deco"){const d=S&&S.cards[cur]&&S.cards[cur].decos[sel];tools=(d&&d.t==="memo"?MEMO_TOOLS:[{k:"preset",l:"글자 스타일",ic:"font",type:"preset"}]).concat(d&&d.t==="text"?TXT_TOOLS:[],d&&d.t==="memo"?[]:tools,d?[{k:"del",l:"삭제",ic:"trash",act:()=>{S.cards[cur].decos.splice(sel,1);sel=-1;msel.clear();buildDecos();paint();renderDock();say("toast","지웠어요 · 위의 ↩로 되돌릴 수 있어요")}}]:[]);
     if(dockTool&&!tools.some(t=>t.k===dockTool))dockTool=null}
   for(const t of tools){const b=document.createElement("button");b.className="tool"+(t.act?" act":"");b.innerHTML=svg(t.ic)+"<span></span>";b.lastChild.textContent=t.l;

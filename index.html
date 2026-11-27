@@ -2,6 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
+<meta name="rr-build" content="1795771406">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -685,7 +686,7 @@ let FB0={w:400,s:30,role:"b"};
 const DEFW={checklist:{head:400,item:400},cover:{title:700,sub:600},body:{text:500},qa:{q:700,text:500,note:400},product:{brand:800,name:400,price:500},intro:{title:700,text:500},outro:{text:400,mark:800},grid:{brand:800,name:500,foot:400}};
 function fw(f,w){return (CC&&CC.fw&&CC.fw[f])||w}
 function fz(f){return ((CC&&CC.fs&&CC.fs[f])||100)/100*tyOf(f).sz/100}
-const HAND0="Nanum Pen Script";
+const HAND0="Pretendard";
 const chkFont=(c,f)=>(f==="head"?c.hfH:c.hf)||HAND0;
 function font(ctx,w,s,role,st){const hand=role==="h"||role==="h2",fixed=role==="x"||role==="x0"||role==="x1",family=hand?(CC?chkFont(CC,role==="h"?"head":"item"):HAND0):fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);if(hand)linkFont(family);
   if(!st)FB0={w,s,role};const ww=st&&st.b?Math.min(900,Math.max(w+300,700)):w;
@@ -2036,12 +2037,16 @@ document.addEventListener("focusin",e=>{if(e.target.closest&&e.target.closest("#
 if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)r.update().catch(()=>{})})}).catch(()=>{});
 /* 새 버전 알림: 홈 화면 앱은 껐다 켜도 예전 화면을 그대로 이어 보여 주는 경우가 많아서,
    앱으로 돌아올 때마다 서버의 index.html과 비교해 바뀌었으면 '업데이트' 띠를 띄운다 */
-(function(){if(location.protocol!=="https:")return;let base=null,shown=false;
-  const sig=async()=>{const r=await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;const t=await r.text();let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return t.length+":"+h};
-  const check=async()=>{if(shown||document.hidden)return;try{const v=await sig();if(base===null){base=v;return}if(v!==base){shown=true;$("updBar").hidden=false}}catch(e){}};
+(function(){if(location.protocol!=="https:")return;let shown=false;const T0=Date.now();
+  const mine=(document.querySelector('meta[name="rr-build"]')||{}).content||"0";
+  const latest=async()=>{const r=await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;const m=(await r.text()).match(/name="rr-build" content="(\d+)"/);return m?m[1]:mine};
+  const check=async()=>{if(shown||document.hidden)return;try{const v=await latest();if(+v>+mine){
+      /* 켠 직후(10초 안)면 아직 작업 전이라 바로 새로고침, 그 뒤엔 띠로 알려서 고르게 */
+      if(Date.now()-T0<10000&&!sessionStorage.getItem("rr-upd-"+v)){sessionStorage.setItem("rr-upd-"+v,"1");location.reload();return}
+      shown=true;$("updBar").hidden=false}}catch(e){}};
   $("updGo").onclick=async()=>{$("updGo").disabled=true;$("updGo").textContent="저장 중…";try{await saveProject()}catch(e){}location.reload()};
   $("updLater").onclick=()=>{$("updBar").hidden=true};
-  check();document.addEventListener("visibilitychange",()=>{if(!document.hidden)check()});setInterval(check,180000)})();
+  check();document.addEventListener("visibilitychange",()=>{if(!document.hidden)check()});addEventListener("pageshow",check);addEventListener("focus",check);setInterval(check,120000)})();
 
 /* ---------- 시작 ---------- */
 S=restore();buildAll();resetHistory();fillOutroPhotos();renderDock();layout();

@@ -132,6 +132,8 @@ button,input,select,textarea{font-size:16px}
 .thumb.dropL{box-shadow:-4px 0 0 var(--accent)}.thumb.dropR{box-shadow:4px 0 0 var(--accent)}
 .big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:64px;flex:1;text-align:center}
 .big small{display:block;font-size:12px;font-weight:500;opacity:.72}
+#homeCode{flex:none}
+.homeCodeBox{display:flex;flex-direction:column;gap:8px;margin-top:-4px}.homeCodeBox textarea{min-height:120px;width:100%}.homeCodeBox .row{display:flex;gap:8px}.homeCodeBox .row button{flex:1;min-height:44px}
 .bigrow{display:flex;gap:10px}
 h2 small{display:block;font-weight:500;margin-top:2px}
 .iconBtn{min-height:40px;width:40px;padding:0;display:grid;place-items:center;border:0;background:none}
@@ -510,7 +512,12 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
     <div class="group" id="installHint" hidden style="border:1px solid var(--line);border-radius:12px;padding:12px 14px"><b>앱처럼 넓게 쓰기</b><span class="hint">사파리 아래 <b>공유 버튼(□↑)</b> → <b>홈 화면에 추가</b>를 누르고, 홈 화면의 RR KIT 아이콘으로 열면 사파리 막대 없이 전체 화면으로 써요. 홈 화면 앱은 사파리와 저장 공간이 따로라서, 지금 사파리에 있는 작업은 앱에서 새로 시작해야 할 수 있어요.</span></div>
     <button class="primary big" id="homeContinue">이어서 하기<small id="homeContinueInfo"></small></button>
     <div class="bigrow"><button class="big" id="homeNew">새로 만들기<small>표지·본문 3장·마무리</small></button><button class="big" id="homeNewPhotos">사진 먼저 고르기<small>고른 순서대로 카드에 들어가요</small></button></div>
-    <button class="big" id="homeCode">원고 코드 붙여넣기<small>대화에서 받은 KIT 코드</small></button>
+    <button class="big" id="homeCode" aria-expanded="false" aria-controls="homeCodeBox">원고 코드 붙여넣기<small>대화에서 받은 KIT 코드</small></button>
+    <div class="group homeCodeBox" id="homeCodeBox" hidden>
+      <textarea id="homeCodeIn" placeholder='대화에서 받은 코드를 여기에 붙여넣으세요 — {"id":…,"cards":[…]}'></textarea>
+      <div class="row"><button class="ghost" id="homePaste">클립보드에서 붙여넣기</button><button class="primary" id="homeCodeGo">이 원고로 시작</button></div>
+      <p class="status" id="homeCodeStatus"></p>
+    </div>
     <div class="group"><h2>최근 작업 <small class="hint">사진까지 이 폰에 20개 보관</small></h2><div class="projList" id="projList"></div></div>
   </div>
 </div>
@@ -1642,7 +1649,15 @@ async function startNew(){await saveProject();S=fromData({cards:[{type:"cover"},
 $("homeBtn").onclick=showHome;$("homeClose").onclick=hideHome;$("homeContinue").onclick=hideHome;
 $("homeNew").onclick=startNew;
 $("homeNewPhotos").onclick=async()=>{await startNew();$("photoMulti").click()};
-$("homeCode").onclick=()=>{hideHome();openSheet("card","full");setTimeout(()=>{const el=$("code");el.scrollIntoView({block:"center"});el.focus()},120)};
+$("homeCode").onclick=()=>{const bx=$("homeCodeBox"),open=bx.hidden;bx.hidden=!open;$("homeCode").setAttribute("aria-expanded",open);say("homeCodeStatus","");
+  if(open)setTimeout(()=>{const el=$("homeCodeIn");el.focus();bx.scrollIntoView({block:"nearest",behavior:"smooth"})},60)};
+$("homePaste").onclick=async()=>{try{const t=await navigator.clipboard.readText();if(!t.trim())throw 0;$("homeCodeIn").value=t;say("homeCodeStatus","붙여넣었어요. '이 원고로 시작'을 눌러 주세요.")}
+  catch(e){$("homeCodeIn").focus();say("homeCodeStatus","클립보드를 읽지 못했어요. 칸을 길게 눌러 '붙여넣기'를 눌러 주세요.",true)}};
+$("homeCodeIn").oninput=()=>say("homeCodeStatus","");
+$("homeCodeGo").onclick=()=>{const t=$("homeCodeIn").value.trim(),a=t.indexOf("{"),b=t.lastIndexOf("}");
+  try{if(a<0||b<0)throw 0;const d=JSON.parse(t.slice(a,b+1));if(!Array.isArray(d.cards)||!d.cards.length)throw 0;
+    $("code").value=t;applyKit(d);$("homeCodeIn").value="";$("homeCodeBox").hidden=true;$("homeCode").setAttribute("aria-expanded","false");say("homeCodeStatus","");hideHome();say("toast","원고를 불러왔어요 · 카드 "+S.cards.length+"장")}
+  catch(e){say("homeCodeStatus",t?"코드를 읽지 못했어요. { 로 시작해 } 로 끝나는 전체를 붙여넣어 주세요.":"먼저 코드를 붙여넣어 주세요.",true)}};
 
 /* ---------- 게시 준비: 넘겨보기 + 저장·캡션 한번에 ---------- */
 function showPub(){const p=$("pub");p.hidden=false;$("caption").value=S.caption;const sw=$("swipe"),dots=$("dots");sw.textContent="";dots.textContent="";

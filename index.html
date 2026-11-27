@@ -187,7 +187,8 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
 .alignBar .ab:disabled{opacity:.35}
 .alignBar .top{display:flex;align-items:center;gap:8px}
 .alignBar .top .hint{flex:1;margin:0}
-.stageBtn{position:absolute;top:14px;right:16px;z-index:4;min-height:34px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.92);border:1px solid var(--line);color:var(--ink);box-shadow:0 1px 6px rgba(0,0,0,.12)}
+.stageBtn{position:absolute;top:14px;right:16px;z-index:4;min-height:34px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.92);border:1px solid rgba(0,0,0,.08);color:#1c1c1e;box-shadow:0 1px 6px rgba(0,0,0,.12)}
+.stageBtn[aria-pressed=true]{background:#1c1c1e!important;color:#fff!important}
 .stageBtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
 .stageBtn[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
 .deco textarea{min-height:42px;grid-column:1/-1}
@@ -264,8 +265,9 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
       <div class="row" id="slotRow" hidden><span class="hint">사진 칸</span>
         <div class="seg" role="group" aria-label="사진 칸"><button data-slot="0" aria-pressed="true">왼쪽</button><button data-slot="1" aria-pressed="false">오른쪽 위</button><button data-slot="2" aria-pressed="false">오른쪽 아래</button></div></div>
       <div class="ai" id="aiBox">
-        <div class="row"><button class="primary" id="aiFill">AI로 빈 곳 채우기</button><button class="ghost" id="aiUndo" hidden>AI 채우기 되돌리기</button></div>
-        <p class="hint">사진을 줄이거나 옮겨서 생긴 빈 곳을 AI가 이어 그려요. 처음 한 번 모델(약 30MB)을 내려받고, 사진은 이 기기 밖으로 나가지 않아요.</p>
+        <div class="row"><button class="primary" id="aiFill">빈 곳 자연스럽게 채우기</button><button class="ghost" id="aiUndo" hidden>채우기 전으로</button></div>
+        <div class="row" id="fillAlt" hidden><span class="hint">다른 방법으로 다시:</span><button id="fillFlat">배경색 이어 붙이기</button><button id="fillAI">AI로 그리기</button></div>
+        <p class="hint">단색·단순한 배경은 가장자리 색을 그대로 이어 붙이고, 무늬가 있는 배경만 AI가 그려요. 사진은 이 기기 밖으로 나가지 않아요.</p>
       </div>
       <div class="ai" id="outroBox" hidden>
         <div class="row"><button id="outroSave">이 사진을 마무리 카드 고정 사진으로</button><button class="ghost" id="outroClear">고정 사진 지우기</button></div>
@@ -834,7 +836,7 @@ let drawQ=0;function drawSoon(){if(!drawQ)drawQ=requestAnimationFrame(()=>{drawQ
 function draw(){if(!S.cards[cur])cur=0;render(S.cards[cur],$("preview"),false,true);clearTimeout(thumbTimer);thumbTimer=setTimeout(drawThumbs,160);kick()}
 function showMedia(){const c0=S.cards[cur],grid=c0.type==="grid";$("slotRow").hidden=!grid;$("aiBox").hidden=grid;$("gradGroup").hidden=grid;
   if(grid)for(const b of document.querySelectorAll("#slotRow [data-slot]"))b.setAttribute("aria-pressed",+b.dataset.slot===(c0.si||0));
-  const c=ph(c0),v=isVid(c);$("aiUndo").hidden=!c.orig;$("aiFill").disabled=v||aiBusy;$("zoomV").textContent=c.zoom+"%";$("fill").value=c.fill;$("playBtn").hidden=!v;if(v)$("playBtn").textContent=c.img.paused?"재생":"멈춤";
+  const c=ph(c0),v=isVid(c);$("aiUndo").hidden=!c.orig;$("fillAlt").hidden=!c.orig;$("aiFill").disabled=v||aiBusy;$("zoomV").textContent=c.zoom+"%";$("fill").value=c.fill;$("playBtn").hidden=!v;if(v)$("playBtn").textContent=c.img.paused?"재생":"멈춤";
   $("saveOne").textContent=v?"지금 보는 카드 영상 저장":"지금 보는 카드만 저장";
   S.cards.forEach((o,i)=>{if(isVid(o)&&i!==cur&&o.img!==c.img)o.img.pause()})}
 function paint(){draw();persist();loadFonts();recordSoon();saveProjectSoon()}
@@ -948,8 +950,12 @@ function imgDecoRow(c,d,i){
   const rm=document.createElement("button");rm.textContent="단색 배경 빼기";
   const tl=document.createElement("input");tl.type="range";tl.min=8;tl.max=90;tl.value=d.tol||34;tl.setAttribute("aria-label","배경 빼기 강도");tl.style.flex="1";tl.style.minWidth="90px";
   const back=document.createElement("button");back.className="ghost";back.textContent="원래대로";back.hidden=!d.src;
-  rm.onclick=()=>{if(!d.src)d.src=d.img;d.tol=+tl.value;d.cut="flat";d.img=trimAlpha(removeFlatBg(d.src,d.tol));sel=i;buildDecos();paint();say("stickerStatus","배경을 뺐어요. 덜 빠지면 강도를 올리고, 물건까지 지워지면 내린 뒤 다시 눌러 주세요.")};
-  back.onclick=()=>{d.img=d.src;d.src=null;d.cut=null;buildDecos();paint()};
+  rm.onclick=()=>{if(!d.src)d.src=d.img;d.tol=+tl.value;d.cut="flat";d._mask=alphaOf(removeFlatBg(d.src,d.tol));if(d.edge==null)d.edge=1;applyCut(d);sel=i;buildDecos();paint();say("stickerStatus","배경을 뺐어요. 덜 빠지면 강도를 올리고, 물건까지 지워지면 내린 뒤 다시 눌러 주세요.")};
+  back.onclick=()=>{d.img=d.src;d.src=null;d.cut=null;d._mask=null;buildDecos();paint()};
+  const eg=document.createElement("label");eg.style.gridColumn="1/-1";eg.hidden=!d._mask;eg.htmlFor="deco-e-"+i;
+  const eo=document.createElement("output");const er=document.createElement("input");er.type="range";er.id="deco-e-"+i;er.min=0;er.max=4;er.step=1;er.value=d.edge??1;
+  const ename=v=>["그대로","살짝","보통","강하게","아주 강하게"][v];eo.textContent=ename(+er.value);eg.append("가장자리 정리 (흰 테두리가 남으면 올려요)",eo,er);
+  let et=0;er.oninput=()=>{eo.textContent=ename(+er.value);clearTimeout(et);et=setTimeout(()=>{d.edge=+er.value;if(d._mask&&d.src){applyCut(d);th.src=d.img.toDataURL("image/png");paint()}},120)};
   const sh=document.createElement("label");sh.className="chk";const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!d.sh;cb.onchange=()=>{d.sh=cb.checked;paint()};sh.append(cb,"그림자");
   const bg2=document.createElement("div");bg2.className="row";bg2.style.gridColumn="1/-1";bg2.append(ai,back,sh);
   bg.append(rm,tl);
@@ -960,7 +966,7 @@ function imgDecoRow(c,d,i){
     b.innerHTML=k==="none"?"<svg viewBox='0 0 24 24'><path d='M5 7h14v10H5z' stroke-dasharray='2 2'/></svg>":document.querySelector('#shapeAdd [data-shape="'+k+'"] svg').outerHTML;
     const sm=document.createElement("small");sm.textContent=n;b.append(sm);b.onclick=()=>{d.shape=k;sel=i;buildDecos();paint()};shp.append(b)}
   shp.style.gridTemplateColumns="repeat(7,1fr)";
-  if(!d.shape||d.shape==="none")return [name,btns,th,shp,lab,bg2,bg];
+  if(!d.shape||d.shape==="none")return [name,btns,th,shp,lab,bg2,bg,eg];
   const sl=(lab0,key,min,max,def)=>{const l=document.createElement("label");l.style.gridColumn="1/-1";l.textContent=lab0;const r=document.createElement("input");r.type="range";r.min=min;r.max=max;r.value=d[key]??def;r.oninput=()=>{d[key]=+r.value;sel=i;paint()};l.append(r);return l};
   const bc=document.createElement("label");bc.className="chk";bc.style.gap="10px";bc.textContent="테두리 색";const ci=document.createElement("input");ci.type="color";ci.value=d.bc||"#ffffff";ci.oninput=()=>{d.bc=ci.value;paint()};bc.append(ci);
   const row3=document.createElement("div");row3.className="row";row3.style.gridColumn="1/-1";row3.append(bc,sh,flip);
@@ -1279,13 +1285,32 @@ async function aiCutout(src,onStatus){
   const o=(await sess.run(feeds))[sess.outputNames[0]].data;let lo=Infinity,hi=-Infinity;for(let i=0;i<n;i++){if(o[i]<lo)lo=o[i];if(o[i]>hi)hi=o[i]}
   const m=document.createElement("canvas");m.width=N;m.height=N;const mxx=m.getContext("2d"),id=mxx.createImageData(N,N),r=Math.max(hi-lo,1e-6);
   for(let i=0;i<n;i++)id.data[i*4+3]=Math.round(255*(o[i]-lo)/r);mxx.putImageData(id,0,0);
-  const out=document.createElement("canvas");out.width=src.width;out.height=src.height;const ox=out.getContext("2d");ox.drawImage(src,0,0);
-  ox.globalCompositeOperation="destination-in";ox.imageSmoothingQuality="high";ox.drawImage(m,0,0,out.width,out.height);ox.globalCompositeOperation="source-over";
-  return trimAlpha(out)}
+  const out=document.createElement("canvas");out.width=src.width;out.height=src.height;const ox=out.getContext("2d",{willReadFrequently:true});ox.imageSmoothingQuality="high";ox.drawImage(m,0,0,out.width,out.height);
+  return alphaOf(out)}
+/* 누끼 가장자리 정리: 반투명 테두리를 또렷하게 → level 픽셀만큼 안으로 깎기 → 테두리 색을 안쪽 물체 색으로 바꿔 흰 선/배경색 번짐 제거 */
+function refineCut(src,mask,level){
+  const w=src.width,h=src.height,n=w*h,sx=document.createElement("canvas");sx.width=w;sx.height=h;const x=sx.getContext("2d",{willReadFrequently:true});x.drawImage(src,0,0);
+  const id=x.getImageData(0,0,w,h),d=id.data,A=new Uint8Array(n);
+  const lo=level>0?40:10,hi=level>0?215:245;for(let i=0;i<n;i++){const v=(mask[i]-lo)*255/(hi-lo);A[i]=v<0?0:v>255?255:v}
+  const tmp=new Uint8Array(n);
+  const minPass=(src2,dst,r,horiz)=>{for(let y=0;y<h;y++)for(let xx=0;xx<w;xx++){let m=255;for(let k=-r;k<=r;k++){const a=horiz?xx+k:y+k;if(a<0||a>=(horiz?w:h))continue;const v=src2[horiz?y*w+a:a*w+xx];if(v<m){m=v;if(!m)break}}dst[y*w+xx]=m}};
+  const e=Math.round(level);if(e>0){minPass(A,tmp,e,true);minPass(tmp,A,e,false)}
+  /* 1px 부드럽게 */
+  for(let y=0;y<h;y++)for(let xx=0;xx<w;xx++){const i=y*w+xx,l=xx>0?A[i-1]:A[i],r2=xx<w-1?A[i+1]:A[i];tmp[i]=(l+2*A[i]+r2)>>2}
+  for(let y=0;y<h;y++)for(let xx=0;xx<w;xx++){const i=y*w+xx,u=y>0?tmp[i-w]:tmp[i],dn=y<h-1?tmp[i+w]:tmp[i];A[i]=(u+2*tmp[i]+dn)>>2}
+  /* 테두리 색: 안쪽(완전히 불투명한 곳)의 색을 바깥으로 번지게 */
+  const R=new Uint8ClampedArray(d),done=new Uint8Array(n),q=new Int32Array(n);let qh=0,qt=0;
+  for(let i=0;i<n;i++)if(A[i]>=245){done[i]=1;q[qt++]=i}
+  const LIM=e+8;let steps=0;
+  while(qh<qt&&steps<LIM){const end=qt;for(;qh<end;qh++){const i=q[qh],xx=i%w;for(const j of [xx>0?i-1:-1,xx<w-1?i+1:-1,i>=w?i-w:-1,i<n-w?i+w:-1]){if(j<0||done[j]||A[j]===0)continue;done[j]=1;q[qt++]=j;R[j*4]=R[i*4];R[j*4+1]=R[i*4+1];R[j*4+2]=R[i*4+2]}}steps++}
+  for(let i=0;i<n;i++)R[i*4+3]=A[i];
+  const out=document.createElement("canvas");out.width=w;out.height=h;out.getContext("2d").putImageData(new ImageData(R,w,h),0,0);return out}
+function alphaOf(cv){const d=cv.getContext("2d",{willReadFrequently:true}).getImageData(0,0,cv.width,cv.height).data,a=new Uint8Array(cv.width*cv.height);for(let i=0;i<a.length;i++)a[i]=d[i*4+3];return a}
+function applyCut(d){d.img=trimAlpha(refineCut(d.src,d._mask,d.edge??1))}
 async function cutDeco(d){
   if(bgBusy){say("stickerStatus","앞의 누끼를 따는 중이에요. 끝난 뒤 다시 눌러 주세요.",true);return false}
   bgBusy=true;const st=t=>say("stickerStatus",t);
-  try{const src=d.src||d.img,t0=performance.now();d.img=await aiCutout(src,st);d.src=src;d.cut="ai";buildDecos();paint();
+  try{const src=d.src||d.img,t0=performance.now();d._mask=await aiCutout(src,st);d.src=src;d.cut="ai";if(d.edge==null)d.edge=1;applyCut(d);buildDecos();paint();
     say("stickerStatus","누끼를 땄어요 ("+((performance.now()-t0)/1000).toFixed(0)+"초). 마음에 안 들면 '원래대로'를 누르세요.");return true}
   catch(e){console.error(e);say("stickerStatus",String(e&&e.message||e).startsWith("model")?"누끼 모델을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.":"AI 누끼 따기에 실패했어요. 새로고침한 뒤 다시 해 보세요. 계속 안 되면 컴퓨터의 Chrome에서 시도해 주세요.",true);return false}
   finally{bgBusy=false}}
@@ -1308,33 +1333,71 @@ async function runFill(sess,scene,r){
   const gen=document.createElement("canvas");gen.width=ow;gen.height=oh;const gx=gen.getContext("2d"),id=gx.createImageData(ow,oh);
   for(let i=0;i<m;i++){id.data[i*4]=d[i];id.data[i*4+1]=d[m+i];id.data[i*4+2]=d[2*m+i];id.data[i*4+3]=255}
   gx.putImageData(id,0,0);return gen}
-function compose(gen,scene,r){
+function compose(gen,scene,r,F0){
   /* AI가 그린 장면 위에 원래 사진을 다시 얹고, 이음새만 부드럽게 섞는다 */
   const out=document.createElement("canvas");out.width=W;out.height=H;const o=out.getContext("2d");o.drawImage(gen,0,0,W,H);
   const keep=document.createElement("canvas");keep.width=W;keep.height=H;const k=keep.getContext("2d");
-  const F=14,ax=r.x0>0?F:0,ay=r.y0>0?F:0,bx=r.x1<W?F:0,by=r.y1<H?F:0;
+  const F=F0||14,ax=r.x0>0?F:0,ay=r.y0>0?F:0,bx=r.x1<W?F:0,by=r.y1<H?F:0;
   if("filter" in k){k.filter="blur("+(F/2)+"px)";k.fillStyle="#fff";k.fillRect(r.x0+ax,r.y0+ay,r.x1-r.x0-ax-bx,r.y1-r.y0-ay-by);k.filter="none"}
   else{k.fillStyle="#fff";k.fillRect(r.x0+ax/2,r.y0+ay/2,r.x1-r.x0-(ax+bx)/2,r.y1-r.y0-(ay+by)/2)}
   if(!ax)k.fillRect(0,r.y0+ay,F,r.y1-r.y0-ay-by);if(!bx)k.fillRect(W-F,r.y0+ay,F,r.y1-r.y0-ay-by);
   if(!ay)k.fillRect(r.x0+ax,0,r.x1-r.x0-ax-bx,F);if(!by)k.fillRect(r.x0+ax,H-F,r.x1-r.x0-ax-bx,F);
   k.globalCompositeOperation="source-in";k.drawImage(scene.cv,0,0);o.drawImage(keep,0,0);return out}
-$("aiFill").onclick=async()=>{
+/* 빈 곳과 맞닿은 사진 가장자리가 얼마나 단순한지(무늬·물체가 없는지) 잰다. 작을수록 단색/그라데이션 */
+function edgeBusy(scene,r){const px=scene.x.getImageData(0,0,W,H).data,D=8,IN=3,res=[];
+  const sides=[];if(r.x0>0)sides.push(["v",r.x0+IN]);if(r.x1<W)sides.push(["v",r.x1-IN-D]);if(r.y0>0)sides.push(["h",r.y0+IN]);if(r.y1<H)sides.push(["h",r.y1-IN-D]);
+  for(const [o,p0] of sides){const len=o==="v"?r.y1-r.y0:r.x1-r.x0,sig=[];
+    for(let t=0;t<len;t++){let a=[0,0,0];for(let k=0;k<D;k++){const xx=o==="v"?p0+k:r.x0+t,yy=o==="v"?r.y0+t:p0+k,q=(yy*W+xx)*4;a[0]+=px[q];a[1]+=px[q+1];a[2]+=px[q+2]}sig.push(a.map(v=>v/D))}
+    const B=25;let dev=0;for(let t=0;t<len;t++){let m=[0,0,0],c=0;for(let u=Math.max(0,t-B);u<=Math.min(len-1,t+B);u++){m[0]+=sig[u][0];m[1]+=sig[u][1];m[2]+=sig[u][2];c++}dev+=(Math.abs(sig[t][0]-m[0]/c)+Math.abs(sig[t][1]-m[1]/c)+Math.abs(sig[t][2]-m[2]/c))/3}
+    res.push(dev/len)}
+  return Math.max(0,...res)}
+/* 배경색 이어 붙이기: 사진 가장자리 한 줄을 빈 곳으로 늘린 뒤 아주 부드럽게 풀고, 원래 사진의 입자감(노이즈)을 살짝 얹는다 */
+function stretchFill(scene,r){
+  const px=scene.x.getImageData(0,0,W,H).data,I=3,D=14,x0=r.x0+I,y0=r.y0+I,x1=r.x1-I,y1=r.y1-I;
+  /* 가장자리 안쪽 D줄을 평균 낸 색 띠를 만들고, 띠 방향으로 넓게 부드럽게 */
+  const band=(o,p0,dir,a,b)=>{const len=b-a,sig=new Float32Array(len*3);
+    for(let t=0;t<len;t++){let c0=0,c1=0,c2=0;for(let k=0;k<D;k++){const xx=o==="h"?a+t:p0+dir*k,yy=o==="h"?p0+dir*k:a+t,q=(yy*W+xx)*4;c0+=px[q];c1+=px[q+1];c2+=px[q+2]}sig[t*3]=c0/D;sig[t*3+1]=c1/D;sig[t*3+2]=c2/D}
+    const R=40,out=new Float32Array(len*3);for(let t=0;t<len;t++){let s0=0,s1=0,s2=0,c=0;for(let u=Math.max(0,t-R);u<=Math.min(len-1,t+R);u++){s0+=sig[u*3];s1+=sig[u*3+1];s2+=sig[u*3+2];c++}out[t*3]=s0/c;out[t*3+1]=s1/c;out[t*3+2]=s2/c}
+    return {a,len,v:out,at(t){t=Math.max(0,Math.min(this.len-1,t-this.a));return [this.v[t*3],this.v[t*3+1],this.v[t*3+2]]}}};
+  const T=r.y0>0?band("h",y0,1,x0,x1):null,B=r.y1<H?band("h",y1-1,-1,x0,x1):null,L=r.x0>0?band("v",x0,1,y0,y1):null,Rt=r.x1<W?band("v",x1-1,-1,y0,y1):null;
+  /* 입자감 */
+  let noise=0,cnt=0;for(let yy=y0+2;yy<y1-2;yy+=5)for(const xx of [x0+2,x1-3]){const q=(yy*W+xx)*4;noise+=Math.abs(px[q]*2-px[q-4]-px[q+4])/2;cnt++}
+  for(let xx=x0+2;xx<x1-2;xx+=5)for(const yy of [y0+2,y1-3]){const q=(yy*W+xx)*4;noise+=Math.abs(px[q]*2-px[q-4]-px[q+4])/2;cnt++}
+  noise=Math.min(8,cnt?noise/cnt:0);let seed=12345;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff-0.5};
+  const out=document.createElement("canvas");out.width=W;out.height=H;const o=out.getContext("2d"),id=o.createImageData(W,H),d=id.data;
+  const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+  for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){const q=(yy*W+xx)*4;let c;
+    if(xx>=r.x0&&xx<r.x1&&yy>=r.y0&&yy<r.y1){d[q]=px[q];d[q+1]=px[q+1];d[q+2]=px[q+2];d[q+3]=255;continue}
+    const cs=[],ws=[];
+    if(T&&yy<r.y0){cs.push(T.at(xx));ws.push(1/(r.y0-yy+1))}if(B&&yy>=r.y1){cs.push(B.at(xx));ws.push(1/(yy-r.y1+2))}
+    if(L&&xx<r.x0){cs.push(L.at(yy));ws.push(1/(r.x0-xx+1))}if(Rt&&xx>=r.x1){cs.push(Rt.at(yy));ws.push(1/(xx-r.x1+2))}
+    if(!cs.length){cs.push((T||B||L||Rt).at(T||B?xx:yy));ws.push(1)}
+    let sw=0;c=[0,0,0];cs.forEach((v,k)=>{c[0]+=v[0]*ws[k];c[1]+=v[1]*ws[k];c[2]+=v[2]*ws[k];sw+=ws[k]});
+    const nz=rnd()*noise*1.8;d[q]=c[0]/sw+nz;d[q+1]=c[1]/sw+nz;d[q+2]=c[2]/sw+nz;d[q+3]=255}
+  o.putImageData(id,0,0);return out}
+let fillMode="auto";
+async function doFill(mode){
   if(aiBusy)return;const c=S.cards[cur];
+  if(c.orig&&mode!=="auto"){Object.assign(c,c.orig);c.orig=null}
   if(!c.img){say("mediaStatus","먼저 사진을 올려 주세요.",true);return}
-  if(isVid(c)){say("mediaStatus","영상에는 AI 채우기를 쓸 수 없어요. 사진에서만 됩니다.",true);return}
+  if(isVid(c)){say("mediaStatus","영상에는 빈 곳 채우기를 쓸 수 없어요. 사진에서만 됩니다.",true);return}
   const scene=photoLayer(c);
   if(scene.empty){say("mediaStatus","사진이 화면 밖으로 너무 많이 나가 있어요. 위치를 조금 옮겨 주세요.",true);return}
   if(!scene.hole){say("mediaStatus","채울 빈 곳이 없어요. '확대 · 축소'를 줄이거나 '전체가 보이게'를 먼저 눌러 주세요.",true);return}
+  let m=mode;const busy=edgeBusy(scene,scene.r);if(m==="auto")m=busy<9?"flat":"ai";
   aiBusy=true;$("aiFill").disabled=true;
-  try{
-    const sess=await getSession(p=>say("mediaStatus","AI 모델 내려받는 중… "+Math.round(p*100)+"% (처음 한 번만)"));
-    say("mediaStatus","AI가 빈 곳을 그리는 중… 기기에 따라 몇 초에서 30초쯤 걸려요.");await new Promise(r=>setTimeout(r,60));
-    const t=performance.now(),gen=await runFill(sess,scene,scene.r),out=compose(gen,scene,scene.r);
-    c.orig={img:c.img,px:c.px,py:c.py,zoom:c.zoom};c.img=out;c.px=50;c.py=50;c.zoom=100;
-    buildFields();paint();say("mediaStatus","채웠어요 ("+((performance.now()-t)/1000).toFixed(1)+"초). 마음에 안 들면 되돌린 뒤 사진 위치를 바꿔 다시 해 보세요.")}
-  catch(e){console.error(e);say("mediaStatus",String(e&&e.message||e).startsWith("model")?"AI 모델 파일을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.":"AI 채우기에 실패했어요. 페이지를 새로고침한 뒤 다시 해 보세요. 계속 안 되면 컴퓨터의 Chrome에서 시도해 주세요.",true)}
-  finally{aiBusy=false;$("aiFill").disabled=false;$("aiUndo").hidden=!S.cards[cur].orig}};
-$("aiUndo").onclick=()=>{const c=S.cards[cur];if(!c.orig)return;Object.assign(c,c.orig);c.orig=null;buildFields();paint();say("mediaStatus","AI 채우기 전으로 되돌렸어요.")};
+  try{const t=performance.now();let gen;
+    if(m==="flat"){gen=stretchFill(scene,scene.r)}
+    else{const sess=await getSession(p=>say("mediaStatus","AI 모델 내려받는 중… "+Math.round(p*100)+"% (처음 한 번만)"));
+      say("mediaStatus","AI가 빈 곳을 그리는 중… 기기에 따라 몇 초에서 30초쯤 걸려요.");await new Promise(r=>setTimeout(r,60));gen=await runFill(sess,scene,scene.r)}
+    const out=compose(gen,scene,scene.r,m==="flat"?30:14);
+    c.orig={img:c.img,px:c.px,py:c.py,zoom:c.zoom};c.img=out;c.px=50;c.py=50;c.zoom=100;c._fill=m;
+    buildFields();paint();
+    say("mediaStatus",(m==="flat"?"배경색을 이어 붙였어요":"AI가 빈 곳을 그렸어요")+" ("+((performance.now()-t)/1000).toFixed(1)+"초)."+(mode==="auto"?(m==="flat"?" 무늬가 있는 배경이면 아래 'AI로 그리기'를 눌러 보세요.":" 배경이 단순하면 아래 '배경색 이어 붙이기'가 더 깔끔해요."):""))}
+  catch(e){console.error(e);say("mediaStatus",String(e&&e.message||e).startsWith("model")?"AI 모델 파일을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.":"채우기에 실패했어요. 페이지를 새로고침한 뒤 다시 해 보세요.",true)}
+  finally{aiBusy=false;$("aiFill").disabled=false;$("aiUndo").hidden=!S.cards[cur].orig;$("fillAlt").hidden=!S.cards[cur].orig}}
+$("aiFill").onclick=()=>doFill("auto");$("fillFlat").onclick=()=>doFill("flat");$("fillAI").onclick=()=>doFill("ai");
+$("aiUndo").onclick=()=>{const c=S.cards[cur];if(!c.orig)return;Object.assign(c,c.orig);c.orig=null;buildFields();paint();$("fillAlt").hidden=true;say("mediaStatus","채우기 전으로 되돌렸어요.")};
 
 /* ---------- 원고 만들기 ---------- */
 const RULES=`너는 인스타그램 매거진 '레코드룸(recordroom.mag)'의 카드뉴스 원고를 쓰는 편집 보조다. 아래 [브리핑]과 [에디터 메모]만 근거로 카드 4장과 캡션을 쓴다.

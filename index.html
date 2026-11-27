@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795781583">
+<meta name="rr-build" content="1795782631">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -68,7 +68,8 @@ button,input,select,textarea{font-size:16px}
 .dctl input[type=range]{flex:1;min-width:0;height:28px;accent-color:var(--ink)}
 .dctl .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;padding:2px 0}
 .dctl .chips::-webkit-scrollbar{display:none}
-.dctl.dmemo{flex-direction:column;align-items:stretch;gap:6px}.mrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.mstep{flex:none;display:flex;align-items:center;background:var(--raise,var(--surface));border:1px solid var(--line);border-radius:999px}.mstep button{border:0;background:none;min-width:34px;min-height:32px;font-size:17px;font-weight:700;color:var(--ink)}.mstep span{font-size:12.5px;font-weight:700;min-width:62px;text-align:center;white-space:nowrap}.chip.f-i{font-style:italic}.chip.f-u{text-decoration:underline}.chip.f-s{text-decoration:line-through}
+.dctl.dmemo{flex-direction:column;align-items:stretch;gap:6px}.mrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.mstep{flex:none;display:flex;align-items:center;background:var(--raise,var(--surface));border:1px solid var(--line);border-radius:999px}.dpad button{min-width:46px;min-height:40px;font-size:19px}
+.mstep button{border:0;background:none;min-width:34px;min-height:32px;font-size:17px;font-weight:700;color:var(--ink)}.mstep span{font-size:12.5px;font-weight:700;min-width:62px;text-align:center;white-space:nowrap}.chip.f-i{font-style:italic}.chip.f-u{text-decoration:underline}.chip.f-s{text-decoration:line-through}
 .qhead{display:flex;align-items:center;justify-content:space-between;gap:8px}.qhead .seg{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}.qhead .seg button{white-space:nowrap}.qhead b{font-size:13px;color:var(--muted)}.dctl .fmt{margin:0}.fmtW.scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.fmtW.scroll button{white-space:nowrap;flex:none}
 .fmtW{display:flex;gap:4px;flex-wrap:wrap;width:100%;padding-top:4px}.fmtW[hidden]{display:none}.fmtW button{border:0;border-radius:999px;background:rgba(255,255,255,.1);color:var(--ink);min-height:32px;padding:0 12px;font-size:13px}.fmt{flex-wrap:wrap}
 .minput{width:100%;font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:none;font-family:inherit}
@@ -2031,6 +2032,8 @@ function renderDock(){const dt=$("dtools");if(!dt)return;let tools=TOOLS[dockCat
   if(dockCat==="text"&&S&&S.cards[cur]&&S.cards[cur].type==="intro")tools=tools.slice(0,1).concat([{k:"note",l:S.cards[cur].note?"노트 배경 끄기":"노트 배경 켜기",ic:"bg",act:()=>{const c=S.cards[cur];c.note=!c.note;paint();renderDock();say("toast",c.note?"글 뒤에 노트를 깔았어요":"노트 배경을 껐어요")}}],tools.slice(1));
   if(dockCat==="deco"){const d=S&&S.cards[cur]&&S.cards[cur].decos[sel];tools=(d&&d.t==="memo"?MEMO_TOOLS:(d&&d.t!=="img"?[{k:"dedit",l:"글 고치기",ic:"edit",type:"decoedit"}]:[]).concat([{k:"preset",l:"글자 스타일",ic:"font",type:"preset"}])).concat(d&&d.t==="text"?TXT_TOOLS:[],d&&d.t==="memo"?[]:tools,d?[{k:"ddup",l:"복제",ic:"stack",act:()=>dupDeco(false)},{k:"dcopy",l:"복사",ic:"stack",act:()=>dupDeco(true)},{k:"del",l:"삭제",ic:"trash",act:()=>{S.cards[cur].decos.splice(sel,1);sel=-1;msel.clear();buildDecos();paint();renderDock();say("toast","지웠어요 · 위의 ↩로 되돌릴 수 있어요")}}]:[]);
     if(DECO_CLIP)tools=tools.concat([{k:"dpaste",l:"붙여넣기",ic:"plus",act:pasteDeco}]);
+    {const key=["mtog","align","dmove"],front=[{k:"mtog",l:multi?"선택 끝내기":"여러 개 선택",ic:"stack",act:()=>{$("multiBtn").click();if(multi&&dockTool!=="align")dockTool="align";renderDock()},on:()=>multi},{k:"dmove",l:"위치",ic:"move",type:"dnudge"},tools.find(t=>t.k==="align")].filter(Boolean);
+      tools=tools.filter(t=>!key.includes(t.k));if(d||multi){const at=tools[0]&&(tools[0].k==="dedit"||tools[0].k==="medit")?1:0;tools.splice(at,0,...front)}else tools.splice(Math.min(1,tools.length),0,front[0],front[2])}
     {const mv=tools.filter(t=>t.k==="ddup"||t.k==="dcopy");if(mv.length){tools=tools.filter(t=>!mv.includes(t));const at=tools[0]&&(tools[0].k==="dedit"||tools[0].k==="medit")?1:0;tools.splice(at,0,...mv)}}
     if(dockTool&&!tools.some(t=>t.k===dockTool))dockTool=null}
   if(dockCat==="photo"&&S&&S.cards[cur]&&S.cards[cur].type!=="grid"){const c=S.cards[cur];
@@ -2089,6 +2092,13 @@ $("dctl").classList.remove("dmemo");const box=$("dctl"),all=[{k:"dedit",type:"de
     r.onchange=()=>src.dispatchEvent(new Event("change",{bubbles:true}));
     r.ondblclick=()=>{};box.append(lab,r,v);return}
   if(t.type==="ty"){renderTy(box,t);return}
+  if(t.type==="dnudge"){const n=selIdx().length,g=document.createElement("span");g.className="mstep dpad";
+    for(const [dx,dy,lb] of [[-1,0,"←"],[0,-1,"↑"],[0,1,"↓"],[1,0,"→"]]){const b=document.createElement("button");b.textContent=lb;b.style.touchAction="none";
+      let tm=0,cnt=0;const step=()=>{const ds=S.cards[cur].decos,sp=Math.min(30,5+cnt*1.5);for(const i of selIdx()){const d=ds[i];if(!d)continue;if(d.x==null&&d._b){d.x=d._b.x+d._b.w/2;d.y=d._b.y+d._b.h/2}if(d.x!=null){d.x+=dx*Math.round(sp);d.y+=dy*Math.round(sp)}}drawSoon()};
+      const stop=()=>{if(tm){clearTimeout(tm);tm=0;paint()}};
+      b.addEventListener("pointerdown",e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(x){}cnt=0;step();const tick=()=>{cnt++;step();tm=setTimeout(tick,60)};tm=setTimeout(tick,380)});
+      for(const ev of ["pointerup","pointercancel","lostpointercapture"])b.addEventListener(ev,stop);b.addEventListener("contextmenu",e=>e.preventDefault());g.append(b)}
+    const h=document.createElement("span");h.className="dl";h.textContent=n?(n>1?n+"개 같이 움직여요":"한 번 5px · 꾹 누르면 빨라져요"):"옮길 요소를 먼저 눌러 주세요";box.append(lab,g,h);return}
   if(t.type==="margin"){const c=S.cards[cur];box.classList.add("dmemo");const seg=document.createElement("div");seg.className="seg";
     for(const [k,n] of [["gm","전체"],["gmT","위"],["gmB","아래"],["gmL","왼쪽"],["gmR","오른쪽"]]){const b=document.createElement("button");b.textContent=n;b.setAttribute("aria-pressed",marginSide===k);b.onclick=()=>{marginSide=k;renderCtl()};seg.append(b)}
     const row=document.createElement("div");row.className="mrow";row.style.flexWrap="nowrap";const k=marginSide,cv=()=>k==="gm"?(c.gm??48):(c[k]??c.gm??48);

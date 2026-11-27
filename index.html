@@ -634,6 +634,7 @@ const TYPES={
   product:{label:"제품",dim:78,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격",0]]},
   intro:{label:"가운데 글",dim:72,fields:[["title","제목",0],["text","본문",1]]},
   grid:{label:"제품 3컷",dim:0,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격 (예: KRW 48,000)",0],["foot","맨 아래 글자",0]],def:{brand:"BRAND",name:"PRODUCT NAME",price:"KRW 00,000",foot:"recordroom.mag"}},
+  checklist:{label:"체크리스트",dim:0,fields:[["head","소제목 (메모지 첫 줄)",0],["item","체크할 내용",1]],def:{head:"CHECK 01 — 오버핏",item:"옷은 일단 커야 마음이 편하다."}},
   outro:{label:"마무리",dim:42,fields:[["text","고정 멘트",1],["mark","로고 글자",0]],def:{text:"오늘 놓치면 아까운 것들,\n취향과 쓸모 사이의 큐레이션",mark:"RecordRoom.mag"}}
 };
 const SAMPLE={id:"",corner:"옷장 기록",hl:"#8B0A7E",showHeader:true,sample:true,check:[],caption:"",cards:[
@@ -655,6 +656,7 @@ function fromData(d){
     if(c.fs&&typeof c.fs==="object"){n.fs={};for(const k in c.fs)if(+c.fs[k]>=40&&+c.fs[k]<=250)n.fs[k]=+c.fs[k]}
     if(c.off&&typeof c.off==="object"){n.off={};for(const k in c.off){const q=c.off[k];if(q&&isFinite(q.x)&&isFinite(q.y))n.off[k]={x:Math.max(-W,Math.min(W,+q.x)),y:Math.max(-H,Math.min(H,+q.y))}}}
     if(c.ty&&typeof c.ty==="object"){const t=normTy(c.ty);n.ty={};for(const r of ["T","B"])if(c.ty[r])n.ty[r]=t[r];tyClean(n)}
+    if(n.type==="checklist"){n.chk=!!c.chk;if(typeof c.hf==="string"&&FONTS.some(x=>x.n===c.hf))n.hf=c.hf}
     if(typeof c.m==="string")n._m=c.m;
     if(Array.isArray(c.slots)&&n.slots)c.slots.slice(0,3).forEach((q,j)=>{if(!q)return;const t=n.slots[j];for(const k of ["px","py","zoom"])if(typeof q[k]==="number")t[k]=q[k];if(typeof q.m==="string")t._m=q.m});
     if(typeof c.si==="number"&&n.slots)n.si=Math.max(0,Math.min(2,c.si|0));
@@ -666,7 +668,7 @@ function fromData(d){
 }
 function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
   o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
-function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
+function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,chk:c.chk||undefined,hf:c.hf||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function newPid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
@@ -680,12 +682,13 @@ let FB0={w:400,s:30,role:"b"};
 /* role "s": 표지 작은 줄 — 본문 글꼴, 원본처럼 자간을 4% 더 좁힘 */
 /* role "x0"/"x1": 고정 글꼴에 자간 0 / +1% (제품 3컷 글자) */
 /* 글 굵기: 카드마다 칸별로 바꿀 수 있음(c.fw). 없으면 원래 디자인 굵기 */
-const DEFW={cover:{title:700,sub:600},body:{text:500},qa:{q:700,text:500,note:400},product:{brand:800,name:400,price:500},intro:{title:700,text:500},outro:{text:400,mark:800},grid:{brand:800,name:500,foot:400}};
+const DEFW={checklist:{head:400,item:400},cover:{title:700,sub:600},body:{text:500},qa:{q:700,text:500,note:400},product:{brand:800,name:400,price:500},intro:{title:700,text:500},outro:{text:400,mark:800},grid:{brand:800,name:500,foot:400}};
 function fw(f,w){return (CC&&CC.fw&&CC.fw[f])||w}
 function fz(f){return ((CC&&CC.fs&&CC.fs[f])||100)/100*tyOf(f).sz/100}
-function font(ctx,w,s,role,st){const fixed=role==="x"||role==="x0"||role==="x1",family=fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);
+const HAND0="메모먼트 꾹꾹체";
+function font(ctx,w,s,role,st){const hand=role==="h",fixed=role==="x"||role==="x0"||role==="x1",family=hand?((CC&&CC.hf)||HAND0):fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);if(hand)linkFont(family);
   if(!st)FB0={w,s,role};const ww=st&&st.b?Math.min(900,Math.max(w+300,700)):w;
-  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0)+(fixed||!CC||!CC.ty||CC.type==="outro"?0:((CC.ty[role==="t"?"T":"B"]||TY0).ls)))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
+  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=hand?0:s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0)+(fixed||!CC||!CC.ty||CC.type==="outro"?0:((CC.ty[role==="t"?"T":"B"]||TY0).ls)))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
 function M(ctx,t){const w=ctx.measureText(t).width;return NATIVE_LS?w:w+LS*[...t].length}
 function T(ctx,t,x,y){if(NATIVE_LS||!LS){ctx.fillText(t,x,y);return}for(const ch of t){ctx.fillText(ch,x,y);x+=ctx.measureText(ch).width+LS}}
 function TC(ctx,t,x,y){T(ctx,t,x-(M(ctx,t)-LS)/2,y)}
@@ -928,6 +931,29 @@ function drawIntro(ctx,c){
   if(hasT){font(ctx,fw("title",700),tsz,"t");drawRich(ctx,rich(ctx,f.title,maxW).slice(0,1),W/2,y,tsz,{size:tsz,align:"center",field:"title"});y+=96+bs}
   font(ctx,fw("text",500),bs,"b");drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center",field:"text"});
 }
+/* 체크리스트: 배경 사진 + 아래쪽 종이 메모지(올려 준 종이 질감) + 검정 볼펜 손글씨 소제목·체크 한 줄 */
+const PAPER=new Image();PAPER.onload=()=>{if(S)draw()};PAPER.src="textures/paper.jpg";
+const INK="#1E1E22";
+function handBox(ctx,x,y,sz,on){/* 손으로 그린 듯 살짝 삐뚤한 네모 + 체크 */
+  const j=(a,b)=>a+Math.sin(b*12.9898)*sz*0.025;ctx.save();shadow(ctx,false);ctx.strokeStyle=INK;ctx.lineWidth=Math.max(3,sz*0.085);ctx.lineJoin="round";ctx.lineCap="round";
+  ctx.beginPath();ctx.moveTo(j(x,1),j(y,2));ctx.lineTo(j(x+sz,3),j(y+sz*0.02,4));ctx.lineTo(j(x+sz*0.98,5),j(y+sz,6));ctx.lineTo(j(x+sz*0.01,7),j(y+sz*0.98,8));ctx.closePath();ctx.stroke();
+  if(on){ctx.lineWidth=Math.max(4,sz*0.11);ctx.beginPath();ctx.moveTo(x+sz*0.18,y+sz*0.5);ctx.quadraticCurveTo(x+sz*0.32,y+sz*0.66,x+sz*0.42,y+sz*0.82);ctx.quadraticCurveTo(x+sz*0.7,y+sz*0.25,x+sz*1.12,y-sz*0.18);ctx.stroke()}
+  ctx.restore()}
+function drawChecklist(ctx,c){
+  const f=c.f,mx=64,mw=W-mx*2,pad=62,hs=44*fz("head"),is=52*fz("item"),bx=is*0.86,gap=22,tw=mw-pad*2-bx-gap;
+  font(ctx,fw("head",400),hs,"h");const hl=rich(ctx,f.head,mw-pad*2),hasH=plain(f.head).trim();
+  font(ctx,fw("item",400),is,"h");const il=rich(ctx,f.item,tw),ilh=is*1.45;
+  const mh=pad*2+(hasH?hl.length*hs*1.4+18:0)+is*1.05+(il.length-1)*ilh,my=H-80-mh;
+  /* 종이: 그림자 → 질감 → 가장자리 살짝 어둡게 */
+  ctx.save();ctx.shadowColor="rgba(0,0,0,.30)";ctx.shadowBlur=34;ctx.shadowOffsetY=14;ctx.fillStyle="#F3F3F1";ctx.fillRect(mx,my,mw,mh);ctx.restore();
+  if(PAPER.complete&&PAPER.naturalWidth){ctx.save();ctx.beginPath();ctx.rect(mx,my,mw,mh);ctx.clip();const s=Math.max(mw/PAPER.naturalWidth,mh/PAPER.naturalHeight);ctx.drawImage(PAPER,mx,my,PAPER.naturalWidth*s,PAPER.naturalHeight*s);ctx.restore()}
+  {const g=ctx.createLinearGradient(0,my,0,my+mh);g.addColorStop(0,"rgba(0,0,0,.035)");g.addColorStop(.2,"rgba(0,0,0,0)");g.addColorStop(.85,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,.05)");ctx.fillStyle=g;ctx.fillRect(mx,my,mw,mh)}
+  let y=my+pad;
+  if(hasH){font(ctx,fw("head",400),hs,"h");y+=hs*0.95;drawRich(ctx,hl,mx+pad,y,hs*1.4,{size:hs,color:INK,shadow:false,field:"head"});y+=(hl.length-1)*hs*1.4+hs*0.45+18}
+  font(ctx,fw("item",400),is,"h");y+=is*0.95;
+  const of=OFF("item"),bxX=mx+pad+of.x,bxY=y-is*0.78+of.y;handBox(ctx,bxX,bxY,bx,!!c.chk);(c._hits||(c._hits=[])).push({f:"_box",x:bxX-14,y:bxY-14,w:bx+28,h:bx+28});
+  drawRich(ctx,il,mx+pad+bx+gap,y,ilh,{size:is,color:INK,shadow:false,field:"item"});
+}
 /* 마무리: 가운데 두 줄 멘트 + 굵은 로고 글자 (기존 마무리 카드 비율에 맞춤) */
 function drawOutro(ctx,c){
   const f=c.f,k=c.scale/100,L=c.lh/100,bs=37.5*k*fz("text"),blh=bs*1.57*L*LH("text"),ms=51*k*fz("mark"),gap=ms*1.52*L;
@@ -953,7 +979,7 @@ function drawGrid(ctx,c,showSel,transparent){
   if(line){const nz=23*fz("name");font(ctx,fw("name",500),nz,"x0");drawRich(ctx,rich(ctx,line,W-84).slice(0,1),42,226,nz,{size:nz,color:ink,shadow:false,field:"name"})}
   if(plain(f.foot).trim()){const fz2=21*fz("foot");font(ctx,fw("foot",400),fz2,"x1");drawRich(ctx,rich(ctx,f.foot,W-84).slice(0,1),W/2,1323,fz2,{size:fz2,align:"center",color:"#4a4a4a",shadow:false,field:"foot"})}
 }
-const DRAW={grid:drawGrid,cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
+const DRAW={checklist:drawChecklist,grid:drawGrid,cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
 /* ---------- 가이드 선·자석·여러 개 정렬 ---------- */
 let guides=false,multi=false,msel=new Set(),mselCard=-1,snapX=null,snapY=null;
 try{guides=localStorage.getItem("rr-guide")==="1"}catch(e){}
@@ -1012,7 +1038,7 @@ function linkFont(family){const f=FONTS.find(x=>x.n===family);if(!f||f.local)ret
 function allText(){return S.cards.map(c=>Object.values(c.f).join("")).join("")+S.corner+"가A1"}
 let fontTimer=0,fontSeq=0;
 function loadFonts(){clearTimeout(fontTimer);fontTimer=setTimeout(async()=>{
-  const seq=++fontSeq,text=allText(),fams=[...new Set([S.fontT,S.fontB])];
+  const seq=++fontSeq,text=allText(),fams=[...new Set([S.fontT,S.fontB,...S.cards.filter(c=>c.type==="checklist").map(c=>c.hf||HAND0)])];
   try{for(const fm of fams){await linkFont(fm);const ws=[...new Set([300,400,500,600,700,800].map(w=>near(fm,w)))];await Promise.all(ws.map(w=>document.fonts.load(w+' 40px "'+fm+'"',text)))}}catch(e){}
   if(seq!==fontSeq)return;
   let bad=[];try{bad=fams.filter(fm=>!document.fonts.check(near(fm,400)+' 40px "'+fm+'"',"가"))}catch(e){}
@@ -1229,7 +1255,7 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     if(i>=0&&(multi||e.shiftKey)){if(!multi){multi=true;selIdx();if(sel>=0)msel.add(sel)}const was=msel.has(i);if(!was)toggleM(i);else sel=i;
       const ix=selIdx();drag={mode:"group",x0:p.x,y0:p.y,moved:false,was,i,start:ix.map(k=>({d:ds[k],x:ds[k].x,y:ds[k].y}))};try{pv.setPointerCapture(e.pointerId)}catch(x){}buildDecos();draw();return}
     if(i<0){const c0=S.cards[cur];if(multi&&msel.size&&!e.shiftKey){}else if(sel>=0){sel=-1;buildDecos();draw()}
-      {const tf0=pts.size<2&&textAt(p);if(tf0){const o=(c0.off&&c0.off[tf0])||{x:0,y:0};drag={mode:"text",f:tf0,tf:tf0,x0:p.x,y0:p.y,o0:{x:o.x,y:o.y},moved:false};try{pv.setPointerCapture(e.pointerId)}catch(x){}return}}
+      {const tf0=pts.size<2&&textAt(p);if(tf0==="_box"){drag={mode:"tap",x0:p.x,y0:p.y,moved:false,tf:"_box"};return}if(tf0){const o=(c0.off&&c0.off[tf0])||{x:0,y:0};drag={mode:"text",f:tf0,tf:tf0,x0:p.x,y0:p.y,o0:{x:o.x,y:o.y},moved:false};try{pv.setPointerCapture(e.pointerId)}catch(x){}return}}
       if(c0.type==="grid"){const k=slotAt(p);if(k<0){drag=null;return}if((c0.si||0)!==k){c0.si=k;buildFields();draw()}}
       const c=ph(c0);
       if(pts.size>=2&&c.img){const [a,b]=[...pts.values()];drag={mode:"pzoom",d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:c.zoom};return}
@@ -1270,6 +1296,8 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     if(drag.mode==="group"){const g=drag;drag=null;if(!g.moved&&g.was&&e.type==="pointerup")msel.delete(g.i);buildDecos();paint();return}
     if(drag.mode==="text"&&drag.moved){const g=drag;drag=null;paint();const c0=S.cards[cur],now=(c0.off&&c0.off[g.f])||{x:0,y:0};if(now.x!==g.o0.x||now.y!==g.o0.y)undoSnack(c0,g.f,g.o0);return}
     const tapped=!drag.moved&&e.type==="pointerup"&&(drag.mode==="tap"||drag.mode==="photo"||drag.mode==="move"||drag.mode==="text");
+    if(tapped&&drag.tf==="_box"){drag=null;const c0=S.cards[cur];c0.chk=!c0.chk;paint();return}
+    if(drag.tf==="_box"){drag=null;return}
     if(tapped&&drag.tf){const f=drag.tf;drag=null;if(ft&&ft.field===f){hideFT();openField(f)}else showFT(f);return}
     if(tapped)hideFT();
     if(drag.mode==="tap"){drag=null;if(tapped)$("photo").click();return}
@@ -1859,6 +1887,7 @@ const TOOLS={
   {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("card","full")}]};
 let dockCat="photo",dockTool=null;
 function renderDock(){const dt=$("dtools");if(!dt)return;let tools=TOOLS[dockCat]||[];dt.textContent="";
+  if(dockCat==="text"&&S&&S.cards[cur]&&S.cards[cur].type==="checklist"){tools=tools.filter(t=>t.k==="edit"||t.k==="more").concat([{k:"hfont",l:"손글씨 글꼴",ic:"font",type:"hfont"},{k:"chk",l:"체크 표시",ic:"edit",act:()=>{const c=S.cards[cur];c.chk=!c.chk;paint()}}]);if(dockTool&&!tools.some(t=>t.k===dockTool))dockTool=null}
   if(dockCat==="deco"){const d=S&&S.cards[cur]&&S.cards[cur].decos[sel];tools=[{k:"preset",l:"글자 스타일",ic:"font",type:"preset"}].concat(d&&d.t==="text"?TXT_TOOLS:[],tools,d?[{k:"del",l:"삭제",ic:"trash",act:()=>{S.cards[cur].decos.splice(sel,1);sel=-1;msel.clear();buildDecos();paint();renderDock();say("toast","지웠어요 · 위의 ↩로 되돌릴 수 있어요")}}]:[]);
     if(dockTool&&!tools.some(t=>t.k===dockTool))dockTool=null}
   for(const t of tools){const b=document.createElement("button");b.className="tool"+(t.act?" act":"");b.innerHTML=svg(t.ic)+"<span></span>";b.lastChild.textContent=t.l;
@@ -1892,6 +1921,7 @@ function renderCtl(){const box=$("dctl"),all=(TOOLS[dockCat]||[]).concat(dockCat
     r.onchange=()=>src.dispatchEvent(new Event("change",{bubbles:true}));
     r.ondblclick=()=>{};box.append(lab,r,v);return}
   if(t.type==="ty"){renderTy(box,t);return}
+  if(t.type==="hfont"){const ch=document.createElement("div");ch.className="chips";const c=S.cards[cur];fontChips(ch,c.hf||HAND0,n=>{if(n)c.hf=n;paint();renderCtl()});box.append(lab,ch);return}
   const chips=document.createElement("div");chips.className="chips";
   const mk=(txt,fn,isOn)=>{const c=document.createElement("button");c.className="chip";c.textContent=txt;c.setAttribute("aria-pressed",!!(isOn&&isOn()));c.onclick=()=>{fn();setTimeout(renderCtl,30)};chips.append(c)};
   if(t.type==="chips")for(const [a,f,o] of t.list)mk(a,f,o);

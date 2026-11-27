@@ -542,6 +542,9 @@ const FONTS=[
   {n:"Gaegu",g:"손글씨",w:[300,400,700],q:"Gaegu:wght@300;400;700"},
   {n:"Nanum Pen Script",g:"손글씨",w:[400],q:"Nanum+Pen+Script"},
   /* 눈누(noonnu.cc) 등 상업 이용·웹 임베딩 가능 무료 글꼴 */
+  {n:"수성바탕",g:"바탕",w:[400],cr:"수성구 · 공공누리 제1유형",src:{"400":"https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2205@1.0/SuseongBatang.woff2"}},
+  {n:"김포평화바탕",g:"바탕",w:[400],cr:"김포시 · 공공누리 제1유형",src:{"400":"https://cdn.jsdelivr.net/npm/@noonnu/gimpo-batang00@0.1.0/fonts/gimpobatang00-normal.woff"}},
+  {n:"단조",g:"기타",w:[700],src:{"700":"https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.0/Danjo-bold-Regular.woff2"}},
   {n:"카카오 큰글씨",g:"고딕",w:[400, 700, 800],src:{"400": "https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-Regular.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-Bold.woff2", "800": "https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-ExtraBold.woff2"}},
   {n:"런드리고딕",g:"고딕",w:[400, 700],src:{"400": "https://cdn.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicR.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2"}},
   {n:"원티드 산스",g:"고딕",w:[400, 500, 600, 700, 800, 900],src:{"400": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-Regular.woff2", "500": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-Medium.woff2", "600": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-SemiBold.woff2", "700": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-Bold.woff2", "800": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-ExtraBold.woff2", "900": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-Black.woff2"}},
@@ -990,6 +993,7 @@ function fillFontSelects(){
     const sample=document.createElement("b");sample.textContent=role==="fontT"?"레코드룸 Aa":"옷장 기록 Aa";sample.style.fontFamily='"'+f.n+'"'+FB;sample.style.fontWeight=near(f.n,role==="fontT"?700:500);
     const name=document.createElement("small");name.textContent=f.n;btn.append(sample,name);
     btn.onclick=()=>{S[role]=f.n;useFont(f.n);fillFontSelects();paint()};groups[sec.g].append(btn)}
+  {const cr=FONTS.filter(f=>f.cr);if(cr.length){const n=document.createElement("p");n.className="hint";n.textContent="글꼴 출처 — "+cr.map(f=>f.n+": "+f.cr).join(" / ");grid.append(n)}}
   if(!FONTS.some(f=>f.n===S[role])){const n=document.createElement("p");n.className="hint";n.textContent="지금 "+(role==="fontT"?"제목":"본문")+" 글꼴 '"+S[role]+"'은 올린 파일이라 다시 올려야 보여요.";grid.append(n)}
 }
 function showTypo(){const c=S.cards[cur];$("scale").value=c.scale;$("ls").value=c.ls;$("lh").value=c.lh;$("scaleV").textContent=c.scale+"%";$("lsV").textContent=(c.ls/10).toFixed(1)+"%";$("lhV").textContent=c.lh+"%"}

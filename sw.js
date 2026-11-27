@@ -20,7 +20,7 @@ self.addEventListener("fetch", e => {
     return;
   }
   if (u.origin === location.origin) {
-    e.respondWith(fetch(req).then(res => {
+    e.respondWith(fetch(req, { cache: "no-cache" }).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return res;
     }).catch(() => caches.match(req)));

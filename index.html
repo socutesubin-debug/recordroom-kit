@@ -136,6 +136,7 @@ button,input,select,textarea{font-size:16px}
 .big small{display:block;font-size:12px;font-weight:500;opacity:.72}
 #homeCode{flex:none}
 .homeCodeBox{display:flex;flex-direction:column;gap:8px;margin-top:-4px}.homeCodeBox textarea{min-height:120px;width:100%}.homeCodeBox .row{display:flex;gap:8px}.homeCodeBox .row button{flex:1;min-height:44px}
+.updBar{position:fixed;z-index:9999;left:12px;right:12px;top:calc(8px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-radius:14px;background:#F2F2F4;color:#141416;box-shadow:0 6px 24px rgba(0,0,0,.35);font-size:14px;font-weight:700}.updBar[hidden]{display:none}.updBar span{flex:1}.updBar button{min-height:38px;padding:0 14px;border-radius:10px;border:0;background:#141416;color:#fff;font-weight:700}.updBar .ghost{background:none;color:#555}
 .bigrow{display:flex;gap:10px}
 h2 small{display:block;font-weight:500;margin-top:2px}
 .iconBtn{min-height:40px;width:40px;padding:0;display:grid;place-items:center;border:0;background:none}
@@ -512,6 +513,7 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
     </section>
   </div>
 </div>
+<div class="updBar" id="updBar" hidden role="status"><span>새 버전이 나왔어요</span><button id="updGo">지금 업데이트</button><button class="ghost" id="updLater" aria-label="나중에">나중에</button></div>
 <div class="overlay" id="home" role="dialog" aria-label="시작" hidden>
   <header class="bar"><h1>RR <span>KIT</span></h1><span class="spacer"></span><button class="ghost" id="homeClose">편집으로 →</button></header>
   <div class="pubBody">
@@ -1960,7 +1962,15 @@ function textAt(p){const hs=(S.cards[cur]&&S.cards[cur]._hits)||[];for(let i=hs.
 try{const t=localStorage.getItem("rr-tab");if(t&&$("tab-"+t))sheetTab=t}catch(e){}
 showTab(sheetTab);
 document.addEventListener("focusin",e=>{if(e.target.closest&&e.target.closest("#decoList")&&$("tab-deco").hidden)openSheet("deco")});
-if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
+if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)r.update().catch(()=>{})})}).catch(()=>{});
+/* 새 버전 알림: 홈 화면 앱은 껐다 켜도 예전 화면을 그대로 이어 보여 주는 경우가 많아서,
+   앱으로 돌아올 때마다 서버의 index.html과 비교해 바뀌었으면 '업데이트' 띠를 띄운다 */
+(function(){if(location.protocol!=="https:")return;let base=null,shown=false;
+  const sig=async()=>{const r=await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;const t=await r.text();let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return t.length+":"+h};
+  const check=async()=>{if(shown||document.hidden)return;try{const v=await sig();if(base===null){base=v;return}if(v!==base){shown=true;$("updBar").hidden=false}}catch(e){}};
+  $("updGo").onclick=async()=>{$("updGo").disabled=true;$("updGo").textContent="저장 중…";try{await saveProject()}catch(e){}location.reload()};
+  $("updLater").onclick=()=>{$("updBar").hidden=true};
+  check();document.addEventListener("visibilitychange",()=>{if(!document.hidden)check()});setInterval(check,180000)})();
 
 /* ---------- 시작 ---------- */
 S=restore();buildAll();resetHistory();fillOutroPhotos();renderDock();layout();

@@ -735,16 +735,16 @@ function decoLines(ctx,st,x,y,w,size,o){if(!st||!(st.u||st.s))return;shadow(ctx,
 /* o: {size, align:"left"|"center", color, shadow, hl} */
 function drawRich(ctx,lines,x,y,lh,o){
   o=Object.assign({align:"left",color:"#fff",shadow:true},o);useBase(ctx);const sw=M(ctx," "),size=o.size;
-  if(o.field&&!o.noOff){const of=OFF(o.field);x+=of.x;y+=of.y}
+  const of=o.field&&!o.noOff?OFF(o.field):{x:0,y:0};y+=of.y;
   const al=o.field&&!o.fixAl&&CC?tyOf(o.field).al:"",col=o.align==="center"?[110,W-110]:[x,W-x];
-  const lx=w=>al==="left"?col[0]:al==="center"?(col[0]+col[1])/2-w/2:al==="right"?col[1]-w:(o.align==="center"?x-w/2:x);
+  const lx=w=>of.x+(al==="left"?col[0]:al==="center"?(col[0]+col[1])/2-w/2:al==="right"?col[1]-w:(o.align==="center"?x-w/2:x));
   lines.forEach((ln,i)=>{let cx=lx(ln.width);const by=y+i*lh;
     ln.words.forEach((wd,j)=>{
       if(j>0&&!wd.join){if(wd.sp){decoBg(ctx,wd.sp,cx,by,sw,size,o);decoLines(ctx,wd.sp,cx,by,sw,size,o)}cx+=sw}
       for(const r of wd.runs){decoBg(ctx,r,cx,by,r.w,size,o);useRun(ctx,r);shadow(ctx,!!o.shadow&&!r.hl);ctx.fillStyle=r.c?(S.ac||"#DDF53F"):o.color;T(ctx,r.t,cx,by);decoLines(ctx,r,cx,by,r.w,size,o);cx+=r.w}
     })});
   useBase(ctx);
-  if(o.field&&CC&&lines.length){const w=widest(lines),x0=al?(al==="left"?col[0]:al==="center"?(col[0]+col[1])/2-w/2:col[1]-w):(o.align==="center"?x-w/2:x);(CC._hits||(CC._hits=[])).push({f:o.field,x:x0-12,y:y-size*0.95-10,w:w+24,h:(lines.length-1)*lh+size*1.3+20})}
+  if(o.field&&CC&&lines.length){const w=widest(lines),x0=lx(w);(CC._hits||(CC._hits=[])).push({f:o.field,x:x0-12,y:y-size*0.95-10,w:w+24,h:(lines.length-1)*lh+size*1.3+20})}
 }
 const isVid=c=>!!(c&&c.img&&c.img.tagName==="VIDEO");
 /* 제품 3컷: 왼쪽 세로 1장 + 오른쪽 2장. 원본 레이아웃에서 잰 칸 위치 */

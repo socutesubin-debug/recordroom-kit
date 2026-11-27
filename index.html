@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795780097">
+<meta name="rr-build" content="1795780328">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -69,7 +69,8 @@ button,input,select,textarea{font-size:16px}
 .dctl .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;padding:2px 0}
 .dctl .chips::-webkit-scrollbar{display:none}
 .dctl.dmemo{flex-direction:column;align-items:stretch;gap:6px}.mrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.mstep{flex:none;display:flex;align-items:center;background:var(--raise,var(--surface));border:1px solid var(--line);border-radius:999px}.mstep button{border:0;background:none;min-width:34px;min-height:32px;font-size:17px;font-weight:700;color:var(--ink)}.mstep span{font-size:12.5px;font-weight:700;min-width:62px;text-align:center;white-space:nowrap}.chip.f-i{font-style:italic}.chip.f-u{text-decoration:underline}.chip.f-s{text-decoration:line-through}
-.qhead{display:flex;align-items:center;justify-content:space-between;gap:8px}.qhead .seg{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}.qhead .seg button{white-space:nowrap}.qhead b{font-size:13px;color:var(--muted)}.dctl .fmt{margin:0}.fmtW{display:flex;gap:4px;flex-wrap:wrap;width:100%;padding-top:4px}.fmtW[hidden]{display:none}.fmtW button{border:0;border-radius:999px;background:rgba(255,255,255,.1);color:var(--ink);min-height:32px;padding:0 12px;font-size:13px}.fmt{flex-wrap:wrap}
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:8px}.qhead .seg{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}.qhead .seg button{white-space:nowrap}.qhead b{font-size:13px;color:var(--muted)}.dctl .fmt{margin:0}.fmtW.scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.fmtW.scroll button{white-space:nowrap;flex:none}
+.fmtW{display:flex;gap:4px;flex-wrap:wrap;width:100%;padding-top:4px}.fmtW[hidden]{display:none}.fmtW button{border:0;border-radius:999px;background:rgba(255,255,255,.1);color:var(--ink);min-height:32px;padding:0 12px;font-size:13px}.fmt{flex-wrap:wrap}
 .minput{width:100%;font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:none;font-family:inherit}
 .tpicks{gap:8px}.tpick{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px;border-radius:10px;border:2px solid transparent;background:none;color:var(--ink);font-size:11.5px;font-weight:700}.tpick canvas{width:56px;height:70px;border-radius:5px;display:block;background:#333}.tpick[aria-pressed=true]{border-color:var(--ink)}
 .chip{flex:none;min-height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:var(--raise,var(--surface));color:var(--ink);font-size:13.5px;font-weight:600;white-space:nowrap}
@@ -701,9 +702,9 @@ function fz(f){return ((CC&&CC.fs&&CC.fs[f])||100)/100*tyOf(f).sz/100}
 const HAND0="Pretendard";
 const chkFont=(c,f)=>(c&&(f==="head"?c.hfH:c.hf))||HAND0;
 let HANDSRC=null;
-function font(ctx,w,s,role,st){const hand=role==="h"||role==="h2",fixed=role==="x"||role==="x0"||role==="x1",family=hand?chkFont(HANDSRC||CC,role==="h"?"head":"item"):fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);if(hand)linkFont(family);
+function font(ctx,w,s,role,st){const hand=role==="h"||role==="h2",fixed=role==="x"||role==="x0"||role==="x1",family=st&&st.ff&&FONTS.some(x=>x.n===st.ff)?st.ff:hand?chkFont(HANDSRC||CC,role==="h"?"head":"item"):fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);if(hand||(st&&st.ff))linkFont(family);
   if(!st)FB0={w,s,role};const ww=st&&st.wt?st.wt:st&&st.b?Math.min(900,Math.max(w+300,700)):w;
-  const s2=st&&st.zs?s*st.zs/100:s;ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s2+'px "'+family+'"'+FB;LS=hand?0:s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0)+(fixed||!CC||!CC.ty||CC.type==="outro"?0:((CC.ty[role==="t"?"T":"B"]||TY0).ls)))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
+  const s2=st&&st.zs?s*st.zs/100:s;ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s2+'px "'+family+'"'+FB;LS=(st&&st.tr?s*st.tr/1000:0)+(hand?0:s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0)+(fixed||!CC||!CC.ty||CC.type==="outro"?0:((CC.ty[role==="t"?"T":"B"]||TY0).ls)))/1000);if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
 function M(ctx,t){const w=ctx.measureText(t).width;return NATIVE_LS?w:w+LS*[...t].length}
 function T(ctx,t,x,y){if(NATIVE_LS||!LS){ctx.fillText(t,x,y);return}for(const ch of t){ctx.fillText(ch,x,y);x+=ctx.measureText(ch).width+LS}}
 function TC(ctx,t,x,y){T(ctx,t,x-(M(ctx,t)-LS)/2,y)}
@@ -715,16 +716,20 @@ function wrap(ctx,text,maxW){const lines=[];for(const para of String(text||"").s
 const FMT_KEYS=["hl","b","i","u","s","c"];
 function fmtStep(str,i,st){
   if(str[i]==="="&&str[i+1]==="="){st.hl=!st.hl;return 2}
-  if(str[i]==="<"){const m=/^<(\/?)(w[1-9]?|z\d{0,3}|[biusc])>/.exec(str.slice(i,i+6));if(m){if(m[2][0]==="w")st.wt=m[1]?0:(+m[2][1]||0)*100;else if(m[2][0]==="z")st.zs=m[1]?0:(+m[2].slice(1)||0);else st[m[2]]=!m[1];return m[0].length}}
+  if(str[i]==="<"){const m=/^<(\/?)(w[1-9]?|z\d{0,3}|t-?\d{0,3}|k(?:#[0-9a-fA-F]{6})?|f(?:=[^<>]{1,40})?|L\d{2,3}|[biusc])>/.exec(str.slice(i,i+48));if(m){const g=m[2],off=!!m[1];
+    if(g[0]==="w")st.wt=off?0:(+g[1]||0)*100;else if(g[0]==="z")st.zs=off?0:(+g.slice(1)||0);else if(g[0]==="t")st.tr=off?0:(+g.slice(1)||0);
+    else if(g[0]==="k")st.col=off?"":g.slice(1);else if(g[0]==="f")st.ff=off?"":g.slice(2);else if(g[0]==="L"){}else st[g]=!off;return m[0].length}}
   return 0}
 function fmtState(str,pos){const st={hl:false,b:false,i:false,u:false,s:false,c:false};for(let i=0;i<pos;){const n=fmtStep(str,i,st);i+=n||1}return st}
-const sameSt=(a,b)=>FMT_KEYS.every(k=>!!a[k]===!!b[k])&&(a.wt||0)===(b.wt||0)&&(a.zs||0)===(b.zs||0);
+const sameSt=(a,b)=>FMT_KEYS.every(k=>!!a[k]===!!b[k])&&(a.wt||0)===(b.wt||0)&&(a.zs||0)===(b.zs||0)&&(a.tr||0)===(b.tr||0)&&(a.col||"")===(b.col||"")&&(a.ff||"")===(b.ff||"");
 const useRun=(ctx,r)=>font(ctx,FB0.w,FB0.s,FB0.role,r);
 const useBase=ctx=>font(ctx,FB0.w,FB0.s,FB0.role);
+const spanH=(ls,lh)=>{let h=0;for(let i=1;i<ls.length;i++)h+=lh*(ls[i].lf||1);return h};
 const plain=t=>{let o="",st={};for(let i=0;i<t.length;){const n=fmtStep(t,i,st);if(n){i+=n;continue}o+=t[i++]}return o};
 function rich(ctx,text,maxW){
   const lines=[],st={hl:false,b:false,i:false,u:false,s:false,c:false};useBase(ctx);const sw=M(ctx," ");
   for(const para of String(text??"").split("\n")){
+    const lm=/^<L(\d{2,3})>/.exec(para),lf=lm?Math.max(0.3,Math.min(3,+lm[1]/100)):0,l0=lines.length;
     const words=[];let w=null,spSt=null;
     for(let i=0;i<para.length;){
       const n=fmtStep(para,i,st);if(n){i+=n;continue}
@@ -751,6 +756,7 @@ function rich(ctx,text,maxW){
       if(line.length&&lw+gap+wd.width>maxW){lines.push({words:line,width:lw});line=[];lw=0;wd.join=false}
       lw+=(line.length&&!wd.join?sw:0)+wd.width;line.push(wd)}
     lines.push({words:line,width:lw});
+    if(lf)for(let q=l0;q<lines.length;q++)lines[q].lf=lf;
   }
   useBase(ctx);return lines;
 }
@@ -764,13 +770,13 @@ function drawRich(ctx,lines,x,y,lh,o){
   const of=o.field&&!o.noOff?OFF(o.field):{x:0,y:0};y+=of.y;
   const al=o.field&&!o.fixAl&&CC?tyOf(o.field).al:"",col=o.align==="center"?[110,W-110]:[x,W-x];
   const lx=w=>of.x+(al==="left"?col[0]:al==="center"?(col[0]+col[1])/2-w/2:al==="right"?col[1]-w:(o.align==="center"?x-w/2:x));
-  lines.forEach((ln,i)=>{let cx=lx(ln.width);const by=y+i*lh;
+  let accY=0;lines.forEach((ln,i)=>{if(i)accY+=lh*(ln.lf||1);let cx=lx(ln.width);const by=y+accY;
     ln.words.forEach((wd,j)=>{
       if(j>0&&!wd.join){if(wd.sp){decoBg(ctx,wd.sp,cx,by,sw,size,o);decoLines(ctx,wd.sp,cx,by,sw,size,o)}cx+=sw}
-      for(const r of wd.runs){decoBg(ctx,r,cx,by,r.w,size,o);useRun(ctx,r);shadow(ctx,!!o.shadow&&!r.hl);ctx.fillStyle=r.c?(S.ac||"#DDF53F"):o.color;T(ctx,r.t,cx,by);decoLines(ctx,r,cx,by,r.w,size,o);cx+=r.w}
+      for(const r of wd.runs){decoBg(ctx,r,cx,by,r.w,size,o);useRun(ctx,r);shadow(ctx,!!o.shadow&&!r.hl);ctx.fillStyle=r.col||(r.c?(S.ac||"#DDF53F"):o.color);T(ctx,r.t,cx,by);decoLines(ctx,r,cx,by,r.w,size,o);cx+=r.w}
     })});
   useBase(ctx);
-  if(o.field&&CC&&lines.length){const w=widest(lines),x0=lx(w);(CC._hits||(CC._hits=[])).push({f:o.field,x:x0-12,y:y-size*0.95-10,w:w+24,h:(lines.length-1)*lh+size*1.3+20})}
+  if(o.field&&CC&&lines.length){const w=widest(lines),x0=lx(w);(CC._hits||(CC._hits=[])).push({f:o.field,x:x0-12,y:y-size*0.95-10,w:w+24,h:spanH(lines,lh)+size*1.3+20})}
 }
 const isVid=c=>!!(c&&c.img&&c.img.tagName==="VIDEO");
 /* 제품 3컷: 왼쪽 세로 1장 + 오른쪽 2장. 원본 레이아웃에서 잰 칸 위치 */
@@ -896,7 +902,7 @@ function drawDeco0(ctx,d,selected){
   const t=d.t,fs=t==="badge"||t==="bubble"?31:t==="text"?30:29,wt=d.fw||(t==="badge"||t==="text"?600:400);
   font(ctx,wt,fs,"b");
   const lines=rich(ctx,d.text||" ",t==="box"?720:560),lh=fs*1.4,padX=t==="text"?6:t==="badge"?26:t==="bubble"?46:40,padY=t==="text"?4:t==="badge"?13:t==="bubble"?31:26;
-  const tw=widest(lines),w=tw+padX*2,h=(lines.length-1)*lh+fs*1.12+padY*2;
+  const tw=widest(lines),w=tw+padX*2,h=spanH(lines,lh)+fs*1.12+padY*2;
   if(d.x==null||d.y==null){d.x=t==="box"?W-w/2+2:t==="bubble"?W-116-w/2:t==="badge"?110+w/2:W-210;d.y=t==="box"?92+h/2:t==="bubble"?213+h/2:t==="badge"?905:480}
   ctx.save();ctx.translate(d.x,d.y);ctx.scale(d.s,d.s);const x=-w/2,y=-h/2;shadow(ctx,false);
   if(t==="bubble"){ctx.fillStyle="#0A7CFF";rr(ctx,x,y,w,h,22);ctx.fill();
@@ -919,31 +925,31 @@ function drawCover(ctx,c){
   let ts=96*k*fz("title");font(ctx,fw("title",700),ts,"t");
   while(ts>60*fz("title")&&widest(rich(ctx,f.title,1e9))>maxW){ts-=2;font(ctx,fw("title",700),ts,"t")}
   const tl=rich(ctx,f.title,maxW),tlh=ts*1.28*L*LH("title"),last=S.showHeader&&S.hdrPos==="bottom"?H-204:H-170;
-  const y=last-(tl.length-1)*tlh;
+  const y=last-spanH(tl,tlh);
   drawRich(ctx,tl,x-4,y,tlh,{size:ts,field:"title"});
   const titleTop=y-ts*0.80;
   if(!plain(f.sub).trim())return;
   const ss=37*k*fz("sub"),slh=ss*1.4*L*LH("sub");font(ctx,fw("sub",600),ss,"s");const sl=rich(ctx,f.sub,maxW-60);
   if(S.subBox){
-    const padX=30*k,bh=54*k+(sl.length-1)*slh,bottom=titleTop-39*k,top=bottom-bh,bw=widest(sl)+padX+45*k;
+    const padX=30*k,bh=54*k+spanH(sl,slh),bottom=titleTop-39*k,top=bottom-bh,bw=widest(sl)+padX+45*k;
     shadow(ctx,false);ctx.fillStyle="#161616";{const of=OFF("sub");ctx.fillRect(x-5+of.x,top+of.y,bw,bh)}
     drawRich(ctx,sl,x-5+padX,top+14*k+ss*0.80,slh,{size:ss,shadow:false,field:"sub",fixAl:1});
   }else{
-    const base=titleTop-45*k-ss*0.09-(sl.length-1)*slh;
+    const base=titleTop-45*k-ss*0.09-spanH(sl,slh);
     drawRich(ctx,sl,x,base,slh,{size:ss,color:"rgba(255,255,255,.94)",field:"sub"});
   }
 }
 function drawBody(ctx,c){
   const x=136,size=40*c.scale/100*fz("text"),lh=size*1.75*c.lh/100*LH("text");font(ctx,fw("text",500),size,"b");
   const lines=rich(ctx,c.f.text,W-x-104);
-  drawRich(ctx,lines,x,H-178-(lines.length-1)*lh,lh,{size,field:"text"});
+  drawRich(ctx,lines,x,H-178-spanH(lines,lh),lh,{size,field:"text"});
 }
 function drawQA(ctx,c){
   const f=c.f,x=136,maxW=W-x-104,k=c.scale/100,L=c.lh/100,ns=27*k*fz("note"),nlh=42*k*L*fz("note")*LH("note"),bs=38*k*fz("text"),blh=64*k*L*fz("text")*LH("text"),qs=50*k*fz("q"),qlh=66*k*L*fz("q")*LH("q");let y=H-176;
-  if(plain(f.note).trim()){font(ctx,fw("note",400),ns,"b");const nl=rich(ctx,f.note,maxW);y-=(nl.length-1)*nlh;drawRich(ctx,nl,x,y,nlh,{size:ns,color:"rgba(255,255,255,.95)",field:"note"});y-=ns+40}
-  font(ctx,fw("text",500),bs,"b");const bl=rich(ctx,f.text,maxW);y-=(bl.length-1)*blh;drawRich(ctx,bl,x,y,blh,{size:bs,field:"text"});y-=bs+34;
+  if(plain(f.note).trim()){font(ctx,fw("note",400),ns,"b");const nl=rich(ctx,f.note,maxW);y-=spanH(nl,nlh);drawRich(ctx,nl,x,y,nlh,{size:ns,color:"rgba(255,255,255,.95)",field:"note"});y-=ns+40}
+  font(ctx,fw("text",500),bs,"b");const bl=rich(ctx,f.text,maxW);y-=spanH(bl,blh);drawRich(ctx,bl,x,y,blh,{size:bs,field:"text"});y-=bs+34;
   shadow(ctx,false);ctx.fillStyle="rgba(255,255,255,.9)";ctx.fillRect(x,y,maxW-58,2);y-=30;
-  font(ctx,fw("q",700),qs,"t");const ql=rich(ctx,f.q,maxW);y-=(ql.length-1)*qlh;drawRich(ctx,ql,x,y,qlh,{size:qs,field:"q"});
+  font(ctx,fw("q",700),qs,"t");const ql=rich(ctx,f.q,maxW);y-=spanH(ql,qlh);drawRich(ctx,ql,x,y,qlh,{size:qs,field:"q"});
 }
 function drawProduct(ctx,c){
   const f=c.f,k=c.scale/100,lim=W-150;
@@ -953,7 +959,7 @@ function drawProduct(ctx,c){
 }
 function drawIntro(ctx,c){
   const f=c.f,maxW=800,k=c.scale/100,bs=36*k*fz("text"),tsz=56*k*fz("title"),blh=68*k*c.lh/100*fz("text")*LH("text");font(ctx,fw("text",500),bs,"b");const bl=rich(ctx,f.text,maxW);
-  const hasT=plain(f.title).trim(),total=(hasT?tsz+96:0)+(bl.length-1)*blh+bs;let y=(H-total)/2+(hasT?tsz:bs);
+  const hasT=plain(f.title).trim(),total=(hasT?tsz+96:0)+spanH(bl,blh)+bs;let y=(H-total)/2+(hasT?tsz:bs);
   /* 노트 배경: 글 뒤에 네모난 종이 한 장 (체크리스트 메모와 같은 종이 질감), 글자는 검정 */
   const note=!!c.note,col=note?INK:"#fff";
   if(note){font(ctx,fw("title",700),tsz,"t");const tw0=hasT?widest(rich(ctx,f.title,maxW).slice(0,1)):0;font(ctx,fw("text",500),bs,"b");
@@ -984,14 +990,14 @@ function drawMemo(ctx,d,selected){
   const mw=Math.min(W-60,Math.max(420*k,pad*2+Math.max(hw,bx+gap+iw)+4)),tw=mw-pad*2-bx-gap;
   font(ctx,wH,hs,"h");const hl=rich(ctx,head,mw-pad*2),hasH=plain(head).trim();
   font(ctx,wI,is,"h2");const il=rich(ctx,item,tw),ilh=is*1.3;
-  const mh=pad*2+(hasH?hl.length*hs*1.3+10*k:0)+is*0.95+(il.length-1)*ilh;
+  const mh=pad*2+(hasH?hl.length*hs*1.3+10*k:0)+is*0.95+spanH(il,ilh);
   if(d.x==null||d.y==null){d.x=W/2;d.y=H-90-mh/2}
   const mx=d.x-mw/2,my=d.y-mh/2;
   ctx.save();ctx.shadowColor="rgba(0,0,0,.28)";ctx.shadowBlur=26*k;ctx.shadowOffsetY=10*k;ctx.fillStyle="#F3F3F1";ctx.fillRect(mx,my,mw,mh);ctx.restore();
   if(PAPER.complete&&PAPER.naturalWidth){ctx.save();ctx.beginPath();ctx.rect(mx,my,mw,mh);ctx.clip();const sc=Math.max(mw/PAPER.naturalWidth,mh/PAPER.naturalHeight)*Math.max(1,k);ctx.drawImage(PAPER,mx,my,PAPER.naturalWidth*sc,PAPER.naturalHeight*sc);ctx.restore()}
   {const g=ctx.createLinearGradient(0,my,0,my+mh);g.addColorStop(0,"rgba(0,0,0,.035)");g.addColorStop(.2,"rgba(0,0,0,0)");g.addColorStop(.85,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,.05)");ctx.fillStyle=g;ctx.fillRect(mx,my,mw,mh)}
   let y=my+pad;shadow(ctx,false);
-  if(hasH){font(ctx,wH,hs,"h");y+=hs*0.9;drawRich(ctx,hl,mx+pad,y,hs*1.3,{size:hs,color:SH.c||INK,shadow:false});y+=(hl.length-1)*hs*1.3+hs*0.4+10*k}
+  if(hasH){font(ctx,wH,hs,"h");y+=hs*0.9;drawRich(ctx,hl,mx+pad,y,hs*1.3,{size:hs,color:SH.c||INK,shadow:false});y+=spanH(hl,hs)*1.3+hs*0.4+10*k}
   font(ctx,wI,is,"h2");y+=is*0.85;
   const bxX=mx+pad,bxY=y-is*0.36-bx/2;handBox(ctx,bxX,bxY,bx,!!d.chk);d._box={x:bxX-16,y:bxY-16,w:bx+32,h:bx+32};
   drawRich(ctx,il,mx+pad+bx+gap,y,ilh,{size:is,color:SI.c||INK,shadow:false});
@@ -1011,16 +1017,16 @@ function drawSplit(ctx,c){splitDefaults(c);const f=c.f,x=76,maxW=W-x*2,k=c.scale
   let y=SPLIT_H+78;const hasT=plain(f.title).trim();
   /* 구분선: 사진과 흰 글 영역이 만나는 경계에 카드 폭 전체로 */
   if(c.rule){const t=c.rule===2?6:3;ctx.fillStyle=INK;ctx.fillRect(0,SPLIT_H-t/2,W,t)}
-  if(hasT){font(ctx,fw("title",600),ts,"t");const tl=rich(ctx,f.title,maxW);y+=ts*0.2;drawRich(ctx,tl,x,y,tlh,{size:ts,color:INK,shadow:false,field:"title"});y+=(tl.length-1)*tlh+bs*1.2+40}
+  if(hasT){font(ctx,fw("title",600),ts,"t");const tl=rich(ctx,f.title,maxW);y+=ts*0.2;drawRich(ctx,tl,x,y,tlh,{size:ts,color:INK,shadow:false,field:"title"});y+=spanH(tl,tlh)+bs*1.2+40}
   else y+=bs*0.1;
   font(ctx,fw("text",400),bs,"b");const bl=rich(ctx,f.text,maxW);drawRich(ctx,bl,x,y,blh,{size:bs,color:"#2A2A2E",shadow:false,field:"text"})}
 /* 마무리: 가운데 두 줄 멘트 + 굵은 로고 글자 (기존 마무리 카드 비율에 맞춤) */
 function drawOutro(ctx,c){
   const f=c.f,k=c.scale/100,L=c.lh/100,bs=37.5*k*fz("text"),blh=bs*1.57*L*LH("text"),ms=51*k*fz("mark"),gap=ms*1.52*L;
   font(ctx,fw("text",400),bs,"b");const bl=rich(ctx,f.text,940);const hasM=plain(f.mark).trim();
-  const total=bs*0.9+(bl.length-1)*blh+(hasM?gap:0);let y=H*0.465-total/2+bs*0.9;
+  const total=bs*0.9+spanH(bl,blh)+(hasM?gap:0);let y=H*0.465-total/2+bs*0.9;
   drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center",field:"text"});
-  if(hasM){font(ctx,fw("mark",800),ms,"x");drawRich(ctx,rich(ctx,f.mark,1e9).slice(0,1),W/2,y+(bl.length-1)*blh+gap,ms,{size:ms,align:"center",field:"mark"})}
+  if(hasM){font(ctx,fw("mark",800),ms,"x");drawRich(ctx,rich(ctx,f.mark,1e9).slice(0,1),W/2,y+spanH(bl,blh)+gap,ms,{size:ms,align:"center",field:"mark"})}
 }
 /* 원본 실측: 브랜드 34px 굵게(기준선 191), 제품명 줄 23px·자간 0(기준선 226), 아래 글자 21px·자간 +1% 회색(기준선 1323) */
 function drawMulti(ctx,c,showSel,transparent){const rs=multiRects(c);
@@ -1198,19 +1204,34 @@ for(const [k,txt,lab] of [["b","B","굵게"],["i","I","기울임"],["u","U","밑
   const sub=document.createElement("div");sub.className="fmtW";sub.hidden=true;
   for(const [v,lab] of [[3,"얇게"],[5,"보통"],[7,"굵게"],[9,"아주 굵게"],[0,"원래대로"]]){const b=document.createElement("button");b.type="button";b.textContent=lab;if(v)b.style.fontWeight=v*100;b.addEventListener("mousedown",e=>e.preventDefault());b.onclick=()=>{applyWeight(v);sub.hidden=true};sub.append(b)}
   wb.onclick=()=>{sub.hidden=!sub.hidden};fmtBar.append(wb,sub)}
+const WRAP={w:{n:"굵기를",pre:"",any:/<\/?w[1-9]?>/g,o:/<w[1-9]>$/},z:{n:"크기를",pre:"",any:/<\/?z\d{0,3}>/g,o:/<z\d{2,3}>$/},
+  t:{n:"자간을",pre:"",any:/<\/?t-?\d{0,3}>/g,o:/<t-?\d{1,3}>$/},k:{n:"색을",pre:"",any:/<\/?k(?:#[0-9a-fA-F]{6})?>/g,o:/<k#[0-9a-fA-F]{6}>$/},f:{n:"글꼴을",pre:"=",any:/<\/?f(?:=[^<>]*)?>/g,o:/<f=[^<>]*>$/}};
 function applyWeight(v){applyWrap("w",v)}
+/* 행간: 고른 줄(문단) 맨 앞에 <L120> 같은 표시 → 그 줄 위 간격 */
+function applyLine(v){const el=fmtTarget;if(!el||!el.isConnected)return;let [s,e]=document.activeElement===el?[el.selectionStart,el.selectionEnd]:fmtSel;
+  const val=el.value,ls=val.split("\n");let pos=0,out=[];for(const l of ls){const a=pos,b=pos+l.length;pos=b+1;const hit=!(b<s||a>Math.max(s,e-1))||(s===e&&s>=a&&s<=b);
+    if(hit){const bare=l.replace(/^<L\d{2,3}>/,"");out.push(v?"<L"+v+">"+bare:bare)}else out.push(l)}
+  el.value=out.join("\n");el.dispatchEvent(new Event("input",{bubbles:true}));try{el.focus()}catch(x){}}
+function fmtSub(label,cls,opts,fn,scroll){const b=document.createElement("button");b.type="button";b.className=cls;b.textContent=label;b.dataset.k=cls.slice(2);b.addEventListener("mousedown",e=>e.preventDefault());
+  const sub=document.createElement("div");sub.className="fmtW"+(scroll?" scroll":"");sub.hidden=true;
+  const fill=()=>{sub.textContent="";for(const [v,lab,css] of (typeof opts==="function"?opts():opts)){const o=document.createElement("button");o.type="button";o.textContent=lab;if(css)o.style.cssText=css;o.addEventListener("mousedown",e=>e.preventDefault());o.onclick=()=>{fn(v);sub.hidden=true};sub.append(o)}};
+  b.onclick=()=>{for(const x of fmtBar.querySelectorAll(".fmtW"))if(x!==sub)x.hidden=true;if(sub.hidden)fill();sub.hidden=!sub.hidden};fmtBar.append(b,sub)}
+fmtSub("자간","f-t",[[-60,"-6%"],[-40,"-4%"],[-20,"-2%"],[-10,"-1%"],[10,"+1%"],[20,"+2%"],[40,"+4%"],[0,"원래대로"]],v=>applyWrap("t",v));
+fmtSub("행간","f-L",[[60,"60%"],[80,"80%"],[90,"90%"],[120,"120%"],[150,"150%"],[200,"200%"],[0,"원래대로"]],v=>applyLine(v));
+fmtSub("글꼴","f-f",()=>[[0,"원래대로"]].concat(fontSections().flatMap(sec=>sec.list.map(f=>{linkFont(f.n);return [f.n,f.n,"font-family:'"+f.n+"'"]}))),v=>applyWrap("f",v||0),true);
+fmtSub("색상","f-k",[["#141414","검정","color:#141414;background:#ddd"],["#FFFFFF","흰색"],["#8E8E93","회색","color:#8E8E93"],["#8B0A7E","보라","color:#c34bb6"],["#FF3B30","빨강","color:#FF3B30"],["#0A7CFF","파랑","color:#3f97ff"],["#FFD43B","노랑","color:#FFD43B"],["#DDF53F","라임","color:#DDF53F"],[0,"원래대로"]],v=>applyWrap("k",v));
 {const zb=document.createElement("button");zb.type="button";zb.className="f-z";zb.textContent="크기";zb.title="고른 부분 크기";zb.dataset.k="z";zb.addEventListener("mousedown",e=>e.preventDefault());
   const sub=document.createElement("div");sub.className="fmtW";sub.hidden=true;
   for(const [v,lab] of [[70,"70%"],[85,"85%"],[115,"115%"],[130,"130%"],[150,"150%"],[0,"원래대로"]]){const b=document.createElement("button");b.type="button";b.textContent=lab;b.addEventListener("mousedown",e=>e.preventDefault());b.onclick=()=>{applyWrap("z",v);sub.hidden=true};sub.append(b)}
   zb.onclick=()=>{for(const x of fmtBar.querySelectorAll(".fmtW"))if(x!==sub)x.hidden=true;sub.hidden=!sub.hidden};fmtBar.append(zb,sub)}
 function applyWrap(tg,v){const el=fmtTarget;if(!el||!el.isConnected)return;let [s,e]=document.activeElement===el?[el.selectionStart,el.selectionEnd]:fmtSel;
   let val=el.value;/* 고른 부분을 감싼 기존 굵기 표시를 벗기고 새로 감쌈 */
-  const before=val.slice(0,s),after=val.slice(e);const reAny=tg==="w"?/<\/?w[1-9]?>/g:/<\/?z\d{0,3}>/g,reO=tg==="w"?/<w[1-9]>$/:/<z\d{2,3}>$/,reC=tg==="w"?/^<\/w>/:/^<\/z>/;let mid=val.slice(s,e).replace(reAny,"");let b2=before,a2=after;
+  const before=val.slice(0,s),after=val.slice(e);const T=WRAP[tg],reAny=T.any,reO=T.o,reC=new RegExp("^</"+tg+">");let mid=val.slice(s,e).replace(reAny,"");let b2=before,a2=after;
   const mo=reO.exec(b2),mc=reC.exec(a2);if(mo&&mc){b2=b2.slice(0,-mo[0].length);a2=a2.slice(mc[0].length)}
-  if(s===e){say("toast",(tg==="w"?"굵기":"크기")+"를 바꿀 글자를 먼저 길게 눌러 골라 주세요");return}
-  const op=v?"<"+tg+v+">":"",nv=b2+op+mid+(v?"</"+tg+">":"")+a2,ns=b2.length+op.length;el.value=nv;el.dispatchEvent(new Event("input",{bubbles:true}));try{el.focus();el.setSelectionRange(ns,ns+mid.length)}catch(x){}fmtSel=[ns,ns+mid.length]}
+  if(s===e){say("toast",T.n+" 바꿀 글자를 먼저 길게 눌러 골라 주세요");return}
+  const op=v?"<"+tg+T.pre+v+">":"",nv=b2+op+mid+(v?"</"+tg+">":"")+a2,ns=b2.length+op.length;el.value=nv;el.dispatchEvent(new Event("input",{bubbles:true}));try{el.focus();el.setSelectionRange(ns,ns+mid.length)}catch(x){}fmtSel=[ns,ns+mid.length]}
 function fmtSync(){const el=fmtTarget;if(!el)return;if(document.activeElement===el)fmtSel=[el.selectionStart,el.selectionEnd];
-  const st=fmtState(el.value,fmtSel[0]);for(const b of fmtBar.children)if(b.dataset.k)b.setAttribute("aria-pressed",b.dataset.k==="w"?!!st.wt:b.dataset.k==="z"?!!st.zs:!!st[b.dataset.k])}
+  const st=fmtState(el.value,fmtSel[0]);for(const b of fmtBar.children)if(b.dataset.k)b.setAttribute("aria-pressed",b.dataset.k==="w"?!!st.wt:b.dataset.k==="z"?!!st.zs:b.dataset.k==="t"?!!st.tr:b.dataset.k==="k"?!!st.col:b.dataset.k==="f"?!!st.ff:b.dataset.k==="L"?false:!!st[b.dataset.k])}
 document.addEventListener("focusin",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.fmt){fmtTarget=t;if(fmtBar.nextSibling!==t)t.before(fmtBar);fmtSync()}});
 document.addEventListener("selectionchange",fmtSync);
 for(const ev of ["keyup","mouseup","touchend","input"])document.addEventListener(ev,e=>{if(e.target===fmtTarget)fmtSync()});

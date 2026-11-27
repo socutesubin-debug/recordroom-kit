@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795777707">
+<meta name="rr-build" content="1795777977">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -70,6 +70,7 @@ button,input,select,textarea{font-size:16px}
 .dctl .chips::-webkit-scrollbar{display:none}
 .dctl.dmemo{flex-direction:column;align-items:stretch;gap:6px}.mrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.mstep{flex:none;display:flex;align-items:center;background:var(--raise,var(--surface));border:1px solid var(--line);border-radius:999px}.mstep button{border:0;background:none;min-width:34px;min-height:32px;font-size:17px;font-weight:700;color:var(--ink)}.mstep span{font-size:12.5px;font-weight:700;min-width:62px;text-align:center;white-space:nowrap}.chip.f-i{font-style:italic}.chip.f-u{text-decoration:underline}.chip.f-s{text-decoration:line-through}
 .minput{width:100%;font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:none;font-family:inherit}
+.tpicks{gap:8px}.tpick{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px;border-radius:10px;border:2px solid transparent;background:none;color:var(--ink);font-size:11.5px;font-weight:700}.tpick canvas{width:56px;height:70px;border-radius:5px;display:block;background:#333}.tpick[aria-pressed=true]{border-color:var(--ink)}
 .chip{flex:none;min-height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:var(--raise,var(--surface));color:var(--ink);font-size:13.5px;font-weight:600;white-space:nowrap}
 .chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chip.sw{width:34px;padding:0;border-width:2px}
@@ -1384,9 +1385,22 @@ $("saveStyle").onclick=()=>{const types={};for(const c of S.cards)types[c.type]=
   catch(e){say("styleStatus","이 브라우저에는 저장할 수 없어요. 'KIT 코드로 복사'로 보관해 주세요.",true)}};
 $("resetStyle").onclick=()=>{try{localStorage.removeItem("rr-style")}catch(e){}say("styleStatus","기본값을 지웠어요. 새 원고는 처음 설정으로 시작합니다.")};
 for(const sel of [$("typeSel"),$("addType")])for(const k in TYPES){const o=document.createElement("option");o.value=k;o.textContent=TYPES[k].label;sel.append(o)}
-$("typeSel").onchange=e=>{const o=S.cards[cur],n=newCard(e.target.value);if(n.type==="grid"&&o.img&&!isVid(o))n.slots[0].img=o.img;n.decos=o.decos;n.img=o.type==="grid"?(o.slots.find(x=>x.img&&true)||{}).img||null:o.img;n.px=o.px;n.py=o.py;n.ox=o.ox||0;n.oy=o.oy||0;n.zoom=o.zoom;
-  const txt=o.f.text||o.f.title||o.f.comment||"";if(n.type==="outro"){S.cards[cur]=n;buildAll();if(!n.img)fillOutroPhotos();return}if("text" in n.f)n.f.text=o.f.text||"";if("title" in n.f)n.f.title=o.f.title||o.f.q||"";if("q" in n.f)n.f.q=o.f.q||o.f.title||"";
-  S.cards[cur]=n;buildAll()};
+/* 유형 바꾸기: 글·사진·꾸미기를 그대로 옮김. 같은 이름 칸은 그대로, 제목·본문은 비슷한 칸끼리, 남는 글은 본문 끝에 붙임 */
+function changeType(i,type){const o=S.cards[i];if(!o||o.type===type)return;const n=newCard(type);
+  if(n.type==="grid"&&o.img&&!isVid(o))n.slots[0].img=o.img;n.decos=o.decos;n.img=o.type==="grid"?(o.slots.find(x=>x.img&&true)||{}).img||null:o.img;n.px=o.px;n.py=o.py;n.ox=o.ox||0;n.oy=o.oy||0;n.zoom=o.zoom;
+  if(o.bg&&n.type!=="grid")n.bg=o.bg;if(o.ty)n.ty=JSON.parse(JSON.stringify(o.ty));n.scale=o.scale;
+  const odef=TYPES[o.type].def||{},has=k=>typeof o.f[k]==="string"&&plain(o.f[k]).trim()&&odef[k]!==o.f[k],used=new Set(),keys=TYPES[type].fields.map(x=>x[0]);let lost=false;
+  if(n.type==="outro"){S.cards[i]=n;buildAll();paint();if(!n.img)fillOutroPhotos();return}
+  if(n.type!=="grid")for(const k of keys)n.f[k]="";
+  for(const k of keys)if(has(k)){n.f[k]=o.f[k];used.add(k);if(o.fw&&o.fw[k]){n.fw=n.fw||{};n.fw[k]=o.fw[k]}if(o.fs&&o.fs[k]){n.fs=n.fs||{};n.fs[k]=o.fs[k]}if(o.off&&o.off[k]){n.off=n.off||{};n.off[k]=o.off[k]}}
+  const take=list=>{for(const k of list)if(has(k)&&!used.has(k)){used.add(k);return o.f[k]}return null};
+  for(const k of keys){if(used.has(k)||(has(k)&&n.f[k]===o.f[k]))continue;
+    const v=["title","q","brand"].includes(k)?take(["title","q","brand","head"]):["text","name"].includes(k)?take(["text","name","comment"]):null;if(v!=null)n.f[k]=v}
+  const left=Object.keys(o.f).filter(k=>has(k)&&!used.has(k)&&!(TYPES[o.type].def&&TYPES[o.type].def[k]===o.f[k]));
+  const sink="text" in n.f?"text":"title" in n.f?"title":"name" in n.f?"name":null;
+  if(left.length){if(sink)n.f[sink]=[n.f[sink]].concat(left.map(k=>o.f[k])).filter(x=>plain(x||"").trim()).join("\n");else lost=true}
+  S.cards[i]=n;buildAll();paint();say("toast",lost?"일부 글은 이 유형에 칸이 없어 빠졌어요 · ↩로 되돌릴 수 있어요":TYPES[type].label+"(으)로 바꿨어요 · 글은 그대로 옮겼어요")}
+$("typeSel").onchange=e=>changeType(cur,e.target.value);
 $("addBtn").onclick=()=>{S.cards.splice(cur+1,0,newCard($("addType").value));cur++;buildAll();fillOutroPhotos()};
 $("delBtn").onclick=()=>{S.cards.splice(cur,1);cur=Math.max(0,cur-1);buildAll()};
 $("moveL").onclick=()=>{const a=S.cards;[a[cur-1],a[cur]]=[a[cur],a[cur-1]];cur--;buildAll()};
@@ -1932,9 +1946,9 @@ const TOOLS={
   {k:"guide",l:"가이드",ic:"grid",act:()=>{setGuides(!guides);renderDock()},on:()=>guides},
   {k:"list",l:"요소 목록",ic:"list",act:()=>openSheet("deco","half")}],
  card:[
-  {k:"type",l:"유형",ic:"type",type:"chipsDyn",get:()=>[...$("typeSel").options].map(o=>[o.textContent,()=>{$("typeSel").value=o.value;$("typeSel").dispatchEvent(new Event("change"))},()=>S.cards[cur].type===o.value])},
+  {k:"type",l:"유형",ic:"type",type:"typepick"},
   {k:"dup",l:"카드 복제",ic:"stack",act:()=>dupCard(cur)},
-  {k:"add",l:"카드 추가",ic:"add",type:"chipsDyn",get:()=>[...$("addType").options].map(o=>[o.textContent,()=>{$("addType").value=o.value;$("addBtn").click()}])},
+  {k:"add",l:"카드 추가",ic:"add",type:"typepick",add:1},
   {k:"order",l:"순서",ic:"move",...chipsFrom([["← 앞으로",clickId("moveL")],["뒤로 →",clickId("moveR")],["이 카드 삭제",()=>{if(confirm("이 카드를 지울까요? 되돌리기로 살릴 수 있어요."))$("delBtn").click()}]])},
   {k:"corner",l:"코너 이름",ic:"corner",type:"chipsDyn",get:()=>[...$("corners").options].map(o=>[o.value,()=>{$("corner").value=o.value;$("corner").dispatchEvent(new Event("input"))},()=>S.corner===o.value]).concat([["직접 쓰기…",()=>{const v=prompt("코너 이름",S.corner);if(v!=null){$("corner").value=v;$("corner").dispatchEvent(new Event("input"))}}]])},
   {k:"hdrc",l:"코너 색",ic:"color",...swatchesOf("hdrSwatches","색")},
@@ -1973,7 +1987,14 @@ function renderTy(box,t){const seg=document.createElement("div");seg.className="
   const v=document.createElement("span");v.className="dv";v.textContent=R.show(q[t.key]);
   r.oninput=()=>{cardTy(S.cards[cur],tyRole)[t.key]=+r.value;v.textContent=R.show(+r.value);S.sample=false;drawSoon()};r.onchange=()=>{tyClean(S.cards[cur]);paint();if(typeof ftSync==="function")ftSync()};
   r.ondblclick=()=>{setTy(tyRole,t.key,TY0[t.key]);renderCtl()};box.append(r,v)}
-function renderCtl(){$("dctl").classList.remove("dmemo");const box=$("dctl"),all=(TOOLS[dockCat]||[]).concat(dockCat==="deco"?[{k:"preset",l:"글자 스타일",type:"preset"}].concat(TXT_TOOLS,MEMO_TOOLS):[]),t=all.find(x=>x.k===dockTool);box.textContent="";box.hidden=!t;if(!t)return;
+const PREVIEW_F={cover:{sub:"작은 줄",title:"제목이\n들어가요"},body:{text:"본문이 이렇게\n들어가요"},qa:{q:"질문 제목",text:"설명이 들어가요",note:"*주석"},product:{brand:"BRAND",name:"제품명",price:"00,000원"},intro:{title:"제목",text:"가운데 글이\n들어가요"},split:{title:"제목",text:"본문이 들어가요"}};
+const prevCv=document.createElement("canvas");prevCv.width=W;prevCv.height=H;
+function typeThumb(type){const c=newCard(type,PREVIEW_F[type]);const src=ph(S.cards[cur]);if(src&&src.img&&!isVid(src)){if(c.slots)c.slots.forEach(q=>q.img=src.img);else c.img=src.img}
+  const keepCC=CC;render(c,prevCv,false,false);CC=keepCC;const t=document.createElement("canvas");t.width=96;t.height=120;t.getContext("2d").drawImage(prevCv,0,0,96,120);return t}
+function typePicker(box,lab,onPick,curType){const row=document.createElement("div");row.className="chips tpicks";
+  for(const k in TYPES){const b=document.createElement("button");b.className="tpick";b.setAttribute("aria-pressed",k===curType);b.append(typeThumb(k));const sp=document.createElement("span");sp.textContent=TYPES[k].label;b.append(sp);b.onclick=()=>{onPick(k);setTimeout(renderCtl,30)};row.append(b)}
+  box.classList.add("dtall");box.append(row);setTimeout(()=>{const a=row.querySelector("[aria-pressed=true]");if(a)a.scrollIntoView({inline:"center",block:"nearest"})},0)}
+function renderCtl(){$("dctl").classList.remove("dtall");$("dctl").classList.remove("dmemo");const box=$("dctl"),all=(TOOLS[dockCat]||[]).concat(dockCat==="deco"?[{k:"preset",l:"글자 스타일",type:"preset"}].concat(TXT_TOOLS,MEMO_TOOLS):[]),t=all.find(x=>x.k===dockTool);box.textContent="";box.hidden=!t;if(!t)return;
   const lab=document.createElement("span");lab.className="dl";lab.textContent=t.label||t.l;
   if(t.type==="slider"){const src=$(t.id);if(!src){box.hidden=true;return}
     const r=document.createElement("input");r.type="range";r.min=src.min;r.max=src.max;r.step=src.step||1;r.value=src.value;r.setAttribute("aria-label",t.l);
@@ -1982,6 +2003,7 @@ function renderCtl(){$("dctl").classList.remove("dmemo");const box=$("dctl"),all
     r.onchange=()=>src.dispatchEvent(new Event("change",{bubbles:true}));
     r.ondblclick=()=>{};box.append(lab,r,v);return}
   if(t.type==="ty"){renderTy(box,t);return}
+  if(t.type==="typepick"){typePicker(box,lab,k=>t.add?(S.cards.splice(cur+1,0,newCard(k)),cur++,buildAll(),paint(),fillOutroPhotos()):changeType(cur,k),t.add?null:S.cards[cur].type);return}
   if(t.type==="solidbg"){const c=S.cards[cur];if(c.type==="grid"){const h=document.createElement("span");h.className="dl";h.textContent="제품 3컷 카드는 흰 배경 고정이에요";box.append(lab,h);return}
     box.classList.add("dmemo");const r1=document.createElement("div");r1.className="chips";
     const BGS=["#000000","#1C1C1E","#3A3A3C","#8E8E93","#F2F0EB","#E9E3D8","#FFFFFF","#8B0A7E","#2F3E2E","#1F2A44"];

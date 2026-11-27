@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -20,7 +20,7 @@
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111113;--surface:#1B1B1F;--ink:#EDEDEF;--muted:#9B9DA6;--line:#2F2F36;--accent:#6AA8FF;--warn:#F0A35E;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#111113;--surface:#1B1B1F;--ink:#EDEDEF;--muted:#9B9DA6;--line:#2F2F36;--accent:#6AA8FF;--warn:#F0A35E;color-scheme:dark}
+:root[data-theme="dark"]{--bg:#0D0D0F;--surface:#17171A;--raise:#222227;--ink:#F2F2F4;--muted:#8E9099;--line:#2A2A30;--accent:#7DB2FF;--warn:#F0A35E;color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0}
@@ -37,7 +37,7 @@ body{overscroll-behavior:none;overflow:hidden}
 .stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;padding:10px 12px}
 #preview{display:block;border-radius:6px;background:#c9cbce;touch-action:none;box-shadow:0 1px 10px rgba(0,0,0,.18);width:auto;height:auto;max-width:100%;max-height:100%;aspect-ratio:4/5}
 .stage .status{position:absolute;left:12px;right:12px;bottom:6px;text-align:center;font-size:12.5px;margin:0;pointer-events:none;text-shadow:0 0 6px var(--bg)}
-.toast{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:rgba(20,20,22,.8);color:#fff;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;pointer-events:none;min-height:0}
+.toast{position:absolute;left:16px;right:16px;margin:0 auto;width:max-content;max-width:calc(100% - 32px);text-align:center;bottom:12px;background:rgba(20,20,22,.8);color:#fff;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;pointer-events:none;min-height:0}
 .toast:empty{display:none}
 .tapHint{position:absolute;top:56px;left:50%;transform:translateX(-50%);background:rgba(20,20,22,.78);color:#fff;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;pointer-events:none;transition:opacity .4s;white-space:nowrap}
 .strip{flex:none;display:flex;gap:6px;overflow-x:auto;padding:4px 12px 6px;scrollbar-width:none}
@@ -57,6 +57,45 @@ body{overscroll-behavior:none;overflow:hidden}
 .sheetBody{contain:content;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:4px 16px 24px;display:flex;flex-direction:column;gap:14px}
 button,input,select,textarea{font-size:16px}
 .field-hit{animation:hit 1.2s ease}
+/* 편집 도구 독 (VSCO·Lightroom식: 도구 하나 고르면 조절 하나만) */
+.dock{flex:none;background:var(--bg);display:flex;flex-direction:column}
+.dctl{display:flex;align-items:center;gap:10px;padding:8px 16px 6px;min-height:52px}
+.dctl[hidden]{display:none}
+.dctl .dl{font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap;min-width:52px}
+.dctl .dv{font-size:13px;font-weight:700;color:var(--ink);min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
+.dctl input[type=range]{flex:1;min-width:0;height:28px;accent-color:var(--ink)}
+.dctl .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;padding:2px 0}
+.dctl .chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:var(--raise,var(--surface));color:var(--ink);font-size:13.5px;font-weight:600;white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.sw{width:34px;padding:0;border-width:2px}
+.chip.sw[aria-pressed=true]{outline:2px solid var(--ink);outline-offset:2px;background:inherit}
+.dtools{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;padding:2px 8px 4px;border-top:1px solid var(--line)}
+.dtools::-webkit-scrollbar{display:none}
+.tool{flex:none;min-width:62px;min-height:54px;padding:4px 6px;border:0;border-radius:12px;background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600}
+.tool svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tool[aria-pressed=true]{color:var(--ink);background:var(--raise,var(--surface))}
+.tool.act{color:var(--ink)}
+@media (max-width:899px){
+  html{font-size:15px}
+  .bar{min-height:44px;padding:calc(4px + env(safe-area-inset-top)) 10px 4px;gap:6px;background:var(--bg);border-bottom:0}
+  .bar .primary{min-height:34px;padding:0 14px;border-radius:999px;font-size:14px}
+  .iconBtn{width:36px;min-height:36px}
+  #cardLabel{font-size:12.5px}
+  .stage{padding:6px 10px}
+  .strip{padding:2px 12px 4px}
+  .strip .thumb,.strip .thumb.add{width:36px}
+  .thumb span{font-size:10px}
+  .tabs{background:var(--bg);border-top:1px solid var(--line)}
+  .tabs button{padding:6px 0 5px;font-size:11px}
+  .tabs svg{width:22px;height:22px}
+  .sheet{background:var(--surface)}
+  .sheetHead h2{font-size:15px}
+  .sheetHead .primary{min-height:34px;padding:0 14px;border-radius:999px;font-size:14px}
+  button{font-size:14px}
+  .stageBtn{top:10px;right:12px}
+}
+@media (min-width:900px){.dock{display:none}}
 .ftool{position:absolute;z-index:8;left:8px;right:8px;max-width:420px;margin:0 auto;background:#1c1c1e;color:#fff;border-radius:16px;padding:6px;box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:4px}
 .ftool[hidden]{display:none}
 .ftool .frow{display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none}
@@ -412,6 +451,11 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
 
 
    </main>
+  </div>
+
+  <div class="dock" id="dock">
+    <div class="dctl" id="dctl" hidden></div>
+    <div class="dtools" id="dtools" role="toolbar" aria-label="도구"></div>
   </div>
 
   <nav class="tabs" role="tablist" aria-label="도구">
@@ -1085,18 +1129,20 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     if(tapped&&drag.tf){const f=drag.tf;drag=null;if(ft&&ft.field===f){hideFT();openField(f)}else showFT(f);return}
     if(tapped)hideFT();
     if(drag.mode==="tap"){drag=null;if(tapped)$("photo").click();return}
-    if(tapped&&drag.mode==="photo"){drag=null;openSheet("photo","half");return}
-    if(tapped&&drag.mode==="move"){const i=drag.i;drag=null;buildDecos();paint();openDecoRow(i);return}
+    if(tapped&&drag.mode==="photo"){drag=null;if(WIDE.matches)openSheet("photo","half");else{dockCat="photo";if(!dockTool)dockTool="zoom";renderDock();layoutSoon()}return}
+    if(tapped&&drag.mode==="move"){const i=drag.i;drag=null;buildDecos();paint();if(WIDE.matches)openDecoRow(i);else{dockCat="deco";renderDock();layoutSoon()}return}
     if(drag.mode==="photo"||drag.mode==="pzoom"){if(drag.mode==="pzoom"&&pts.size>=2)return;drag=null;const q=ph(S.cards[cur]);$("px").value=Math.round(q.px);$("py").value=Math.round(q.py);paint();return}
     if(drag.mode!=="pinch"||pts.size<2){drag=null;buildDecos();paint()}};
   pv.addEventListener("pointerup",end);pv.addEventListener("pointercancel",end);
   pv.addEventListener("mousemove",e=>{if(drag)return;const p=pos(e),c=S.cards[cur];pv.style.cursor=hit(p)>=0?"move":textAt(p)?"text":(c.type==="grid"&&slotAt(p)<0)?"default":ph(c)&&ph(c).img?"grab":"pointer"});
   for(const ev of ["touchstart","touchmove"])pv.addEventListener(ev,e=>{if(drag)e.preventDefault()},{passive:false});
 })();
-function buildAll(){buildStrip();buildFields();if(!$("tab-text").hidden||WIDE.matches)fillFontSelects();buildPMap();$("kid").value=S.id;$("corner").value=S.corner;$("hl").value=S.hl;$("showHeader").checked=S.showHeader;$("ac").value=S.ac;for(const [id,on] of [["hdrTop",S.hdrPos!=="bottom"],["hdrBottom",S.hdrPos==="bottom"],["subPlain",!S.subBox],["subBoxBtn",!!S.subBox]])$(id).setAttribute("aria-pressed",on);$("hdrColor").value=S.hdr;$("caption").value=S.caption;
+function buildAll(){if(typeof renderDock==="function"&&$("dtools"))setTimeout(renderDock,0);buildStrip();buildFields();if(!$("tab-text").hidden||WIDE.matches)fillFontSelects();buildPMap();$("kid").value=S.id;$("corner").value=S.corner;$("hl").value=S.hl;$("showHeader").checked=S.showHeader;$("ac").value=S.ac;for(const [id,on] of [["hdrTop",S.hdrPos!=="bottom"],["hdrBottom",S.hdrPos==="bottom"],["subPlain",!S.subBox],["subBoxBtn",!!S.subBox]])$(id).setAttribute("aria-pressed",on);$("hdrColor").value=S.hdr;$("caption").value=S.caption;
   {const hw=$("hdrWeights");hw.textContent="";hw.append(weightRow("hwa",S.hwa||800,800,v=>{S.hwa=v;paint()},"RecordRoom.mag 굵기"),weightRow("hwb",S.hwb||300,300,v=>{S.hwb=v;paint()},"코너 이름 굵기"))}
   paint()}
-function say(id,t,warn){const e=$(id);if(!e)return;e.textContent=t||"";e.classList.toggle("warn",!!warn);if(id==="toast"){clearTimeout(e._t);e._t=setTimeout(()=>e.textContent="",1500)}}
+function say(id,t,warn){const e=$(id);if(!e)return;e.textContent=t||"";e.classList.toggle("warn",!!warn);
+  if(id==="toast"){clearTimeout(e._t);e._t=setTimeout(()=>e.textContent="",Math.max(1600,(t||"").length*70))}
+  else if(t&&!WIDE.matches&&!sheetOpen&&$("pub").hidden&&["mediaStatus","stickerStatus","styleStatus","fontStatus","codeStatus","capStatus"].includes(id))say("toast",t)}
 
 for(const k of ["scale","ls","lh"])$(k).oninput=e=>{S.cards[cur][k]=+e.target.value;showTypo();paint()};
 $("typoReset").onclick=()=>{const c=S.cards[cur],n=newCard(c.type);c.scale=n.scale;c.ls=n.ls;c.lh=n.lh;showTypo();paint()};
@@ -1532,7 +1578,7 @@ $("autoOutro").onchange=e=>{try{localStorage.setItem("rr-outro",e.target.checked
 const TAB_NAMES={photo:"사진",text:"글",deco:"꾸미기",card:"카드"};
 const WIDE=matchMedia("(min-width:900px)");
 let sheetTab="photo",sheetOpen=false,sheetSize="half";
-function showTab(name){sheetTab=name;if(name==="text"&&S)fillFontSelects();for(const b of document.querySelectorAll(".tabs button")){const on=b.dataset.tab===name&&(sheetOpen||WIDE.matches);b.setAttribute("aria-selected",on);$("tab-"+b.dataset.tab).hidden=b.dataset.tab!==name}
+function showTab(name){sheetTab=name;if(name==="text"&&S)fillFontSelects();for(const b of document.querySelectorAll(".tabs button")){const on=WIDE.matches?b.dataset.tab===name:b.dataset.tab===dockCat;b.setAttribute("aria-selected",on);$("tab-"+b.dataset.tab).hidden=b.dataset.tab!==name}
   $("sheetTitle").textContent=TAB_NAMES[name]||"";try{localStorage.setItem("rr-tab",name)}catch(e){}}
 function vvH(){return window.visualViewport?visualViewport.height:innerHeight}
 function barH(){return $("app").querySelector(".bar").offsetHeight}
@@ -1545,14 +1591,14 @@ function layout(){
   document.documentElement.style.setProperty("--kb",kb+"px");
   let sh=sheetPx(sheetSize);if(kb>0)sh=Math.min(sh,Math.max(170,vvH()-barH()-160));
   $("sheet").style.setProperty("--sh",sh+"px");
-  const below=$("strip").offsetHeight+document.querySelector(".tabs").offsetHeight;
+  const below=$("strip").offsetHeight+document.querySelector(".tabs").offsetHeight+$("dock").offsetHeight;
   $("stage").style.paddingBottom=sheetOpen?Math.max(10,sh+kb-below+8)+"px":"10px";
   requestAnimationFrame(placeFT);
 }
 function openSheet(name,size){if(name)sheetTab=name;sheetOpen=true;if(size)sheetSize=size;$("sheet").classList.add("open");showTab(sheetTab);layout();hideHint()}
 function closeSheet(){sheetOpen=false;$("sheet").classList.remove("open");if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();showTab(sheetTab);layout()}
 for(const b of document.querySelectorAll(".tabs button"))b.onclick=()=>{if(WIDE.matches){showTab(b.dataset.tab);return}
-  if(sheetOpen&&sheetTab===b.dataset.tab)closeSheet();else{openSheet(b.dataset.tab,"half");$("sheetBody").scrollTop=0}};
+  if(sheetOpen)closeSheet();if(dockCat!==b.dataset.tab){dockCat=b.dataset.tab;dockTool=null}else dockTool=null;renderDock();layoutSoon()};
 $("sheetDone").onclick=closeSheet;
 function setGuides(v){guides=v;$("guideBtn").setAttribute("aria-pressed",v);try{localStorage.setItem("rr-guide",v?"1":"0")}catch(e){}if(S)draw()}
 $("guideBtn").onclick=()=>setGuides(!guides);setGuides(guides);
@@ -1575,6 +1621,88 @@ if(window.visualViewport){visualViewport.addEventListener("resize",layoutSoon);v
 addEventListener("resize",layoutSoon);if(WIDE.addEventListener)WIDE.addEventListener("change",()=>{layout();showTab(sheetTab)});
 function hideHint(){const h=$("tapHint");if(h){h.style.opacity=0;setTimeout(()=>h.remove(),500)}try{localStorage.setItem("rr-hint","1")}catch(e){}}
 try{if(localStorage.getItem("rr-hint"))$("tapHint").remove()}catch(e){}
+/* ---------- 편집 도구 독 ---------- */
+const IC={plus:'<path d="M12 5v14M5 12h14"/>',stack:'<rect x="7" y="7" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>',zoom:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M11 8v6M8 11h6"/>',
+ fit:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16M4 9h16"/>',grad:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 14h16M4 17.5h16"/>',height:'<path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4"/>',
+ soft:'<circle cx="12" cy="12" r="7"/><path d="M12 5a7 7 0 0 1 0 14"/>',color:'<circle cx="12" cy="12" r="8"/><circle cx="9" cy="10" r="1.2"/><circle cx="14" cy="9" r="1.2"/><circle cx="15.5" cy="13.5" r="1.2"/>',
+ magic:'<path d="M5 19L15 9M14 5l1-2 1 2 2 1-2 1-1 2-1-2-2-1zM18 12l.7-1.4L20 10l-1.3-.6L18 8l-.7 1.4L16 10l1.3.6z"/>',bg:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-4 4 3 3-2 6 4"/>',
+ trash:'<path d="M5 7h14M10 11v6M14 11v6M6 7l1 12h10l1-12M9 7V4h6v3"/>',more:'<circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/>',
+ edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',size:'<path d="M4 18L9 6l5 12M6 14h6M16 18l2.5-6 2.5 6M17 16h3"/>',ls:'<path d="M3 12h18M6 9l-3 3 3 3M18 9l3 3-3 3"/>',lh:'<path d="M12 3v18M9 6l3-3 3 3M9 18l3 3 3-3"/>',
+ font:'<path d="M5 19L11 5l6 14M7.5 14h7"/>',cut:'<circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="M8.5 8.5L20 18M8.5 15.5L20 6"/>',shape:'<circle cx="8" cy="8" r="4"/><rect x="12" y="12" width="8" height="8" rx="1"/>',
+ bubble:'<path d="M5 5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/>',align:'<path d="M4 4v16M8 7h12M8 12h8M8 17h10"/>',grid:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>',
+ list:'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',type:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',add:'<rect x="4" y="3" width="12" height="15" rx="2"/><path d="M20 12v8M16 16h8"/>',
+ move:'<path d="M5 12h14M9 8l-4 4 4 4M15 8l4 4-4 4"/>',corner:'<path d="M4 4h7M4 4v7"/><rect x="8" y="8" width="12" height="12" rx="2"/>',sub:'<rect x="4" y="9" width="11" height="4"/><path d="M4 17h16"/>',save:'<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7M8 20v-6h8v6"/>'};
+const svg=k=>'<svg viewBox="0 0 24 24">'+(IC[k]||IC.more)+'</svg>';
+function proxySlider(id,label){return {type:"slider",label,id}}
+function chipsFrom(list){return {type:"chips",list}}
+const clickId=id=>()=>{const e=$(id);if(e&&!e.disabled)e.click()};
+const pressedId=id=>()=>{const e=$(id);return !!e&&e.getAttribute("aria-pressed")==="true"};
+function swatchesOf(cid,label){return {type:"swatch",cid,label}}
+const TOOLS={
+ photo:[
+  {k:"pick",l:"사진 넣기",ic:"plus",act:()=>$("photo").click()},
+  {k:"multi",l:"여러 장",ic:"stack",act:()=>$("photoMulti").click()},
+  {k:"zoom",l:"확대",ic:"zoom",...proxySlider("zoom","확대")},
+  {k:"fit",l:"맞춤",ic:"fit",...chipsFrom([["전체가 보이게",clickId("fitAll")],["꽉 채우기",clickId("fitCover")],["앞 카드 사진",clickId("prevPhoto")]])},
+  {k:"fillx",l:"빈 곳 채우기",ic:"magic",...chipsFrom([["자동으로 채우기",clickId("aiFill")],["배경색 이어 붙이기",()=>doFill("flat")],["AI로 그리기",()=>doFill("ai")],["되돌리기",clickId("aiUndo")]])},
+  {k:"dim",l:"그라데이션",ic:"grad",...proxySlider("dim","진하기")},
+  {k:"gh",l:"높이",ic:"height",...proxySlider("gh","높이")},
+  {k:"gs",l:"부드럽게",ic:"soft",...proxySlider("gs","또렷하게")},
+  {k:"gc",l:"그라데이션 색",ic:"color",...swatchesOf("gcSw","색")},
+  {k:"bgfill",l:"빈 곳 배경",ic:"bg",type:"select",id:"fill"},
+  {k:"rm",l:"사진 빼기",ic:"trash",act:clickId("rmPhoto")},
+  {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("photo","full")}],
+ text:[
+  {k:"edit",l:"글 고치기",ic:"edit",act:()=>openSheet("text","text")},
+  {k:"scale",l:"크기",ic:"size",...proxySlider("scale","크기")},
+  {k:"ls",l:"자간",ic:"ls",...proxySlider("ls","자간")},
+  {k:"lh",l:"행간",ic:"lh",...proxySlider("lh","행간")},
+  {k:"fontT",l:"제목 글꼴",ic:"font",type:"font",role:"fontT"},
+  {k:"fontB",l:"본문 글꼴",ic:"font",type:"font",role:"fontB"},
+  {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("text","full")}],
+ deco:[
+  {k:"sticker",l:"누끼 이미지",ic:"cut",act:clickId("stickerPick")},
+  {k:"shape",l:"도형 사진",ic:"shape",type:"chipsDyn",get:()=>[...document.querySelectorAll("#shapeAdd .shapeBtn")].map(b=>[b.title,()=>b.click()])},
+  {k:"textdeco",l:"글 요소",ic:"bubble",type:"chipsDyn",get:()=>[...document.querySelectorAll("#decoAdd button")].map(b=>[b.textContent.replace("+ ",""),()=>b.click()])},
+  {k:"align",l:"정렬",ic:"align",type:"align"},
+  {k:"guide",l:"가이드",ic:"grid",act:()=>{setGuides(!guides);renderDock()},on:()=>guides},
+  {k:"list",l:"요소 목록",ic:"list",act:()=>openSheet("deco","half")}],
+ card:[
+  {k:"type",l:"유형",ic:"type",type:"chipsDyn",get:()=>[...$("typeSel").options].map(o=>[o.textContent,()=>{$("typeSel").value=o.value;$("typeSel").dispatchEvent(new Event("change"))},()=>S.cards[cur].type===o.value])},
+  {k:"add",l:"카드 추가",ic:"add",type:"chipsDyn",get:()=>[...$("addType").options].map(o=>[o.textContent,()=>{$("addType").value=o.value;$("addBtn").click()}])},
+  {k:"order",l:"순서",ic:"move",...chipsFrom([["← 앞으로",clickId("moveL")],["뒤로 →",clickId("moveR")],["이 카드 삭제",()=>{if(confirm("이 카드를 지울까요? 되돌리기로 살릴 수 있어요."))$("delBtn").click()}]])},
+  {k:"corner",l:"코너 이름",ic:"corner",type:"chipsDyn",get:()=>[...$("corners").options].map(o=>[o.value,()=>{$("corner").value=o.value;$("corner").dispatchEvent(new Event("input"))},()=>S.corner===o.value]).concat([["직접 쓰기…",()=>{const v=prompt("코너 이름",S.corner);if(v!=null){$("corner").value=v;$("corner").dispatchEvent(new Event("input"))}}]])},
+  {k:"hdrc",l:"코너 색",ic:"color",...swatchesOf("hdrSwatches","색")},
+  {k:"hdrpos",l:"코너 위치",ic:"height",...chipsFrom([["위",clickId("hdrTop"),pressedId("hdrTop")],["아래",clickId("hdrBottom"),pressedId("hdrBottom")]])},
+  {k:"sub",l:"작은 줄",ic:"sub",...chipsFrom([["글자만",clickId("subPlain"),pressedId("subPlain")],["검은 상자",clickId("subBoxBtn"),pressedId("subBoxBtn")]])},
+  {k:"save",l:"기본값 저장",ic:"save",act:()=>{$("saveStyle").click();say("toast","지금 스타일을 기본값으로 저장했어요")}},
+  {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("card","full")}]};
+let dockCat="photo",dockTool=null;
+function renderDock(){const dt=$("dtools");if(!dt)return;const tools=TOOLS[dockCat]||[];dt.textContent="";
+  for(const t of tools){const b=document.createElement("button");b.className="tool"+(t.act?" act":"");b.innerHTML=svg(t.ic)+"<span></span>";b.lastChild.textContent=t.l;
+    const on=t.act?(t.on?t.on():false):dockTool===t.k;b.setAttribute("aria-pressed",on);
+    b.onclick=()=>{if(t.act){t.act();if(t.on)renderDock();return}dockTool=dockTool===t.k?null:t.k;renderDock();layoutSoon()};dt.append(b)}
+  renderCtl();
+  for(const b of document.querySelectorAll(".tabs button"))if(!WIDE.matches)b.setAttribute("aria-selected",b.dataset.tab===dockCat)}
+function renderCtl(){const box=$("dctl"),t=(TOOLS[dockCat]||[]).find(x=>x.k===dockTool);box.textContent="";box.hidden=!t;if(!t)return;
+  const lab=document.createElement("span");lab.className="dl";lab.textContent=t.label||t.l;
+  if(t.type==="slider"){const src=$(t.id);if(!src){box.hidden=true;return}
+    const r=document.createElement("input");r.type="range";r.min=src.min;r.max=src.max;r.step=src.step||1;r.value=src.value;r.setAttribute("aria-label",t.l);
+    const v=document.createElement("span");v.className="dv";const out=$(t.id+"V");const show=()=>{v.textContent=out?out.textContent:r.value};show();
+    r.oninput=()=>{src.value=r.value;src.dispatchEvent(new Event("input",{bubbles:true}));show()};
+    r.onchange=()=>src.dispatchEvent(new Event("change",{bubbles:true}));
+    r.ondblclick=()=>{};box.append(lab,r,v);return}
+  const chips=document.createElement("div");chips.className="chips";
+  const mk=(txt,fn,isOn)=>{const c=document.createElement("button");c.className="chip";c.textContent=txt;c.setAttribute("aria-pressed",!!(isOn&&isOn()));c.onclick=()=>{fn();setTimeout(renderCtl,30)};chips.append(c)};
+  if(t.type==="chips")for(const [a,f,o] of t.list)mk(a,f,o);
+  else if(t.type==="chipsDyn")for(const [a,f,o] of t.get())mk(a,f,o);
+  else if(t.type==="select"){const sel=$(t.id);for(const o of sel.options)mk(o.textContent.replace(/\s*\(.*\)$/,""),()=>{sel.value=o.value;sel.dispatchEvent(new Event("change",{bubbles:true}))},()=>sel.value===o.value)}
+  else if(t.type==="swatch"){for(const b of $(t.cid).children){const c=document.createElement("button");c.className="chip sw";c.style.background=getComputedStyle(b).backgroundColor;c.setAttribute("aria-label",b.getAttribute("aria-label")||b.title||"색");c.setAttribute("aria-pressed",b.getAttribute("aria-pressed")==="true");c.onclick=()=>{b.click();setTimeout(renderCtl,30)};chips.append(c)}}
+  else if(t.type==="font"){for(const f of FONTS){linkFont(f.n);const c=document.createElement("button");c.className="chip";c.textContent=f.n;c.style.fontFamily='"'+f.n+'"'+FB;c.setAttribute("aria-pressed",S[t.role]===f.n);c.onclick=()=>{S[t.role]=f.n;paint();renderCtl()};chips.append(c)}
+    setTimeout(()=>{const a=chips.querySelector("[aria-pressed=true]");if(a)a.scrollIntoView({inline:"center",block:"nearest"})},0)}
+  else if(t.type==="align"){mk(multi?"선택 끝내기":"여러 개 선택",()=>$("multiBtn").click(),()=>multi);
+    for(const [k,lb] of AL){const c=document.createElement("button");c.className="chip";c.textContent=lb;const n=selIdx().length;c.disabled=k[0]==="d"?n<3:n<1;c.onclick=()=>{alignDecos(k);renderCtl()};chips.append(c)}}
+  box.append(lab,chips)}
 /* ---------- 카드 위 작은 도구 막대 ---------- */
 let ft=null;
 const FIELD_ROLE={cover:{title:"fontT",sub:"fontB"},body:{text:"fontB"},qa:{q:"fontT",text:"fontB",note:"fontB"},product:{brand:"fontT",name:"fontB",price:"fontB"},intro:{title:"fontT",text:"fontB"},outro:{text:"fontB"}};
@@ -1630,7 +1758,7 @@ document.addEventListener("focusin",e=>{if(e.target.closest&&e.target.closest("#
 if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 
 /* ---------- 시작 ---------- */
-S=restore();buildAll();resetHistory();fillOutroPhotos();layout();
+S=restore();buildAll();resetHistory();fillOutroPhotos();renderDock();layout();
 hydrate();if(S.sample)showHome();
 if(document.fonts&&document.fonts.load){Promise.all([300,400,500,600,700,800].map(w=>document.fonts.load(w+' 40px Pretendard',"가A"))).then(()=>{draw()}).catch(()=>{})}
 (async()=>{const C=window.claude;if(!C||!C.use){initGen(null);return}

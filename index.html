@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795778453">
+<meta name="rr-build" content="1795778466">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -771,8 +771,8 @@ const isVid=c=>!!(c&&c.img&&c.img.tagName==="VIDEO");
 /* 제품 3컷: 왼쪽 세로 1장 + 오른쪽 2장. 원본 레이아웃에서 잰 칸 위치 */
 const SLOTS=[{x:42,y:265,w:530,h:943},{x:598,y:265,w:441,h:553},{x:598,y:855,w:441,h:353}];
 const ph=c=>c&&c.type==="grid"&&c.slots?c.slots[c.si||0]:c;
-/* 사진+글: 위 70%는 사진, 아래 30%는 흰 바탕 글 */
-const SPLIT_H=Math.round(H*0.7);
+/* 사진+글: 위 65%는 사진, 아래 35%는 흰 바탕 글 */
+const SPLIT_H=Math.round(H*0.65);
 const photoR=c0=>c0.type==="grid"?SLOTS[c0.si||0]:c0.type==="split"?{x:0,y:0,w:W,h:SPLIT_H}:{x:0,y:0,w:W,h:H};
 function slotAt(p){return SLOTS.findIndex(r=>p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h)}
 const tA=document.createElement("canvas");tA.width=24;tA.height=30;const tB=document.createElement("canvas");tB.width=96;tB.height=120;const t1=document.createElement("canvas");t1.width=1;t1.height=1;const tG=document.createElement("canvas");tG.width=W;tG.height=H;

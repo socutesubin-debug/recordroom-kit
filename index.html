@@ -213,9 +213,12 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
 .seg button{border:0;border-radius:0;background:var(--surface);color:var(--muted);padding:7px 12px}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
 #fontGrid{display:flex;flex-direction:column;gap:8px}
+.fbtn .fav{position:absolute;top:4px;right:6px;font-size:16px;line-height:1;padding:4px;color:var(--muted)}.fbtn .fav.on{color:#F5C518}
+.fsep{flex:none;align-self:center;font-size:11px;font-weight:700;color:var(--muted);padding:0 2px 0 8px;white-space:nowrap}
+.chip.favtog[aria-pressed=true]{color:#F5C518}
 .fgroup{font-size:11.5px;font-weight:700;color:var(--muted);margin:4px 0 0}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
-.fbtn{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;padding:10px 11px;background:var(--bg);min-width:0}
+.fbtn{position:relative;display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;padding:10px 11px;background:var(--bg);min-width:0}
 .fbtn b{font-size:20px;line-height:1.25;white-space:nowrap;overflow:hidden;max-width:100%;color:var(--ink)}
 .fbtn small{font-family:var(--font);font-size:11px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .fbtn[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);background:var(--surface)}
@@ -524,10 +527,10 @@ const FONTS=[
   {n:"Gothic A1",g:"고딕",w:[300,400,500,700,800],q:"Gothic+A1:wght@300;400;500;700;800"},
   {n:"Nanum Gothic",g:"고딕",w:[400,700,800],q:"Nanum+Gothic:wght@400;700;800"},
   {n:"Gowun Dodum",g:"고딕",w:[400],q:"Gowun+Dodum"},
-  {n:"Orbit",g:"고딕",w:[400],q:"Orbit"},
+  {n:"Orbit",g:"기타",w:[400],q:"Orbit"},
   {n:"Noto Serif KR",g:"명조",w:[200,300,400,500,600,700,800,900],q:"Noto+Serif+KR:wght@200..900"},
   {n:"Nanum Myeongjo",g:"명조",w:[400,700,800],q:"Nanum+Myeongjo:wght@400;700;800"},
-  {n:"Gowun Batang",g:"명조",w:[400,700],q:"Gowun+Batang:wght@400;700"},
+  {n:"Gowun Batang",g:"바탕",w:[400,700],q:"Gowun+Batang:wght@400;700"},
   {n:"Hahmlet",g:"명조",w:ALLW,q:"Hahmlet:wght@100..900"},
   {n:"Song Myung",g:"명조",w:[400],q:"Song+Myung"},
   {n:"Black Han Sans",g:"제목용",w:[400],q:"Black+Han+Sans"},
@@ -538,23 +541,56 @@ const FONTS=[
   {n:"Dongle",g:"손글씨",w:[300,400,700],q:"Dongle:wght@300;400;700"},
   {n:"Gaegu",g:"손글씨",w:[300,400,700],q:"Gaegu:wght@300;400;700"},
   {n:"Nanum Pen Script",g:"손글씨",w:[400],q:"Nanum+Pen+Script"},
-  /* 눈누(noonnu.cc)에 있는 상업 이용 가능 무료 글꼴 */
-  {n:"페이퍼로지",g:"눈누 고딕",w:[100, 200, 300, 400, 500, 600, 700, 800, 900],src:{"100": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-1Thin.woff2", "200": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-2ExtraLight.woff2", "300": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-3Light.woff2", "400": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2", "500": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-5Medium.woff2", "600": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2", "800": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2", "900": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2"}},
-  {n:"에스코어 드림",g:"눈누 고딕",w:[100, 200, 300, 400, 500, 600, 700, 800, 900],src:{"100": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-1Thin.woff", "200": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-2ExtraLight.woff", "300": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-3Light.woff", "400": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff", "500": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-5Medium.woff", "600": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-7ExtraBold.woff", "800": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-8Heavy.woff", "900": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-9Black.woff"}},
-  {n:"SUIT",g:"눈누 고딕",w:[100, 200, 300, 400, 500, 600, 700, 800, 900],src:{"100": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Thin.woff2", "200": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-ExtraLight.woff2", "300": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Light.woff2", "400": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Regular.woff2", "500": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Medium.woff2", "600": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-SemiBold.woff2", "700": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Bold.woff2", "800": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-ExtraBold.woff2", "900": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Heavy.woff2"}},
-  {n:"G마켓 산스",g:"눈누 고딕",w:[300, 500, 700],src:{"300": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff", "500": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff"}},
-  {n:"더잠실",g:"눈누 고딕",w:[100, 300, 400, 500, 700, 800],src:{"100": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil1Thin.woff2", "300": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil2Light.woff2", "400": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil3Regular.woff2", "500": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil4Medium.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil5Bold.woff2", "800": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil6ExtraBold.woff2"}},
-  {n:"마루 부리",g:"눈누 명조",w:[200, 300, 400, 600, 700],src:{"200": "https://cdn.jsdelivr.net/npm/@kfonts/maruburi@0.1.0/MaruBuri-ExtraLight.woff2", "300": "https://cdn.jsdelivr.net/npm/@kfonts/maruburi@0.1.0/MaruBuri-Light.woff2", "400": "https://cdn.jsdelivr.net/npm/@kfonts/maruburi@0.1.0/MaruBuri-Regular.woff2", "600": "https://cdn.jsdelivr.net/npm/@kfonts/maruburi@0.1.0/MaruBuri-SemiBold.woff2", "700": "https://cdn.jsdelivr.net/npm/@kfonts/maruburi@0.1.0/MaruBuri-Bold.woff2"}},
-  {n:"리디바탕",g:"눈누 명조",w:[400],src:{"400": "https://cdn.jsdelivr.net/npm/@noonnu/ridi-batang@0.1.0/fonts/ridibatang-normal.woff"}},
-  {n:"조선신명조",g:"눈누 명조",w:[400],src:{"400": "https://cdn.jsdelivr.net/npm/@noonnu/chosun-sm@0.1.0/fonts/chosunsm-normal.woff"}},
-  {n:"조선굵은명조",g:"눈누 명조",w:[700],src:{"700": "https://cdn.jsdelivr.net/npm/@noonnu/chosun-km@0.1.0/fonts/chosunkm-normal.woff"}},
-  {n:"여기어때 잘난체",g:"눈누 제목용",w:[700],src:{"700": "https://cdn.jsdelivr.net/npm/@noonnu/yg-jalnan@0.1.0/fonts/yg-jalnan-normal.woff"}},
-  {n:"어그로체",g:"눈누 제목용",w:[700],src:{"700": "https://cdn.jsdelivr.net/npm/@noonnu/sb-aggro-b@0.1.0/fonts/sbaggrob-normal.woff"}},
-  {n:"ELAND 초이스",g:"눈누 고딕",w:[500],src:{"500": "https://cdn.jsdelivr.net/npm/@noonnu/eland-choice-m@0.1.0/fonts/elandchoicem-normal.woff"}},
-  {n:"프리젠테이션",g:"눈누 고딕",w:[100, 200, 300, 400, 500, 600, 700, 800, 900],src:{"100": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-1Thin.woff", "200": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-2ExtraLight.woff", "300": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-3Light.woff", "400": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-4Regular.woff", "500": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-5Medium.woff", "600": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-6SemiBold.woff", "700": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-7Bold.woff", "800": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-8ExtraBold.woff", "900": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-9Black.woff"}},
-  {n:"조선굴림체",g:"눈누 고딕",w:[400],src:{"400": "https://cdn.jsdelivr.net/npm/@noonnu/chosun-gu@0.1.0/fonts/chosungu-normal.woff"}},
-  {n:"꽃집막내딸",g:"눈누 손글씨",w:[400],src:{"400": "https://cdn.jsdelivr.net/npm/@noonnu/sang-sang-youngest-daughter@0.1.0/fonts/sangsangyoungestdaughter-normal.woff"}}
+  /* 눈누(noonnu.cc) 등 상업 이용·웹 임베딩 가능 무료 글꼴 */
+  {n:"카카오 큰글씨",g:"고딕",w:[400, 700, 800],src:{"400": "https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-Regular.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-Bold.woff2", "800": "https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-ExtraBold.woff2"}},
+  {n:"런드리고딕",g:"고딕",w:[400, 700],src:{"400": "https://cdn.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicR.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2"}},
+  {n:"원티드 산스",g:"고딕",w:[400, 500, 600, 700, 800, 900],src:{"400": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-Regular.woff2", "500": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-Medium.woff2", "600": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-SemiBold.woff2", "700": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-Bold.woff2", "800": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-ExtraBold.woff2", "900": "https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/complete/woff2/WantedSans-Black.woff2"}},
+  {n:"넥슨 카트 고딕",g:"고딕",w:[500, 700, 800],src:{"500": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.0/KartriderMedium.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.0/KartriderBold.woff2", "800": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.0/KartriderExtraBold.woff2"}},
+  {n:"푸라닭 젠틀고딕",g:"고딕",w:[400],src:{"400": "https://cdn.jsdelivr.net/npm/@noonnu/puradak-gentle-gothic-r@0.1.0/fonts/puradakgentlegothicr-normal.woff2"}},
+  {n:"부크크 명조",g:"명조",w:[300, 700],src:{"300": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Lt.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Bd.woff2"}},
+  {n:"김정철 명조",g:"명조",w:[300, 400, 700],src:{"300": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/KimjungchulMyungjo-Light.woff2", "400": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/KimjungchulMyungjo-Regular.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/KimjungchulMyungjo-Bold.woff2"}},
+  {n:"제주명조",g:"명조",w:[400],src:{"400": "https://cdn.jsdelivr.net/npm/@noonnu/jeju-myeongjo@0.1.0/fonts/jeju-myeongjo-400.woff2"}},
+  {n:"메모먼트 꾹꾹체",g:"손글씨",w:[400],src:{"400": "https://cdn.jsdelivr.net/gh/projectnoonnu/2508-2@1.0/memomentKkukKkuk.woff2"}},
+  {n:"온글잎 박다현체",g:"손글씨",w:[400],src:{"400": "https://cdn.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2"}},
+  {n:"온글잎 콘콘체",g:"손글씨",w:[400],src:{"400": "https://cdn.jsdelivr.net/gh/projectnoonnu/2412-1@1.0/Ownglyph_corncorn-Rg.woff2"}},
+  {n:"낭만있구미체",g:"기타",w:[400],src:{"400": "https://cdn.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/GumiRomanceTTF.woff2"}},
+  {n:"페이퍼로지",g:"고딕",w:[100, 200, 300, 400, 500, 600, 700, 800, 900],src:{"100": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-1Thin.woff2", "200": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-2ExtraLight.woff2", "300": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-3Light.woff2", "400": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2", "500": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-5Medium.woff2", "600": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2", "800": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2", "900": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2"}},
+  {n:"에스코어 드림",g:"고딕",w:[100, 200, 300, 400, 500, 600, 700, 800, 900],src:{"100": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-1Thin.woff", "200": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-2ExtraLight.woff", "300": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-3Light.woff", "400": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff", "500": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-5Medium.woff", "600": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-7ExtraBold.woff", "800": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-8Heavy.woff", "900": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-9Black.woff"}},
+  {n:"SUIT",g:"고딕",w:[100, 200, 300, 400, 500, 600, 700, 800, 900],src:{"100": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Thin.woff2", "200": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-ExtraLight.woff2", "300": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Light.woff2", "400": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Regular.woff2", "500": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Medium.woff2", "600": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-SemiBold.woff2", "700": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Bold.woff2", "800": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-ExtraBold.woff2", "900": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2.0.5/fonts/static/woff2/SUIT-Heavy.woff2"}},
+  {n:"G마켓 산스",g:"고딕",w:[300, 500, 700],src:{"300": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff", "500": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff"}},
+  {n:"더잠실",g:"고딕",w:[100, 300, 400, 500, 700, 800],src:{"100": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil1Thin.woff2", "300": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil2Light.woff2", "400": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil3Regular.woff2", "500": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil4Medium.woff2", "700": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil5Bold.woff2", "800": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil6ExtraBold.woff2"}},
+  {n:"마루 부리",g:"명조",w:[200, 300, 400, 600, 700],src:{"200": "https://cdn.jsdelivr.net/npm/@kfonts/maruburi@0.1.0/MaruBuri-ExtraLight.woff2", "300": "https://cdn.jsdelivr.net/npm/@kfonts/maruburi@0.1.0/MaruBuri-Light.woff2", "400": "https://cdn.jsdelivr.net/npm/@kfonts/maruburi@0.1.0/MaruBuri-Regular.woff2", "600": "https://cdn.jsdelivr.net/npm/@kfonts/maruburi@0.1.0/MaruBuri-SemiBold.woff2", "700": "https://cdn.jsdelivr.net/npm/@kfonts/maruburi@0.1.0/MaruBuri-Bold.woff2"}},
+  {n:"리디바탕",g:"바탕",w:[400],src:{"400": "https://cdn.jsdelivr.net/npm/@noonnu/ridi-batang@0.1.0/fonts/ridibatang-normal.woff"}},
+  {n:"조선신명조",g:"명조",w:[400],src:{"400": "https://cdn.jsdelivr.net/npm/@noonnu/chosun-sm@0.1.0/fonts/chosunsm-normal.woff"}},
+  {n:"조선굵은명조",g:"명조",w:[700],src:{"700": "https://cdn.jsdelivr.net/npm/@noonnu/chosun-km@0.1.0/fonts/chosunkm-normal.woff"}},
+  {n:"여기어때 잘난체",g:"제목용",w:[700],src:{"700": "https://cdn.jsdelivr.net/npm/@noonnu/yg-jalnan@0.1.0/fonts/yg-jalnan-normal.woff"}},
+  {n:"어그로체",g:"제목용",w:[700],src:{"700": "https://cdn.jsdelivr.net/npm/@noonnu/sb-aggro-b@0.1.0/fonts/sbaggrob-normal.woff"}},
+  {n:"ELAND 초이스",g:"고딕",w:[500],src:{"500": "https://cdn.jsdelivr.net/npm/@noonnu/eland-choice-m@0.1.0/fonts/elandchoicem-normal.woff"}},
+  {n:"프리젠테이션",g:"고딕",w:[100, 200, 300, 400, 500, 600, 700, 800, 900],src:{"100": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-1Thin.woff", "200": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-2ExtraLight.woff", "300": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-3Light.woff", "400": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-4Regular.woff", "500": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-5Medium.woff", "600": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-6SemiBold.woff", "700": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-7Bold.woff", "800": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-8ExtraBold.woff", "900": "https://cdn.jsdelivr.net/gh/ayaan-fonts/Freesentation@1.004/fonts/webfonts/woff/Freesentation-9Black.woff"}},
+  {n:"조선굴림체",g:"고딕",w:[400],src:{"400": "https://cdn.jsdelivr.net/npm/@noonnu/chosun-gu@0.1.0/fonts/chosungu-normal.woff"}},
+  {n:"꽃집막내딸",g:"손글씨",w:[400],src:{"400": "https://cdn.jsdelivr.net/npm/@noonnu/sang-sang-youngest-daughter@0.1.0/fonts/sangsangyoungestdaughter-normal.woff"}}
 ];
+const GORDER=["고딕","명조","바탕","제목용","손글씨","기타","내 글꼴"];
+function sortFonts(){FONTS.sort((a,b)=>{const x=GORDER.indexOf(a.g),y=GORDER.indexOf(b.g);return (x<0?99:x)-(y<0?99:y)})}
+sortFonts();
+/* 즐겨찾기 · 최근 사용 글꼴 */
+function lsArr(k){try{const a=JSON.parse(localStorage.getItem(k)||"[]");return Array.isArray(a)?a.filter(x=>typeof x==="string"):[]}catch(e){return []}}
+function lsSet(k,a){try{localStorage.setItem(k,JSON.stringify(a))}catch(e){}}
+const isFav=n=>lsArr("rr-fav").includes(n);
+function toggleFav(n){const a=lsArr("rr-fav"),i=a.indexOf(n);if(i>=0)a.splice(i,1);else a.unshift(n);lsSet("rr-fav",a);return i<0}
+function useFont(n){const a=lsArr("rr-recent").filter(x=>x!==n);a.unshift(n);lsSet("rr-recent",a.slice(0,8))}
+/* 고른 순서: ★즐겨찾기 → 최근 → 분류별. 앞에서 보인 글꼴은 뒤에서 빼지 않고(분류 안에서 찾기 쉽게) 그대로 둠 */
+function fontSections(){const has=n=>FONTS.some(f=>f.n===n),by=n=>FONTS.find(f=>f.n===n);const out=[];
+  const fav=lsArr("rr-fav").filter(has).map(by);if(fav.length)out.push({g:"★ 즐겨찾기",list:fav});
+  const fs=new Set(fav.map(f=>f.n)),rec=lsArr("rr-recent").filter(n=>has(n)&&!fs.has(n)).slice(0,6).map(by);if(rec.length)out.push({g:"최근 사용",list:rec});
+  const gs={};for(const f of FONTS){(gs[f.g]||(out.push({g:f.g,list:gs[f.g]=[]}),gs[f.g])).push(f)}return out}
+/* 가로 칩 줄: [★ 지금 글꼴 즐겨찾기] [분류 이름] 칩들 … */
+function fontChips(chips,curName,pick){
+  const star=document.createElement("button");star.className="chip favtog";const on=isFav(curName);star.textContent=on?"★ 지금 글꼴 즐겨찾기 빼기":"☆ 지금 글꼴 즐겨찾기";star.setAttribute("aria-pressed",on);
+  star.onclick=()=>{const v=toggleFav(curName);say("toast",v?"'"+curName+"'을 즐겨찾기에 넣었어요 — 맨 앞에 보여요":"즐겨찾기에서 뺐어요");pick(null)};chips.append(star);
+  for(const sec of fontSections()){const h=document.createElement("span");h.className="fsep";h.textContent=sec.g;chips.append(h);
+    for(const f of sec.list){linkFont(f.n);const c=document.createElement("button");c.className="chip";c.textContent=(isFav(f.n)?"★ ":"")+f.n;c.style.fontFamily='"'+f.n+'"'+FB;c.setAttribute("aria-pressed",curName===f.n);c.onclick=()=>{useFont(f.n);pick(f.n)};chips.append(c)}}
+  setTimeout(()=>{chips.scrollLeft=0},0)}
 function getStyle(){try{const t=JSON.parse(localStorage.getItem("rr-style")||"null");if(t&&typeof t==="object")return t}catch(e){}return {}}
 const TYPES={
   cover:{label:"표지",dim:70,fields:[["sub","작은 줄",0],["title","제목 — 줄바꿈 그대로 들어갑니다",1]]},
@@ -946,12 +982,14 @@ function fillFontSelects(){
   $("roleT").setAttribute("aria-pressed",role==="fontT");$("roleB").setAttribute("aria-pressed",role==="fontB");
   $("fontNow").textContent="제목 "+S.fontT+" · 본문 "+S.fontB;
   const grid=$("fontGrid");grid.textContent="";const groups={};
-  for(const f of FONTS){linkFont(f.n);
-    if(!groups[f.g]){const h=document.createElement("p");h.className="fgroup";h.textContent=f.g;const g=document.createElement("div");g.className="fgrid";grid.append(h,g);groups[f.g]=g}
+  for(const sec of fontSections())for(const f of sec.list){linkFont(f.n);
+    if(!groups[sec.g]){const h=document.createElement("p");h.className="fgroup";h.textContent=sec.g;const g=document.createElement("div");g.className="fgrid";grid.append(h,g);groups[sec.g]=g}
     const btn=document.createElement("button");btn.className="fbtn";btn.setAttribute("aria-pressed",S[role]===f.n);btn.title=f.n;
+    const fv=document.createElement("span");fv.className="fav";fv.setAttribute("role","button");fv.setAttribute("aria-label","즐겨찾기");fv.textContent=isFav(f.n)?"★":"☆";if(isFav(f.n))fv.classList.add("on");
+    fv.onclick=e=>{e.stopPropagation();const v=toggleFav(f.n);say("toast",v?"즐겨찾기에 넣었어요 — 맨 앞에 보여요":"즐겨찾기에서 뺐어요");fillFontSelects()};btn.append(fv);
     const sample=document.createElement("b");sample.textContent=role==="fontT"?"레코드룸 Aa":"옷장 기록 Aa";sample.style.fontFamily='"'+f.n+'"'+FB;sample.style.fontWeight=near(f.n,role==="fontT"?700:500);
     const name=document.createElement("small");name.textContent=f.n;btn.append(sample,name);
-    btn.onclick=()=>{S[role]=f.n;fillFontSelects();paint()};groups[f.g].append(btn)}
+    btn.onclick=()=>{S[role]=f.n;useFont(f.n);fillFontSelects();paint()};groups[sec.g].append(btn)}
   if(!FONTS.some(f=>f.n===S[role])){const n=document.createElement("p");n.className="hint";n.textContent="지금 "+(role==="fontT"?"제목":"본문")+" 글꼴 '"+S[role]+"'은 올린 파일이라 다시 올려야 보여요.";grid.append(n)}
 }
 function showTypo(){const c=S.cards[cur];$("scale").value=c.scale;$("ls").value=c.ls;$("lh").value=c.lh;$("scaleV").textContent=c.scale+"%";$("lsV").textContent=(c.ls/10).toFixed(1)+"%";$("lhV").textContent=c.lh+"%"}
@@ -1206,7 +1244,7 @@ $("typoAll").onclick=()=>{const c=S.cards[cur];for(const o of S.cards){o.scale=c
 $("roleT").onclick=()=>{role="fontT";fillFontSelects()};$("roleB").onclick=()=>{role="fontB";fillFontSelects()};
 $("fontFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;const name=file.name.replace(/\.[^.]+$/,"").replace(/["\\]/g,"");
   try{const face=new FontFace(name,await file.arrayBuffer());await face.load();document.fonts.add(face);
-    if(!FONTS.some(f=>f.n===name))FONTS.push({n:name,g:"내 글꼴",w:[400],local:1});S[role]=name;fillFontSelects();paint();
+    if(!FONTS.some(f=>f.n===name))FONTS.push({n:name,g:"내 글꼴",w:[400],local:1});sortFonts();S[role]=name;fillFontSelects();paint();
     say("fontStatus","'"+name+"'을 "+(role==="fontT"?"제목":"본문")+" 글꼴로 넣었어요. 목록 맨 아래 '내 글꼴'에서 다시 고를 수 있고, 페이지를 다시 열면 한 번 더 올려야 합니다.")}
   catch(err){say("fontStatus","이 글꼴 파일은 열 수 없어요. ttf, otf, woff2 파일인지 확인해 주세요.",true)}e.target.value=""};
 $("saveStyle").onclick=()=>{const types={};for(const c of S.cards)types[c.type]={scale:c.scale,ls:c.ls,lh:c.lh,dim:c.dim,gh:c.gh,gs:c.gs,gc:c.gc,fw:c.fw};
@@ -1787,14 +1825,12 @@ function renderCtl(){const box=$("dctl"),all=(TOOLS[dockCat]||[]).concat(dockCat
   else if(t.type==="chipsDyn")for(const [a,f,o] of t.get())mk(a,f,o);
   else if(t.type==="select"){const sel=$(t.id);for(const o of sel.options)mk(o.textContent.replace(/\s*\(.*\)$/,""),()=>{sel.value=o.value;sel.dispatchEvent(new Event("change",{bubbles:true}))},()=>sel.value===o.value)}
   else if(t.type==="swatch"){for(const b of $(t.cid).children){const c=document.createElement("button");c.className="chip sw";c.style.background=getComputedStyle(b).backgroundColor;c.setAttribute("aria-label",b.getAttribute("aria-label")||b.title||"색");c.setAttribute("aria-pressed",b.getAttribute("aria-pressed")==="true");c.onclick=()=>{b.click();setTimeout(renderCtl,30)};chips.append(c)}}
-  else if(t.type==="font"){for(const f of FONTS){linkFont(f.n);const c=document.createElement("button");c.className="chip";c.textContent=f.n;c.style.fontFamily='"'+f.n+'"'+FB;c.setAttribute("aria-pressed",S[t.role]===f.n);c.onclick=()=>{S[t.role]=f.n;paint();renderCtl()};chips.append(c)}
-    setTimeout(()=>{const a=chips.querySelector("[aria-pressed=true]");if(a)a.scrollIntoView({inline:"center",block:"nearest"})},0)}
+  else if(t.type==="font"){fontChips(chips,S[t.role],n=>{if(n)S[t.role]=n;paint();renderCtl()})}
   else if(t.type==="preset"){for(const pr of TPRE){const c=document.createElement("button");c.className="chip";c.textContent=pr.n;const st=pr.st;
       c.style.cssText="font-family:\""+st.font+"\""+FB.replace(/"/g,"'")+";color:"+st.fill+";background:"+(st.bg&&st.bg.on?st.bg.c:"#2A2A30")+";"+(st.stroke&&st.stroke.on?"-webkit-text-stroke:1px "+st.stroke.c+";paint-order:stroke fill;":"")+"font-weight:"+(st.bold?800:(st.w||500));
       linkFont(st.font);c.onclick=()=>{applyPreset(pr);say("toast",curTextDeco()?"'"+pr.n+"' 스타일을 입혔어요":"")};chips.append(c)}
     const hint=curTextDeco()?"":"(누르면 새 글자로 추가돼요)";if(hint){const h=document.createElement("span");h.className="dl";h.textContent=hint;chips.append(h)}box.append(lab,chips);return}
-  else if(t.type==="tfont"){const d=curTextDeco();if(!d)return;const st=ensureSt(d);for(const f of FONTS){linkFont(f.n);const c=document.createElement("button");c.className="chip";c.textContent=f.n;c.style.fontFamily='"'+f.n+'"'+FB;c.setAttribute("aria-pressed",st.font===f.n);c.onclick=()=>{st.font=f.n;paint();renderCtl()};chips.append(c)}
-    setTimeout(()=>{const a=chips.querySelector("[aria-pressed=true]");if(a)a.scrollIntoView({inline:"center",block:"nearest"})},0)}
+  else if(t.type==="tfont"){const d=curTextDeco();if(!d)return;const st=ensureSt(d);fontChips(chips,st.font||S.fontT,n=>{if(n)st.font=n;paint();renderCtl()})}
   else if(t.type==="tcolor"){const d=curTextDeco();if(!d)return;const st=ensureSt(d);colorChips(chips,st.fill,v=>{st.fill=v;paint()})}
   else if(t.type==="tfx"){const d=curTextDeco();if(!d)return;const st=ensureSt(d);const fx=st[t.fx]||(st[t.fx]=Object.assign({},t.def,{on:0}));
     const tg=document.createElement("button");tg.className="chip";tg.textContent=fx.on?"켬":"끔";tg.setAttribute("aria-pressed",!!fx.on);tg.onclick=()=>{fx.on=fx.on?0:1;paint();renderCtl()};
@@ -1837,8 +1873,9 @@ for(const b of document.querySelectorAll("#ftool [data-w]"))b.onclick=()=>toggle
 for(const [id,d] of [["ftWm",-100],["ftWp",100]])$(id).onclick=()=>{const c=S.cards[cur],f=ft.field,dw=(DEFW[c.type]||{})[f]||400,w=Math.max(100,Math.min(900,((c.fw&&c.fw[f])||dw)+d));c.fw=c.fw||{};if(w===dw)delete c.fw[f];else c.fw[f]=w;const r=$("w-"+f);if(r){r.value=w;r.oninput&&r.dispatchEvent(new Event("input"))}else paint();ftSync()};
 for(const [id,d] of [["ftSm",-5],["ftSp",5]])$(id).onclick=()=>{const c=S.cards[cur],f=ft.field,z=Math.max(40,Math.min(250,((c.fs&&c.fs[f])||100)+d));c.fs=c.fs||{};if(z===100)delete c.fs[f];else c.fs[f]=z;paint();ftSync();requestAnimationFrame(placeFT)};
 $("ftFont").onclick=()=>{const l=$("ftFonts");l.hidden=!l.hidden;if(l.hidden){placeFT();return}const c=S.cards[cur],role=(FIELD_ROLE[c.type]||{})[ft.field];l.textContent="";
-  for(const f of FONTS){linkFont(f.n);const b=document.createElement("button");b.textContent=f.n;b.style.fontFamily='"'+f.n+'"'+FB;b.setAttribute("aria-pressed",S[role]===f.n);
-    b.onclick=()=>{S[role]=f.n;for(const x of l.children)x.setAttribute("aria-pressed",x===b);paint();say("toast",(role==="fontT"?"제목":"본문")+" 글꼴을 모든 카드에 적용했어요")};l.append(b)}
+  for(const sec of fontSections()){const h=document.createElement("span");h.className="fsep";h.textContent=sec.g;l.append(h);
+    for(const f of sec.list){linkFont(f.n);const b=document.createElement("button");b.textContent=(isFav(f.n)?"★ ":"")+f.n;b.style.fontFamily='"'+f.n+'"'+FB;b.setAttribute("aria-pressed",S[role]===f.n);b.dataset.n=f.n;
+    b.onclick=()=>{S[role]=f.n;useFont(f.n);for(const x of l.querySelectorAll("button"))x.setAttribute("aria-pressed",x.dataset.n===f.n);paint();say("toast",(role==="fontT"?"제목":"본문")+" 글꼴을 모든 카드에 적용했어요")};l.append(b)}}
   const sel=l.querySelector('[aria-pressed=true]');if(sel)sel.scrollIntoView({inline:"center",block:"nearest"});placeFT()};
 
 /* ---------- 사진 탭: 카드별 사진 배치 ---------- */

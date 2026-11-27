@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795783291">
+<meta name="rr-build" content="1795783667">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -672,7 +672,7 @@ function fromData(d){
     if(n.type==="split"&&(c.rule===1||c.rule===2))n.rule=c.rule;
     if(n.type==="split"&&c.splitInit)n.splitInit=1;
     if(typeof c.m==="string")n._m=c.m;
-    if(Array.isArray(c.slots)&&n.slots)c.slots.slice(0,9).forEach((q,j)=>{if(!q)return;const t=n.slots[j];for(const k of ["px","py","zoom"])if(typeof q[k]==="number")t[k]=q[k];if(typeof q.m==="string")t._m=q.m});
+    if(Array.isArray(c.slots)&&n.slots)c.slots.slice(0,9).forEach((q,j)=>{if(!q)return;const t=n.slots[j];for(const k of ["px","py","zoom"])if(typeof q[k]==="number")t[k]=q[k];if(/^#[0-9a-f]{6}$/i.test(q.fillc||""))t.fillc=q.fillc;if(typeof q.m==="string")t._m=q.m});
     if(typeof c.si==="number"&&n.slots)n.si=Math.max(0,Math.min(n.slots.length-1,c.si|0));
     if(Array.isArray(c.idecos))for(const o of c.idecos.slice().sort((a,b)=>a.j-b.j))if(o&&typeof o.m==="string"){const d={t:"img",text:"",img:null,_m:o.m,shape:o.shape||null,iz:o.iz??100,ix:o.ix??50,iy:o.iy??50,bw:o.bw||0,bc:o.bc||"#ffffff",x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,rot:+o.rot||0};n.decos.splice(Math.min(o.j,n.decos.length),0,d)}
     return n});
@@ -680,7 +680,7 @@ function fromData(d){
   return {pid:typeof d.pid==="string"?d.pid:newPid(),id:String(d.id||""),corner:String(d.corner||"옷장 기록"),hl:/^#[0-9a-f]{6}$/i.test(d.hl)?d.hl:"#8B0A7E",showHeader:d.showHeader!==false,hdrPos:d.hdrPos==="bottom"?"bottom":(d.hdrPos==="top"?"top":(st.hdrPos||"top")),subBox:typeof d.subBox==="boolean"?d.subBox:!!st.subBox,ac:/^#[0-9a-f]{6}$/i.test(d.ac||"")?d.ac:(st.ac||"#DDF53F"),hdr:/^#[0-9a-f]{6}$/i.test(d.hdr)?d.hdr:(/^#[0-9a-f]{6}$/i.test(st.hdr||"")?st.hdr:"#ffffff"),sample:!!d.sample,fontT:String(d.fontT||st.fontT||"Pretendard"),fontB:String(d.fontB||st.fontB||"Pretendard"),hwa:+(d.hwa||st.hwa)||800,hwb:+(d.hwb||st.hwb)||300,
     check:Array.isArray(d.check)?d.check.map(String):[],caption:String(d.caption||""),cards:cards.length?cards:[newCard("cover")]};
 }
-function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
+function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom,fillc:q.fillc||undefined}));if(c.si)o.si=c.si;
   o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
 function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,mg:c.mg||undefined,fit:c.mg?c.fit:undefined,gg:c.mg&&c.gg!=null?c.gg:undefined,gx:c.mg&&c.gx!=null?c.gx:undefined,gy:c.mg&&c.gy!=null?c.gy:undefined,gm:c.mg&&c.gm!=null?c.gm:undefined,gh2:c.mg?c.gh2:undefined,gmT:c.mg?c.gmT:undefined,gmB:c.mg?c.gmB:undefined,gmL:c.mg?c.gmL:undefined,gmR:c.mg?c.gmR:undefined,gz:c.mg&&c.gz?c.gz:undefined,splitInit:c.splitInit||undefined,rule:c.rule||undefined,bg:c.bg||undefined,note:c.note||undefined,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,mst:o.mst||undefined,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
@@ -1035,6 +1035,7 @@ function drawOutro(ctx,c){
 /* 원본 실측: 브랜드 34px 굵게(기준선 191), 제품명 줄 23px·자간 0(기준선 226), 아래 글자 21px·자간 +1% 회색(기준선 1323) */
 function drawMulti(ctx,c,showSel,transparent){const rs=multiRects(c);
   rs.forEach((r,i)=>{const sl=c.slots[i];if(!sl)return;ctx.save();ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();
+    if(sl.fillc&&!transparent){ctx.fillStyle=sl.fillc;ctx.fillRect(r.x,r.y,r.w,r.h)}
     if(sl.img&&!transparent){const im=sl.img,iw=im.videoWidth||im.width,ih=im.videoHeight||im.height,sc=(c.fit==="cover"?Math.max:Math.min)(r.w/iw,r.h/ih)*(sl.zoom/100)*((c.gz||100)/100),dw=iw*sc,dh=ih*sc;
       ctx.drawImage(im,r.x+(r.w-dw)*(sl.px/100),r.y+(r.h-dh)*(sl.py/100),dw,dh)}
     else if(!transparent&&showSel){ctx.fillStyle="#F1F1F3";ctx.fillRect(r.x,r.y,r.w,r.h);font(ctx,600,26,"x");ctx.fillStyle="#9a9ca3";TC(ctx,"+ 사진",r.x+r.w/2,r.y+r.h/2+9)}
@@ -2024,6 +2025,15 @@ const TOOLS={
   {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("card","full")}]};
 let dockCat="photo",dockTool=null;
 let DOCK_TOOLS=[],DECO_CLIP=null;
+/* 격자 칸: 사진 가장자리 색으로 칸 배경 채우기 / 누끼 */
+function edgeColor(im){const t=document.createElement("canvas"),n=64;t.width=n;t.height=n;const x=t.getContext("2d",{willReadFrequently:true});x.drawImage(im,0,0,n,n);const d=x.getImageData(0,0,n,n).data;let r=0,g=0,b=0,k=0;
+  for(let i=0;i<n;i++)for(const [px,py] of [[i,0],[i,n-1],[0,i],[n-1,i]]){const o=(py*n+px)*4;if(d[o+3]<20)continue;r+=d[o];g+=d[o+1];b+=d[o+2];k++}
+  if(!k)return "#ffffff";const h=v=>Math.round(v/k).toString(16).padStart(2,"0");return "#"+h(r)+h(g)+h(b)}
+async function cellCut(mode,all){const c=S.cards[cur],qs=all?c.slots.slice(0,multiRects(c).length).filter(q=>q.img&&!isVid(q)):[ph(c)].filter(q=>q&&q.img&&!isVid(q));if(!qs.length){say("toast","먼저 칸에 사진을 넣어 주세요");return}
+  let n=0;for(const q of qs){const src=q.src||q.img;try{say("toast",(qs.length>1?(++n)+"/"+qs.length+" ":"")+"누끼 따는 중…");
+      const mask=mode==="ai"?await aiCutout(src,t=>say("toast",(qs.length>1?n+"/"+qs.length+" ":"")+t)):alphaOf(removeFlatBg(src,34));q.src=src;q.img=refineCut(src,mask,1);delete q.fillc;drawSoon()}
+    catch(e){console.error(e);say("toast","누끼를 따지 못했어요. 인터넷 연결을 확인하고 다시 해 주세요.");break}}
+  paint();say("toast","누끼를 땄어요 · '원래대로'로 되돌릴 수 있어요")}
 /* 꾸미기 요소 복제(같은 카드에 살짝 옆으로) / 복사(다른 카드에서 붙여넣기) */
 function cloneDeco(d){const o={};for(const k in d){if(k==="_b"||k==="_box")continue;const v=d[k];o[k]=(k==="img"||k==="_mask")?v:(v&&typeof v==="object"&&!(v instanceof HTMLElement)?JSON.parse(JSON.stringify(v)):v)}return o}
 function dupDeco(toClip){const c=S.cards[cur],d=c.decos[sel];if(!d)return;if(toClip){DECO_CLIP=cloneDeco(d);say("toast","복사했어요 · 다른 카드에서 꾸미기 탭 '붙여넣기'를 누르세요");renderDock();return}
@@ -2042,7 +2052,9 @@ function renderDock(){const dt=$("dtools");if(!dt)return;let tools=TOOLS[dockCat
     const setMg=k=>{if(!k){delete c.mg;c.si=0;paint();renderDock();return}if(!c.mg){c.slots=c.slots&&c.slots.length>=9?c.slots:newSlots();if(c.img&&!isVid(c)&&!c.slots.some(q=>q.img))c.slots[0].img=c.img;c.si=0;c.fit=c.fit||"contain"}c.mg=k;if((c.si||0)>=multiRects(c).length)c.si=0;paint();renderDock()};
     const mgTool={k:"layout",l:"사진 격자",ic:"grid",...chipsFrom([["끄기",()=>setMg(null),()=>!c.mg]].concat(Object.keys(LAYOUTS).map(k=>[k==="2x1"?"좌우 반반":k==="1x2"?"위아래 반반":k[0]==="h"?"큰 1 + 작은 "+k[1]:k.replace("x"," × "),()=>setMg(k),()=>c.mg===k])))};
     if(c.mg)tools=[tools[0],tools[1],mgTool,{k:"mfit",l:"맞춤",ic:"fit",...chipsFrom([["전체 보이게",()=>{c.fit="contain";for(const q of c.slots){q.px=50;q.py=50;q.zoom=100}paint()},()=>c.fit!=="cover"],["꽉 채우기",()=>{c.fit="cover";for(const q of c.slots){q.px=50;q.py=50;q.zoom=100}paint()},()=>c.fit==="cover"]])},
-      (c.mg[0]==="h"?{k:"gh2",l:"큰 칸 높이",ic:"height",type:"cslider",key:"gh2",min:30,max:85,def:62,unit:"%"}:null),{k:"gz",l:"사진 크기",ic:"zoom",type:"cslider",key:"gz",min:30,max:200,def:100,unit:"%"},{k:"gx",l:"좌우 간격",ic:"ls",type:"cslider",key:"gx",min:0,max:160,def:24,unit:""},{k:"gy",l:"상하 간격",ic:"lh",type:"cslider",key:"gy",min:0,max:160,def:24,unit:""},{k:"gm",l:"바깥 여백",ic:"fit",type:"margin"},tools.find(t=>t.k==="zoom"),{k:"rmslot",l:"이 칸 비우기",ic:"trash",act:()=>{const q=ph(c);q.img=null;q.px=50;q.py=50;q.zoom=100;paint()}},tools.find(t=>t.k==="solid"),tools.find(t=>t.k==="dim")].filter(Boolean);
+      (c.mg[0]==="h"?{k:"gh2",l:"큰 칸 높이",ic:"height",type:"cslider",key:"gh2",min:30,max:85,def:62,unit:"%"}:null),{k:"gz",l:"사진 크기",ic:"zoom",type:"cslider",key:"gz",min:30,max:200,def:100,unit:"%"},{k:"gx",l:"좌우 간격",ic:"ls",type:"cslider",key:"gx",min:0,max:160,def:24,unit:""},{k:"gy",l:"상하 간격",ic:"lh",type:"cslider",key:"gy",min:0,max:160,def:24,unit:""},{k:"gm",l:"바깥 여백",ic:"fit",type:"margin"},tools.find(t=>t.k==="zoom"),{k:"cfill",l:"칸 배경 채우기",ic:"magic",...chipsFrom([["이 칸",()=>{const q=ph(c);if(q.img){q.fillc=edgeColor(q.src&&!q.fillc?q.img:q.img);paint()}},()=>!!ph(c).fillc],["모든 칸",()=>{for(const q of c.slots.slice(0,multiRects(c).length))if(q.img&&!isVid(q))q.fillc=edgeColor(q.img);paint()}],["채우기 빼기",()=>{for(const q of c.slots)delete q.fillc;paint()}]])},
+      {k:"ccut",l:"누끼 따기",ic:"cut",...chipsFrom([["이 칸 AI 누끼",()=>cellCut("ai",false)],["모든 칸 AI 누끼",()=>cellCut("ai",true)],["단색 배경 빼기",()=>cellCut("flat",false)],["원래대로",()=>{for(const q of [ph(c)])if(q.src){q.img=q.src;delete q.src}paint()}],["모두 원래대로",()=>{for(const q of c.slots)if(q.src){q.img=q.src;delete q.src}paint()}]])},
+      {k:"rmslot",l:"이 칸 비우기",ic:"trash",act:()=>{const q=ph(c);q.img=null;delete q.src;delete q.fillc;q.px=50;q.py=50;q.zoom=100;paint()}},tools.find(t=>t.k==="solid"),tools.find(t=>t.k==="dim")].filter(Boolean);
     else tools=tools.slice(0,2).concat([mgTool],tools.slice(2))}
   DOCK_TOOLS=tools;
   for(const t of tools){const b=document.createElement("button");b.className="tool"+(t.act?" act":"");b.innerHTML=svg(t.ic)+"<span></span>";b.lastChild.textContent=t.l;

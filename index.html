@@ -619,7 +619,7 @@ function fontChips(chips,curName,pick){
 const FIELD_ROLE={cover:{title:"fontT",sub:"fontB"},body:{text:"fontB"},qa:{q:"fontT",text:"fontB",note:"fontB"},product:{brand:"fontT",name:"fontB",price:"fontB"},intro:{title:"fontT",text:"fontB"},outro:{text:"fontB"}};
 const TY0={ls:0,lh:100,sz:100,al:""};
 function normTy(t){const o={};for(const r of ["T","B"]){const q=(t&&t[r])||{};o[r]={ls:Math.max(-60,Math.min(150,+q.ls||0)),lh:Math.max(60,Math.min(200,+q.lh||100)),sz:Math.max(50,Math.min(200,+q.sz||100)),al:["left","center","right"].includes(q.al)?q.al:""}}return o}
-function tyR(f){const r=CC&&(FIELD_ROLE[CC.type]||{})[f];return r==="fontT"?"T":r==="fontB"?"B":null}
+function tyR(f){if(CC&&CC.type==="outro")return null;const r=CC&&(FIELD_ROLE[CC.type]||{})[f];return r==="fontT"?"T":r==="fontB"?"B":null}
 function tyOf(f){const r=tyR(f);return r&&S.ty?S.ty[r]:TY0}
 const LH=f=>tyOf(f).lh/100;
 const OFF=f=>(f&&CC&&CC.off&&CC.off[f])||{x:0,y:0};
@@ -681,7 +681,7 @@ function fw(f,w){return (CC&&CC.fw&&CC.fw[f])||w}
 function fz(f){return ((CC&&CC.fs&&CC.fs[f])||100)/100*tyOf(f).sz/100}
 function font(ctx,w,s,role,st){const fixed=role==="x"||role==="x0"||role==="x1",family=fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);
   if(!st)FB0={w,s,role};const ww=st&&st.b?Math.min(900,Math.max(w+300,700)):w;
-  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0)+(fixed||!CC||!S.ty?0:S.ty[role==="t"?"T":"B"].ls))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
+  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0)+(fixed||!CC||!S.ty||CC.type==="outro"?0:S.ty[role==="t"?"T":"B"].ls))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
 function M(ctx,t){const w=ctx.measureText(t).width;return NATIVE_LS?w:w+LS*[...t].length}
 function T(ctx,t,x,y){if(NATIVE_LS||!LS){ctx.fillText(t,x,y);return}for(const ch of t){ctx.fillText(ch,x,y);x+=ctx.measureText(ch).width+LS}}
 function TC(ctx,t,x,y){T(ctx,t,x-(M(ctx,t)-LS)/2,y)}
@@ -1930,7 +1930,7 @@ function hideFT(){if(!ft)return;ft=null;$("ftool").hidden=true;draw()}
 function ftSync(){if(!ft)return;const c=S.cards[cur],f=ft.field,dw=(DEFW[c.type]||{})[f]||400,w=(c.fw&&c.fw[f])||dw,z=(c.fs&&c.fs[f])||100;
   $("ftWv").textContent=w;$("ftSv").textContent=z+"%";const role=(FIELD_ROLE[c.type]||{})[f];$("ftFont").hidden=!role;
   for(const b of document.querySelectorAll("#ftool [data-w]"))b.setAttribute("aria-pressed",wholeHas(c.f[f]||"",b.dataset.w));
-  ftPos();const r=role==="fontT"?"T":role==="fontB"?"B":null;$("ftTy").hidden=!r;if(r){const q=S.ty[r];$("ftTyL").textContent=(r==="T"?"제목":"본문")+"\n전체";$("ftLv").textContent="자간 "+Math.round(q.ls/10)+"%";$("ftHv").textContent="행간 "+q.lh+"%";
+  ftPos();const r=c.type==="outro"?null:role==="fontT"?"T":role==="fontB"?"B":null;$("ftTy").hidden=!r;if(r){const q=S.ty[r];$("ftTyL").textContent=(r==="T"?"제목":"본문")+"\n전체";$("ftLv").textContent="자간 "+Math.round(q.ls/10)+"%";$("ftHv").textContent="행간 "+q.lh+"%";
     for(const b of document.querySelectorAll("#ftTy [data-al]"))b.setAttribute("aria-pressed",q.al===b.dataset.al)}}
 function ftRole(){const c=S.cards[cur],r=(FIELD_ROLE[c.type]||{})[ft&&ft.field];return r==="fontT"?"T":r==="fontB"?"B":null}
 for(const b of document.querySelectorAll("#ftTy [data-al]"))b.onclick=()=>{const r=ftRole();if(!r)return;setTy(r,"al",S.ty[r].al===b.dataset.al?"":b.dataset.al);requestAnimationFrame(placeFT);say("toast",(r==="T"?"제목":"본문")+" 정렬을 모든 카드에 적용했어요")};

@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795773059">
+<meta name="rr-build" content="1795774668">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -660,6 +660,7 @@ function fromData(d){
     if(c.off&&typeof c.off==="object"){n.off={};for(const k in c.off){const q=c.off[k];if(q&&isFinite(q.x)&&isFinite(q.y))n.off[k]={x:Math.max(-W,Math.min(W,+q.x)),y:Math.max(-H,Math.min(H,+q.y))}}}
     if(c.ty&&typeof c.ty==="object"){const t=normTy(c.ty);n.ty={};for(const r of ["T","B"])if(c.ty[r])n.ty[r]=t[r];tyClean(n)}
     if(n.type==="checklist"){n.chk=!!c.chk;if(typeof c.hf==="string"&&FONTS.some(x=>x.n===c.hf))n.hf=c.hf;if(typeof c.hfH==="string"&&FONTS.some(x=>x.n===c.hfH))n.hfH=c.hfH;if(+c.ms>=50&&+c.ms<=170)n.ms=+c.ms}
+    if(c.note&&n.type==="intro")n.note=true;
     if(typeof c.m==="string")n._m=c.m;
     if(Array.isArray(c.slots)&&n.slots)c.slots.slice(0,3).forEach((q,j)=>{if(!q)return;const t=n.slots[j];for(const k of ["px","py","zoom"])if(typeof q[k]==="number")t[k]=q[k];if(typeof q.m==="string")t._m=q.m});
     if(typeof c.si==="number"&&n.slots)n.si=Math.max(0,Math.min(2,c.si|0));
@@ -671,7 +672,7 @@ function fromData(d){
 }
 function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
   o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
-function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,mst:o.mst||undefined,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
+function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,note:c.note||undefined,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,mst:o.mst||undefined,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function newPid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
@@ -934,12 +935,20 @@ function drawProduct(ctx,c){
 function drawIntro(ctx,c){
   const f=c.f,maxW=800,k=c.scale/100,bs=36*k*fz("text"),tsz=56*k*fz("title"),blh=68*k*c.lh/100*fz("text")*LH("text");font(ctx,fw("text",500),bs,"b");const bl=rich(ctx,f.text,maxW);
   const hasT=plain(f.title).trim(),total=(hasT?tsz+96:0)+(bl.length-1)*blh+bs;let y=(H-total)/2+(hasT?tsz:bs);
-  if(hasT){font(ctx,fw("title",700),tsz,"t");drawRich(ctx,rich(ctx,f.title,maxW).slice(0,1),W/2,y,tsz,{size:tsz,align:"center",field:"title"});y+=96+bs}
-  font(ctx,fw("text",500),bs,"b");drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center",field:"text"});
+  /* 노트 배경: 글 뒤에 네모난 종이 한 장 (체크리스트 메모와 같은 종이 질감), 글자는 검정 */
+  const note=!!c.note,col=note?INK:"#fff";
+  if(note){font(ctx,fw("title",700),tsz,"t");const tw0=hasT?widest(rich(ctx,f.title,maxW).slice(0,1)):0;font(ctx,fw("text",500),bs,"b");
+    const nw=Math.min(W-100,Math.max(760,Math.max(tw0,widest(bl))+180)),pv=96,ny=(H-total)/2-(hasT?tsz*0.2:bs*0.2)-pv,nh=total+pv*2+(hasT?tsz*0.1:0);paperRect(ctx,(W-nw)/2,ny,nw,nh,1)}
+  if(hasT){font(ctx,fw("title",700),tsz,"t");drawRich(ctx,rich(ctx,f.title,maxW).slice(0,1),W/2,y,tsz,{size:tsz,align:"center",field:"title",color:col,shadow:!note});y+=96+bs}
+  font(ctx,fw("text",500),bs,"b");drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center",field:"text",color:col,shadow:!note});
 }
 /* 체크리스트: 배경 사진 + 아래쪽 종이 메모지(올려 준 종이 질감) + 검정 볼펜 손글씨 소제목·체크 한 줄 */
 const PAPER=new Image();PAPER.onload=()=>{if(S)draw()};PAPER.src="textures/paper.jpg";
 const INK="#1E1E22";
+function paperRect(ctx,mx,my,mw,mh,k){
+  ctx.save();ctx.shadowColor="rgba(0,0,0,.30)";ctx.shadowBlur=30*k;ctx.shadowOffsetY=12*k;ctx.fillStyle="#F3F3F1";ctx.fillRect(mx,my,mw,mh);ctx.restore();
+  if(PAPER.complete&&PAPER.naturalWidth){ctx.save();ctx.beginPath();ctx.rect(mx,my,mw,mh);ctx.clip();const sc=Math.max(mw/PAPER.naturalWidth,mh/PAPER.naturalHeight);ctx.drawImage(PAPER,mx,my,PAPER.naturalWidth*sc,PAPER.naturalHeight*sc);ctx.restore()}
+  const g=ctx.createLinearGradient(0,my,0,my+mh);g.addColorStop(0,"rgba(0,0,0,.035)");g.addColorStop(.2,"rgba(0,0,0,0)");g.addColorStop(.85,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,.05)");ctx.fillStyle=g;ctx.fillRect(mx,my,mw,mh);shadow(ctx,false)}
 function handBox(ctx,x,y,sz,on){/* 손으로 그린 듯 살짝 삐뚤한 네모 + 체크 */
   const j=(a,b)=>a+Math.sin(b*12.9898)*sz*0.025;ctx.save();shadow(ctx,false);ctx.strokeStyle=INK;ctx.lineWidth=Math.max(3.5,sz*0.11);ctx.lineJoin="round";ctx.lineCap="round";
   ctx.beginPath();ctx.moveTo(j(x,1),j(y,2));ctx.lineTo(j(x+sz,3),j(y+sz*0.02,4));ctx.lineTo(j(x+sz*0.98,5),j(y+sz,6));ctx.lineTo(j(x+sz*0.01,7),j(y+sz*0.98,8));ctx.closePath();ctx.stroke();
@@ -1915,6 +1924,7 @@ const TOOLS={
   {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("card","full")}]};
 let dockCat="photo",dockTool=null;
 function renderDock(){const dt=$("dtools");if(!dt)return;let tools=TOOLS[dockCat]||[];dt.textContent="";
+  if(dockCat==="text"&&S&&S.cards[cur]&&S.cards[cur].type==="intro")tools=tools.slice(0,1).concat([{k:"note",l:S.cards[cur].note?"노트 배경 끄기":"노트 배경 켜기",ic:"bg",act:()=>{const c=S.cards[cur];c.note=!c.note;paint();renderDock();say("toast",c.note?"글 뒤에 노트를 깔았어요":"노트 배경을 껐어요")}}],tools.slice(1));
   if(dockCat==="deco"){const d=S&&S.cards[cur]&&S.cards[cur].decos[sel];tools=(d&&d.t==="memo"?MEMO_TOOLS:[{k:"preset",l:"글자 스타일",ic:"font",type:"preset"}]).concat(d&&d.t==="text"?TXT_TOOLS:[],d&&d.t==="memo"?[]:tools,d?[{k:"del",l:"삭제",ic:"trash",act:()=>{S.cards[cur].decos.splice(sel,1);sel=-1;msel.clear();buildDecos();paint();renderDock();say("toast","지웠어요 · 위의 ↩로 되돌릴 수 있어요")}}]:[]);
     if(dockTool&&!tools.some(t=>t.k===dockTool))dockTool=null}
   for(const t of tools){const b=document.createElement("button");b.className="tool"+(t.act?" act":"");b.innerHTML=svg(t.ic)+"<span></span>";b.lastChild.textContent=t.l;

@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -79,6 +79,7 @@ button,input,select,textarea{font-size:16px}
 .tool.act{color:var(--ink)}
 @media (max-width:899px){
   html{font-size:15px}
+  input,textarea,select,[contenteditable]{font-size:16px!important}
   .bar{min-height:44px;padding:calc(4px + env(safe-area-inset-top)) 10px 4px;gap:6px;background:var(--bg);border-bottom:0}
   .bar .primary{min-height:34px;padding:0 14px;border-radius:999px;font-size:14px}
   .iconBtn{width:36px;min-height:36px}
@@ -123,6 +124,7 @@ button,input,select,textarea{font-size:16px}
 .ptile .sw{position:absolute;top:2px;right:2px;width:26px;height:26px;min-height:0;padding:0;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:13px}
 .ptile.armed{border-color:var(--accent)}
 .ptile.armed .sw{background:var(--accent)}
+.thumb{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .thumb.dragging{opacity:.9;transform:scale(1.12);z-index:5;box-shadow:0 6px 16px rgba(0,0,0,.25)}
 .thumb.dropL{box-shadow:-4px 0 0 var(--accent)}.thumb.dropR{box-shadow:4px 0 0 var(--accent)}
 .big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:64px;flex:1;text-align:center}
@@ -913,15 +915,20 @@ function fillFontSelects(){
   if(!FONTS.some(f=>f.n===S[role])){const n=document.createElement("p");n.className="hint";n.textContent="지금 "+(role==="fontT"?"제목":"본문")+" 글꼴 '"+S[role]+"'은 올린 파일이라 다시 올려야 보여요.";grid.append(n)}
 }
 function showTypo(){const c=S.cards[cur];$("scale").value=c.scale;$("ls").value=c.ls;$("lh").value=c.lh;$("scaleV").textContent=c.scale+"%";$("lsV").textContent=(c.ls/10).toFixed(1)+"%";$("lhV").textContent=c.lh+"%"}
-function dragReorder(b,i){let timer=0,on=false,x0=0,target=i,pid=null;
+function dragReorder(b,i){let timer=0,on=false,x0=0,y0=0,target=i;
   const clear=()=>{for(const t of document.querySelectorAll(".thumb"))t.classList.remove("dropL","dropR","dragging")};
-  b.addEventListener("pointerdown",e=>{x0=e.clientX;pid=e.pointerId;clearTimeout(timer);timer=setTimeout(()=>{on=true;b.classList.add("dragging");try{b.setPointerCapture(pid)}catch(x){}if(navigator.vibrate)navigator.vibrate(10)},e.pointerType==="mouse"?200:380)});
-  b.addEventListener("pointermove",e=>{if(!on){if(Math.abs(e.clientX-x0)>8)clearTimeout(timer);return}e.preventDefault();b.style.transform="translateX("+(e.clientX-x0)+"px) scale(1.12)";
-    const ts=[...document.querySelectorAll(".thumb:not(.add)")];target=i;for(const t of ts)t.classList.remove("dropL","dropR");
-    ts.forEach((t,j)=>{const r=t.getBoundingClientRect();if(e.clientX>r.left&&e.clientX<r.right&&j!==i){target=j;t.classList.add(j<i?"dropL":"dropR")}})});
-  const up=()=>{clearTimeout(timer);if(!on)return;on=false;b.style.transform="";clear();b._dragged=true;if(target!==i){const [c]=S.cards.splice(i,1);S.cards.splice(target,0,c);cur=target;sel=-1;buildAll();paint();say("toast",(i+1)+"번 → "+(target+1)+"번으로 옮겼어요")}};
-  b.addEventListener("pointerup",up);b.addEventListener("pointercancel",up);
-  b.addEventListener("touchmove",e=>{if(on)e.preventDefault()},{passive:false});
+  const start=(x,y,long)=>{x0=x;y0=y;clearTimeout(timer);timer=setTimeout(()=>{on=true;target=i;b.classList.add("dragging");say("toast","옆으로 끌어서 순서를 바꿔요")},long)};
+  const move=x=>{b.style.transform="translateX("+(x-x0)+"px) scale(1.12)";const ts=[...document.querySelectorAll(".thumb:not(.add)")];target=i;
+    ts.forEach((t,j)=>{t.classList.remove("dropL","dropR");const r=t.getBoundingClientRect();if(j!==i&&x>r.left&&x<r.right){target=j;t.classList.add(j<i?"dropL":"dropR")}});
+    const st=$("strip"),sr=st.getBoundingClientRect();if(x<sr.left+30)st.scrollLeft-=8;else if(x>sr.right-30)st.scrollLeft+=8};
+  const end=()=>{clearTimeout(timer);if(!on)return;on=false;b.style.transform="";clear();b._dragged=true;setTimeout(()=>b._dragged=false,350);
+    if(target!==i){const [c]=S.cards.splice(i,1);S.cards.splice(target,0,c);cur=target;sel=-1;buildAll();paint();say("toast",(i+1)+"번 카드를 "+(target+1)+"번 자리로 옮겼어요")}};
+  /* 손가락: 꾹 누르고(0.35초) 있다가 끌기. 누르기 전에 움직이면 그냥 가로 스크롤 */
+  b.addEventListener("touchstart",e=>{const t=e.touches[0];start(t.clientX,t.clientY,350)},{passive:true});
+  b.addEventListener("touchmove",e=>{const t=e.touches[0];if(!on){if(Math.hypot(t.clientX-x0,t.clientY-y0)>8)clearTimeout(timer);return}e.preventDefault();move(t.clientX)},{passive:false});
+  b.addEventListener("touchend",end);b.addEventListener("touchcancel",end);
+  /* 마우스 */
+  b.addEventListener("mousedown",e=>{start(e.clientX,e.clientY,200);const mm=ev=>{if(on)move(ev.clientX);else if(Math.hypot(ev.clientX-x0,ev.clientY-y0)>6)clearTimeout(timer)},mu=()=>{removeEventListener("mousemove",mm);removeEventListener("mouseup",mu);end()};addEventListener("mousemove",mm);addEventListener("mouseup",mu)});
   b.addEventListener("contextmenu",e=>e.preventDefault())}
 function buildStrip(){hideFT();
   const st=$("strip");st.textContent="";

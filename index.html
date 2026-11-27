@@ -575,21 +575,21 @@ const off=document.createElement("canvas");off.width=W;off.height=H;
 function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??(type==="outro"?0:-20),lh:d.lh??100};if(d.fw)c.fw={...d.fw};if(type==="grid"){c.slots=[0,1,2].map(()=>({img:null,px:50,py:50,zoom:100}));c.si=0}const df=Object.assign({},TYPES[type].def,(getStyle().defF||{})[type]);for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:(df[k]||"");return c}
 function fromData(d){
   const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{const t=TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
-    if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined});
+    if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined,rot:+o.rot||0});
     for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;if(c.fw&&typeof c.fw==="object"){n.fw={};for(const k in c.fw)if(+c.fw[k]>=100&&+c.fw[k]<=900)n.fw[k]=+c.fw[k]}
     if(c.fs&&typeof c.fs==="object"){n.fs={};for(const k in c.fs)if(+c.fs[k]>=40&&+c.fs[k]<=250)n.fs[k]=+c.fs[k]}
     if(typeof c.m==="string")n._m=c.m;
     if(Array.isArray(c.slots)&&n.slots)c.slots.slice(0,3).forEach((q,j)=>{if(!q)return;const t=n.slots[j];for(const k of ["px","py","zoom"])if(typeof q[k]==="number")t[k]=q[k];if(typeof q.m==="string")t._m=q.m});
     if(typeof c.si==="number"&&n.slots)n.si=Math.max(0,Math.min(2,c.si|0));
-    if(Array.isArray(c.idecos))for(const o of c.idecos.slice().sort((a,b)=>a.j-b.j))if(o&&typeof o.m==="string"){const d={t:"img",text:"",img:null,_m:o.m,shape:o.shape||null,iz:o.iz??100,ix:o.ix??50,iy:o.iy??50,bw:o.bw||0,bc:o.bc||"#ffffff",x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1};n.decos.splice(Math.min(o.j,n.decos.length),0,d)}
+    if(Array.isArray(c.idecos))for(const o of c.idecos.slice().sort((a,b)=>a.j-b.j))if(o&&typeof o.m==="string"){const d={t:"img",text:"",img:null,_m:o.m,shape:o.shape||null,iz:o.iz??100,ix:o.ix??50,iy:o.iy??50,bw:o.bw||0,bc:o.bc||"#ffffff",x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,rot:+o.rot||0};n.decos.splice(Math.min(o.j,n.decos.length),0,d)}
     return n});
   const st=getStyle();
   return {pid:typeof d.pid==="string"?d.pid:newPid(),id:String(d.id||""),corner:String(d.corner||"옷장 기록"),hl:/^#[0-9a-f]{6}$/i.test(d.hl)?d.hl:"#8B0A7E",showHeader:d.showHeader!==false,hdrPos:d.hdrPos==="bottom"?"bottom":(d.hdrPos==="top"?"top":(st.hdrPos||"top")),subBox:typeof d.subBox==="boolean"?d.subBox:!!st.subBox,ac:/^#[0-9a-f]{6}$/i.test(d.ac||"")?d.ac:(st.ac||"#DDF53F"),hdr:/^#[0-9a-f]{6}$/i.test(d.hdr)?d.hdr:(/^#[0-9a-f]{6}$/i.test(st.hdr||"")?st.hdr:"#ffffff"),sample:!!d.sample,fontT:String(d.fontT||st.fontT||"Pretendard"),fontB:String(d.fontB||st.fontB||"Pretendard"),hwa:+(d.hwa||st.hwa)||800,hwb:+(d.hwb||st.hwb)||300,
     check:Array.isArray(d.check)?d.check.map(String):[],caption:String(d.caption||""),cards:cards.length?cards:[newCard("cover")]};
 }
 function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
-  o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
-function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw})),fw:c.fw}))}}
+  o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
+function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function newPid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
@@ -750,6 +750,15 @@ function drawImgDeco(ctx,d,selected){
   ctx.translate(d.x,d.y);if(d.flip)ctx.scale(-1,1);ctx.drawImage(im,-w/2,-h/2,w,h);ctx.restore();
   d._b={x:d.x-w/2,y:d.y-h/2,w,h};if(selected)selFrame(ctx,d._b)}
 function drawDeco(ctx,d,selected){
+  if(!d.rot||d.x==null){drawDeco0(ctx,d,selected);if(selected&&d._b)rotHandle(ctx,d._b);return}
+  ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.rot*Math.PI/180);ctx.translate(-d.x,-d.y);drawDeco0(ctx,d,selected);if(selected&&d._b)rotHandle(ctx,d._b);ctx.restore()}
+function rotHandle(ctx,q){const cx=q.x+q.w/2,cy=q.y-58;ctx.save();shadow(ctx,false);ctx.strokeStyle="#fff";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx,q.y-10);ctx.lineTo(cx,cy+20);ctx.stroke();
+  ctx.fillStyle="#fff";ctx.strokeStyle="#141414";ctx.beginPath();ctx.arc(cx,cy,20,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.lineWidth=3.2;ctx.beginPath();ctx.arc(cx,cy,9,-Math.PI*0.15,Math.PI*1.35);ctx.stroke();ctx.beginPath();ctx.moveTo(cx+9*Math.cos(-0.47)+5,cy+9*Math.sin(-0.47)-5);ctx.lineTo(cx+9*Math.cos(-0.47),cy+9*Math.sin(-0.47));ctx.lineTo(cx+9*Math.cos(-0.47)+6,cy+9*Math.sin(-0.47)+4);ctx.stroke();ctx.restore()}
+/* 화면 좌표 → 요소 자신의(회전 전) 좌표 */
+function toLocal(d,p){if(!d.rot)return p;const a=-d.rot*Math.PI/180,dx=p.x-d.x,dy=p.y-d.y;return {x:d.x+dx*Math.cos(a)-dy*Math.sin(a),y:d.y+dx*Math.sin(a)+dy*Math.cos(a)}}
+function snapRot(v){v=((v+180)%360+360)%360-180;for(const t of [-180,-90,-45,0,45,90,180])if(Math.abs(v-t)<4)return t===-180?180:t;return Math.round(v)}
+function drawDeco0(ctx,d,selected){
   if(d.t==="img")return drawImgDeco(ctx,d,selected);
   const t=d.t,fs=t==="badge"||t==="bubble"?31:t==="text"?30:29,wt=d.fw||(t==="badge"||t==="text"?600:400);
   font(ctx,wt,fs,"b");
@@ -1104,11 +1113,11 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
   if(bx>T){dx=0;snapX=null}if(by>T){dy=0;snapY=null}return {dx,dy}}
 (function(){const pv=$("preview"),pts=new Map();let drag=null;
   const pos=e=>{const r=pv.getBoundingClientRect();return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}};
-  const hit=p=>{const ds=S.cards[cur].decos;for(let i=ds.length-1;i>=0;i--){const b=ds[i]._b;if(b&&p.x>=b.x-16&&p.x<=b.x+b.w+16&&p.y>=b.y-16&&p.y<=b.y+b.h+16)return i}return -1};
+  const hit=p=>{const ds=S.cards[cur].decos;for(let i=ds.length-1;i>=0;i--){const b=ds[i]._b,q=toLocal(ds[i],p);if(b&&q.x>=b.x-16&&q.x<=b.x+b.w+16&&q.y>=b.y-16&&q.y<=b.y+b.h+16)return i}return -1};
   const clampS=v=>Math.min(4,Math.max(.1,v));
   pv.addEventListener("pointerdown",e=>{const p=pos(e),ds=S.cards[cur].decos;pts.set(e.pointerId,p);
-    if(pts.size===2&&sel>=0&&ds[sel]){const [a,b]=[...pts.values()];drag={mode:"pinch",d0:Math.hypot(a.x-b.x,a.y-b.y)||1,s0:ds[sel].s};return}
-    if(sel>=0&&ds[sel]&&ds[sel]._b){const b=ds[sel]._b;if(Math.hypot(p.x-(b.x+b.w+10),p.y-(b.y+b.h+10))<62){drag={mode:"size",d0:Math.hypot(p.x-ds[sel].x,p.y-ds[sel].y)||1,s0:ds[sel].s};try{pv.setPointerCapture(e.pointerId)}catch(x){}return}}
+    if(pts.size===2&&sel>=0&&ds[sel]){const [a,b]=[...pts.values()];drag={mode:"pinch",d0:Math.hypot(a.x-b.x,a.y-b.y)||1,s0:ds[sel].s,a0:Math.atan2(b.y-a.y,b.x-a.x),r0:ds[sel].rot||0};return}
+    if(sel>=0&&ds[sel]&&ds[sel]._b){const b=ds[sel]._b,q=toLocal(ds[sel],p);if(Math.hypot(q.x-(b.x+b.w/2),q.y-(b.y-58))<46){drag={mode:"rot"};try{pv.setPointerCapture(e.pointerId)}catch(x){}return}if(Math.hypot(q.x-(b.x+b.w+10),q.y-(b.y+b.h+10))<62){drag={mode:"size",d0:Math.hypot(p.x-ds[sel].x,p.y-ds[sel].y)||1,s0:ds[sel].s};try{pv.setPointerCapture(e.pointerId)}catch(x){}return}}
     const i=hit(p);
     if(i>=0&&(multi||e.shiftKey)){if(!multi){multi=true;selIdx();if(sel>=0)msel.add(sel)}const was=msel.has(i);if(!was)toggleM(i);else sel=i;
       const ix=selIdx();drag={mode:"group",x0:p.x,y0:p.y,moved:false,was,i,start:ix.map(k=>({d:ds[k],x:ds[k].x,y:ds[k].y}))};try{pv.setPointerCapture(e.pointerId)}catch(x){}buildDecos();draw();return}
@@ -1139,7 +1148,8 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
       if(guides&&d._b&&drag.moved){const sn=snapBox({x:d._b.x-d.x+nx,y:d._b.y-d.y+ny,w:d._b.w,h:d._b.h});nx+=sn.dx;ny+=sn.dy}
       d.x=nx;d.y=ny}
     else if(drag.mode==="size")d.s=clampS(drag.s0*Math.hypot(p.x-d.x,p.y-d.y)/drag.d0);
-    else if(pts.size>=2){const [a,b]=[...pts.values()];d.s=clampS(drag.s0*Math.hypot(a.x-b.x,a.y-b.y)/drag.d0)}
+    else if(drag.mode==="rot"){d.rot=snapRot(Math.atan2(p.y-d.y,p.x-d.x)*180/Math.PI+90)}
+    else if(pts.size>=2){const [a,b]=[...pts.values()];d.s=clampS(drag.s0*Math.hypot(a.x-b.x,a.y-b.y)/drag.d0);if(drag.a0!=null)d.rot=snapRot(drag.r0+(Math.atan2(b.y-a.y,b.x-a.x)-drag.a0)*180/Math.PI)}
     drawSoon()});
   const end=e=>{pts.delete(e.pointerId);if(!drag)return;snapX=snapY=null;
     if(drag.mode==="group"){const g=drag;drag=null;if(!g.moved&&g.was&&e.type==="pointerup")msel.delete(g.i);buildDecos();paint();return}
@@ -1150,7 +1160,7 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     if(tapped&&drag.mode==="photo"){drag=null;if(WIDE.matches)openSheet("photo","half");else{dockCat="photo";if(!dockTool)dockTool="zoom";renderDock();layoutSoon()}return}
     if(tapped&&drag.mode==="move"){const i=drag.i;drag=null;buildDecos();paint();if(WIDE.matches)openDecoRow(i);else{dockCat="deco";renderDock();layoutSoon()}return}
     if(drag.mode==="photo"||drag.mode==="pzoom"){if(drag.mode==="pzoom"&&pts.size>=2)return;drag=null;const q=ph(S.cards[cur]);$("px").value=Math.round(q.px);$("py").value=Math.round(q.py);paint();return}
-    if(drag.mode!=="pinch"||pts.size<2){drag=null;buildDecos();paint()}};
+    if(drag.mode!=="pinch"||pts.size<2){drag=null;buildDecos();paint();if(dockTool==="rot")renderCtl()}};
   pv.addEventListener("pointerup",end);pv.addEventListener("pointercancel",end);
   pv.addEventListener("mousemove",e=>{if(drag)return;const p=pos(e),c=S.cards[cur];pv.style.cursor=hit(p)>=0?"move":textAt(p)?"text":(c.type==="grid"&&slotAt(p)<0)?"default":ph(c)&&ph(c).img?"grab":"pointer"});
   for(const ev of ["touchstart","touchmove"])pv.addEventListener(ev,e=>{if(drag)e.preventDefault()},{passive:false});
@@ -1651,7 +1661,7 @@ const IC={plus:'<path d="M12 5v14M5 12h14"/>',stack:'<rect x="7" y="7" width="13
  font:'<path d="M5 19L11 5l6 14M7.5 14h7"/>',cut:'<circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="M8.5 8.5L20 18M8.5 15.5L20 6"/>',shape:'<circle cx="8" cy="8" r="4"/><rect x="12" y="12" width="8" height="8" rx="1"/>',
  bubble:'<path d="M5 5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/>',align:'<path d="M4 4v16M8 7h12M8 12h8M8 17h10"/>',grid:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>',
  list:'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',type:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',add:'<rect x="4" y="3" width="12" height="15" rx="2"/><path d="M20 12v8M16 16h8"/>',
- move:'<path d="M5 12h14M9 8l-4 4 4 4M15 8l4 4-4 4"/>',corner:'<path d="M4 4h7M4 4v7"/><rect x="8" y="8" width="12" height="12" rx="2"/>',sub:'<rect x="4" y="9" width="11" height="4"/><path d="M4 17h16"/>',save:'<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7M8 20v-6h8v6"/>'};
+ move:'<path d="M5 12h14M9 8l-4 4 4 4M15 8l4 4-4 4"/>',corner:'<path d="M4 4h7M4 4v7"/><rect x="8" y="8" width="12" height="12" rx="2"/>',sub:'<rect x="4" y="9" width="11" height="4"/><path d="M4 17h16"/>',save:'<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7M8 20v-6h8v6"/>',rot:'<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'};
 const svg=k=>'<svg viewBox="0 0 24 24">'+(IC[k]||IC.more)+'</svg>';
 function proxySlider(id,label){return {type:"slider",label,id}}
 function chipsFrom(list){return {type:"chips",list}}
@@ -1684,6 +1694,7 @@ const TOOLS={
   {k:"sticker",l:"누끼 이미지",ic:"cut",act:clickId("stickerPick")},
   {k:"shape",l:"도형 사진",ic:"shape",type:"chipsDyn",get:()=>[...document.querySelectorAll("#shapeAdd .shapeBtn")].map(b=>[b.title,()=>b.click()])},
   {k:"textdeco",l:"글 요소",ic:"bubble",type:"chipsDyn",get:()=>[...document.querySelectorAll("#decoAdd button")].map(b=>[b.textContent.replace("+ ",""),()=>b.click()])},
+  {k:"rot",l:"회전",ic:"rot",type:"rot"},
   {k:"align",l:"정렬",ic:"align",type:"align"},
   {k:"guide",l:"가이드",ic:"grid",act:()=>{setGuides(!guides);renderDock()},on:()=>guides},
   {k:"list",l:"요소 목록",ic:"list",act:()=>openSheet("deco","half")}],
@@ -1720,6 +1731,12 @@ function renderCtl(){const box=$("dctl"),t=(TOOLS[dockCat]||[]).find(x=>x.k===do
   else if(t.type==="swatch"){for(const b of $(t.cid).children){const c=document.createElement("button");c.className="chip sw";c.style.background=getComputedStyle(b).backgroundColor;c.setAttribute("aria-label",b.getAttribute("aria-label")||b.title||"색");c.setAttribute("aria-pressed",b.getAttribute("aria-pressed")==="true");c.onclick=()=>{b.click();setTimeout(renderCtl,30)};chips.append(c)}}
   else if(t.type==="font"){for(const f of FONTS){linkFont(f.n);const c=document.createElement("button");c.className="chip";c.textContent=f.n;c.style.fontFamily='"'+f.n+'"'+FB;c.setAttribute("aria-pressed",S[t.role]===f.n);c.onclick=()=>{S[t.role]=f.n;paint();renderCtl()};chips.append(c)}
     setTimeout(()=>{const a=chips.querySelector("[aria-pressed=true]");if(a)a.scrollIntoView({inline:"center",block:"nearest"})},0)}
+  else if(t.type==="rot"){const d=S.cards[cur].decos[sel];if(!d){const h=document.createElement("span");h.className="dl";h.textContent="카드에서 꾸미기 요소를 먼저 눌러 골라요";box.append(lab,h);return}
+    const r=document.createElement("input");r.type="range";r.min=-180;r.max=180;r.step=1;r.value=d.rot||0;r.setAttribute("aria-label","회전");
+    const v=document.createElement("span");v.className="dv";v.textContent=(d.rot||0)+"°";
+    r.oninput=()=>{d.rot=snapRot(+r.value);v.textContent=d.rot+"°";drawSoon()};r.onchange=()=>paint();
+    const z=document.createElement("button");z.className="chip";z.textContent="0°";z.onclick=()=>{d.rot=0;r.value=0;v.textContent="0°";paint()};
+    box.append(lab,r,v,z);return}
   else if(t.type==="align"){mk(multi?"선택 끝내기":"여러 개 선택",()=>$("multiBtn").click(),()=>multi);
     for(const [k,lb] of AL){const c=document.createElement("button");c.className="chip";c.textContent=lb;const n=selIdx().length;c.disabled=k[0]==="d"?n<3:n<1;c.onclick=()=>{alignDecos(k);renderCtl()};chips.append(c)}}
   box.append(lab,chips)}

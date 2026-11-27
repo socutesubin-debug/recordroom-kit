@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795776951">
+<meta name="rr-build" content="1795777707">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -631,9 +631,9 @@ const LH=f=>tyOf(f).lh/100;
 const OFF=f=>(f&&CC&&CC.off&&CC.off[f])||{x:0,y:0};
 function getStyle(){try{const t=JSON.parse(localStorage.getItem("rr-style")||"null");if(t&&typeof t==="object")return t}catch(e){}return {}}
 const TYPES={
-  cover:{label:"표지",dim:70,fields:[["sub","작은 줄",0],["title","제목 — 줄바꿈 그대로 들어갑니다",1]]},
+  cover:{label:"표지",dim:70,fields:[["sub","작은 줄 (줄바꿈 가능)",1],["title","제목 — 줄바꿈 그대로 들어갑니다",1]]},
   body:{label:"본문",dim:80,fields:[["text","본문",1]]},
-  qa:{label:"질문·정보",dim:85,fields:[["q","질문 제목",0],["text","설명",1],["note","작은 주석",0]]},
+  qa:{label:"질문·정보",dim:85,fields:[["q","질문 제목",0],["text","설명",1],["note","작은 주석 (줄바꿈 가능)",1]]},
   product:{label:"제품",dim:78,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격",0]]},
   split:{label:"사진+글",dim:0,fields:[["title","제목 (비우면 제목 없이)",0],["text","본문",1]],def:{title:"제목을 적어 주세요",text:"본문을 적어 주세요.\n두 번째 줄도 여기에."}},
   intro:{label:"가운데 글",dim:72,fields:[["title","제목",0],["text","본문",1]]},

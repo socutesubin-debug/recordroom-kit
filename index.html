@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795771406">
+<meta name="rr-build" content="1795771646">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -131,7 +131,7 @@ button,input,select,textarea{font-size:16px}
 .thumb{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .thumbMenu{position:fixed;z-index:80;background:#2A2A30;border-radius:12px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
 .thumbMenu button{border:0;background:none;color:#FF6B6B;font-size:14px;font-weight:700;min-height:40px;padding:0 16px}
-.thumbMenu button:disabled{color:#777}
+.thumbMenu button:disabled{color:#777}.thumbMenu{display:flex}.thumbMenu .dup{color:#fff;border-right:1px solid rgba(255,255,255,.12)}
 .thumb.dragging{opacity:.9;transform:scale(1.12);z-index:5;box-shadow:0 6px 16px rgba(0,0,0,.25)}
 .thumb.dropL{box-shadow:-4px 0 0 var(--accent)}.thumb.dropR{box-shadow:4px 0 0 var(--accent)}
 .big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:64px;flex:1;text-align:center}
@@ -1063,10 +1063,20 @@ function fillFontSelects(){
 }
 function showTypo(){const c=S.cards[cur];$("scale").value=c.scale;$("ls").value=c.ls;$("lh").value=c.lh;$("scaleV").textContent=c.scale+"%";$("lsV").textContent=(c.ls/10).toFixed(1)+"%";$("lhV").textContent=c.lh+"%"}
 function hideThumbMenu(){const m=$("thumbMenu");if(m)m.remove()}
+/* 같은 설정으로 카드 복제: 사진·영상은 같은 파일을 함께 쓰고, 글·설정·꾸미기는 새로 복사 */
+function cloneCard(c){const J=o=>o==null?o:JSON.parse(JSON.stringify(o)),n={};
+  for(const k in c){if(k[0]==="_"&&k!=="_m")continue;const v=c[k];
+    if(k==="img")n.img=v;else if(k==="orig")n.orig=v?Object.assign({},v):v;
+    else if(k==="slots")n.slots=v.map(q=>{const o={};for(const kk in q)if(kk[0]!=="_"||kk==="_m")o[kk]=kk==="img"?q[kk]:J(q[kk]);return o});
+    else if(k==="decos")n.decos=v.map(d=>{const o={};for(const kk in d)if(kk[0]!=="_"||kk==="_m"||kk==="_mask")o[kk]=(kk==="img"||kk==="_mask")?d[kk]:J(d[kk]);return o});
+    else n[k]=v&&typeof v==="object"&&!(v instanceof HTMLElement)?J(v):v}
+  return n}
+function dupCard(i){S.cards.splice(i+1,0,cloneCard(S.cards[i]));cur=i+1;sel=-1;S.sample=false;buildAll();paint();say("toast",(i+1)+"번 카드를 복제했어요 → "+(i+2)+"번")}
 function showThumbMenu(b,i){hideThumbMenu();const r=b.getBoundingClientRect(),m=document.createElement("div");m.id="thumbMenu";m.className="thumbMenu";
   const del=document.createElement("button");del.textContent="카드 삭제";del.disabled=S.cards.length<2;
   del.onclick=e=>{e.stopPropagation();hideThumbMenu();S.cards.splice(i,1);cur=Math.max(0,Math.min(i,S.cards.length-1));sel=-1;buildAll();paint();say("toast",(i+1)+"번 카드를 지웠어요 · 위의 ↩로 되돌릴 수 있어요")};
-  m.append(del);document.body.append(m);const w=m.offsetWidth;m.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2))+"px";m.style.top=(r.top-m.offsetHeight-8)+"px";
+  const dup=document.createElement("button");dup.textContent="복제";dup.className="dup";dup.onclick=e=>{e.stopPropagation();hideThumbMenu();dupCard(i)};
+  m.append(dup,del);document.body.append(m);const w=m.offsetWidth;m.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2))+"px";m.style.top=(r.top-m.offsetHeight-8)+"px";
   setTimeout(()=>addEventListener("pointerdown",function f(ev){if(!m.contains(ev.target)){hideThumbMenu();removeEventListener("pointerdown",f,true)}},true),0)}
 function dragReorder(b,i){let timer=0,on=false,moved=false,x0=0,y0=0,target=i;
   const clear=()=>{for(const t of document.querySelectorAll(".thumb"))t.classList.remove("dropL","dropR","dragging")};
@@ -1879,6 +1889,7 @@ const TOOLS={
   {k:"list",l:"요소 목록",ic:"list",act:()=>openSheet("deco","half")}],
  card:[
   {k:"type",l:"유형",ic:"type",type:"chipsDyn",get:()=>[...$("typeSel").options].map(o=>[o.textContent,()=>{$("typeSel").value=o.value;$("typeSel").dispatchEvent(new Event("change"))},()=>S.cards[cur].type===o.value])},
+  {k:"dup",l:"카드 복제",ic:"stack",act:()=>dupCard(cur)},
   {k:"add",l:"카드 추가",ic:"add",type:"chipsDyn",get:()=>[...$("addType").options].map(o=>[o.textContent,()=>{$("addType").value=o.value;$("addBtn").click()}])},
   {k:"order",l:"순서",ic:"move",...chipsFrom([["← 앞으로",clickId("moveL")],["뒤로 →",clickId("moveR")],["이 카드 삭제",()=>{if(confirm("이 카드를 지울까요? 되돌리기로 살릴 수 있어요."))$("delBtn").click()}]])},
   {k:"corner",l:"코너 이름",ic:"corner",type:"chipsDyn",get:()=>[...$("corners").options].map(o=>[o.value,()=>{$("corner").value=o.value;$("corner").dispatchEvent(new Event("input"))},()=>S.corner===o.value]).concat([["직접 쓰기…",()=>{const v=prompt("코너 이름",S.corner);if(v!=null){$("corner").value=v;$("corner").dispatchEvent(new Event("input"))}}]])},

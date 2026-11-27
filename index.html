@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795779271">
+<meta name="rr-build" content="1795779378">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -103,6 +103,7 @@ button,input,select,textarea{font-size:16px}
   .stageBtn{top:10px;right:12px}
 }
 @media (min-width:900px){.dock{display:none}}
+.ftool.docked{position:static;max-width:none;margin:0;background:none;box-shadow:none;padding:0}.ftool.docked #ftEdit,.ftool.docked #ftClose{display:none}
 .ftool{position:absolute;z-index:8;left:8px;right:8px;max-width:420px;margin:0 auto;background:#1c1c1e;color:#fff;border-radius:16px;padding:6px;box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:4px}
 .ftool[hidden]{display:none}
 .ftool .frow{display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none}
@@ -1370,7 +1371,7 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     const tapped=!drag.moved&&e.type==="pointerup"&&(drag.mode==="tap"||drag.mode==="photo"||drag.mode==="move"||drag.mode==="text");
     if(tapped&&drag.tf==="_box"){drag=null;const c0=S.cards[cur];c0.chk=!c0.chk;paint();return}
     if(drag.tf==="_box"){drag=null;return}
-    if(tapped&&drag.tf){const f=drag.tf;drag=null;if(ft&&ft.field===f){hideFT();openField(f)}else showFT(f);return}
+    if(tapped&&drag.tf){const f=drag.tf;drag=null;if(ft&&ft.field===f){if(WIDE.matches){hideFT();openField(f)}else{const el=$("qedit");if(el)el.focus()}}else showFT(f);return}
     if(tapped)hideFT();
     if(drag.mode==="tap"){drag=null;if(tapped){if(ph(S.cards[cur]).bg){dockCat="photo";dockTool="solid";renderDock();layoutSoon()}else $("photo").click()}return}
     if(tapped&&drag.mode==="photo"){drag=null;if(WIDE.matches)openSheet("photo","half");else{dockCat="photo";if(!dockTool)dockTool="zoom";renderDock();layoutSoon()}return}
@@ -2016,13 +2017,13 @@ function typeThumb(type){const c=newCard(type,PREVIEW_F[type]);const src=ph(S.ca
 function typePicker(box,lab,onPick,curType){const row=document.createElement("div");row.className="chips tpicks";
   for(const k in TYPES){const b=document.createElement("button");b.className="tpick";b.setAttribute("aria-pressed",k===curType);b.append(typeThumb(k));const sp=document.createElement("span");sp.textContent=TYPES[k].label;b.append(sp);b.onclick=()=>{onPick(k);setTimeout(renderCtl,30)};row.append(b)}
   box.classList.add("dtall");box.append(row);setTimeout(()=>{const a=row.querySelector("[aria-pressed=true]");if(a)a.scrollIntoView({inline:"center",block:"nearest"})},0)}
-function renderCtl(){$("dctl").classList.remove("dtall");
+function renderCtl(){{const t0=$("ftool");if(t0&&t0.parentElement===$("dctl")){t0.hidden=true;$("stage").append(t0)}}$("dctl").classList.remove("dtall");if(dockTool==="qedit"&&!(qField&&S.cards[cur]&&qField in S.cards[cur].f)){dockTool=null;qField=null}if(dockTool!=="qedit"&&$("ftool").classList.contains("docked"))hideFT();
   if(dockTool==="qedit"&&qField&&S.cards[cur]&&qField in S.cards[cur].f){const box=$("dctl"),c=S.cards[cur];box.textContent="";box.hidden=false;box.classList.add("dmemo");
     const head=document.createElement("div");head.className="qhead";const nm=document.createElement("div");nm.className="seg";for(const [k,lab] of TYPES[c.type].fields){const b=document.createElement("button");b.textContent=lab.replace(/\s*[(—].*$/,"").replace(/ \(.*$/,"");b.setAttribute("aria-pressed",k===qField);b.onclick=()=>{paint();openField(k)};nm.append(b)}
-    const done=document.createElement("button");done.className="chip";done.textContent="완료";done.onclick=()=>{const el=$("qedit");if(el)el.blur();dockTool=null;qField=null;renderDock();paint();layoutSoon()};head.append(nm,done);
+    const done=document.createElement("button");done.className="chip";done.textContent="완료";done.onclick=()=>{const el=$("qedit");if(el)el.blur();hideFT();dockTool=null;qField=null;renderDock();paint();layoutSoon()};head.append(nm,done);
     const ta=document.createElement("textarea");ta.id="qedit";ta.className="minput";ta.rows=3;ta.dataset.fmt="1";ta.value=c.f[qField]||"";
-    ta.oninput=()=>{c.f[qField]=ta.value;const o=$("f-"+qField);if(o)o.value=ta.value;S.sample=false;drawSoon()};ta.onchange=ta.onblur=()=>paint();
-    box.append(head,ta);return}
+    ta.oninput=()=>{c.f[qField]=ta.value;const o=$("f-"+qField);if(o)o.value=ta.value;S.sample=false;drawSoon();requestAnimationFrame(ftSync)};ta.onchange=ta.onblur=()=>paint();
+    box.append(head,ta);ft={field:qField};const t=$("ftool");t.classList.add("docked");t.hidden=false;$("ftFonts").hidden=true;box.append(t);ftSync();return}
 $("dctl").classList.remove("dmemo");const box=$("dctl"),all=DOCK_TOOLS.concat(TOOLS[dockCat]||[]).concat(dockCat==="deco"?[{k:"preset",l:"글자 스타일",type:"preset"}].concat(TXT_TOOLS,MEMO_TOOLS):[]),t=all.find(x=>x.k===dockTool);box.textContent="";box.hidden=!t;if(!t)return;
   const lab=document.createElement("span");lab.className="dl";lab.textContent=t.label||t.l;
   if(t.type==="slider"){const src=$(t.id);if(!src){box.hidden=true;return}
@@ -2100,12 +2101,12 @@ $("dctl").classList.remove("dmemo");const box=$("dctl"),all=DOCK_TOOLS.concat(TO
   box.append(lab,chips)}
 /* ---------- 카드 위 작은 도구 막대 ---------- */
 let ft=null;
-function showFT(field){const c=S.cards[cur],h=(c._hits||[]).find(x=>x.f===field);if(!h)return openField(field);ft={field};
+function showFT(field){if(!WIDE.matches){openField(field,false);return}const c=S.cards[cur],h=(c._hits||[]).find(x=>x.f===field);if(!h)return openField(field);ft={field};
   const t=$("ftool");t.hidden=false;$("ftFonts").hidden=true;ftSync();placeFT();draw();hideHint()}
-function placeFT(){if(!ft)return;const c=S.cards[cur],h=(c._hits||[]).find(x=>x.f===ft.field),t=$("ftool"),pv=$("preview"),st=$("stage");if(!h){hideFT();return}
+function placeFT(){if(!ft||$("ftool").classList.contains("docked"))return;const c=S.cards[cur],h=(c._hits||[]).find(x=>x.f===ft.field),t=$("ftool"),pv=$("preview"),st=$("stage");if(!h){hideFT();return}
   const r=pv.getBoundingClientRect(),sr=st.getBoundingClientRect(),k=r.width/W,top=r.top-sr.top+h.y*k,bot=r.top-sr.top+(h.y+h.h)*k,th=t.offsetHeight||96;
   let y=top-th-8;if(y<4)y=Math.min(st.clientHeight-th-4,bot+8);t.style.top=Math.max(4,y)+"px"}
-function hideFT(){if(!ft)return;ft=null;$("ftool").hidden=true;draw()}
+function hideFT(){if(!ft)return;ft=null;const t=$("ftool");t.hidden=true;if(t.classList.contains("docked")){t.classList.remove("docked");$("stage").append(t)}draw()}
 function ftSync(){if(!ft)return;const c=S.cards[cur],f=ft.field,dw=(DEFW[c.type]||{})[f]||400,w=(c.fw&&c.fw[f])||dw,z=(c.fs&&c.fs[f])||100;
   $("ftWv").textContent=w;$("ftSv").textContent=z+"%";const role=(FIELD_ROLE[c.type]||{})[f];$("ftFont").hidden=!role&&c.type!=="checklist";
   for(const b of document.querySelectorAll("#ftool [data-w]"))b.setAttribute("aria-pressed",wholeHas(c.f[f]||"",b.dataset.w));
@@ -2148,7 +2149,9 @@ function buildPMap(){const g=$("pgrid");if(!g)return;g.textContent="";
 
 /* 카드에서 누른 곳에 맞는 편집 창 열기 */
 let qField=null;
-function openField(field){if(!WIDE.matches&&S.cards[cur]&&field in S.cards[cur].f){qField=field;hideFT();dockCat="text";dockTool="qedit";renderDock();renderCtl();setTimeout(()=>{const el=$("qedit");if(el){el.focus({preventScroll:true});const n=el.value.length;try{el.setSelectionRange(n,n)}catch(e){}}layoutSoon()},30);return}
+/* 폰: 글자를 누르면 카드 아래에 '입력 칸 + 굵기·크기·정렬·위치 도구'가 한 번에 열림 (키보드는 입력 칸을 누를 때만) */
+function openField(field,focus){if(!WIDE.matches&&S.cards[cur]&&field in S.cards[cur].f){qField=field;ft={field};dockCat="text";dockTool="qedit";renderDock();renderCtl();draw();hideHint();
+    setTimeout(()=>{const el=$("qedit");if(el&&focus!==false){el.focus({preventScroll:true});const n=el.value.length;try{el.setSelectionRange(n,n)}catch(e){}}layoutSoon()},30);return}
   openSheet("text","text");const el=$("f-"+field)||$("f-name")||$("f-title");if(!el)return;
   try{el.focus({preventScroll:true});const n=el.value.length;el.setSelectionRange(n,n)}catch(e){}
   setTimeout(()=>{el.scrollIntoView({block:"center",behavior:"smooth"});el.classList.add("field-hit");setTimeout(()=>el.classList.remove("field-hit"),1300)},80)}

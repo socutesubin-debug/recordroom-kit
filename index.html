@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795779378">
+<meta name="rr-build" content="1795779596">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -701,7 +701,7 @@ const chkFont=(c,f)=>(c&&(f==="head"?c.hfH:c.hf))||HAND0;
 let HANDSRC=null;
 function font(ctx,w,s,role,st){const hand=role==="h"||role==="h2",fixed=role==="x"||role==="x0"||role==="x1",family=hand?chkFont(HANDSRC||CC,role==="h"?"head":"item"):fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);if(hand)linkFont(family);
   if(!st)FB0={w,s,role};const ww=st&&st.wt?st.wt:st&&st.b?Math.min(900,Math.max(w+300,700)):w;
-  ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=hand?0:s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0)+(fixed||!CC||!CC.ty||CC.type==="outro"?0:((CC.ty[role==="t"?"T":"B"]||TY0).ls)))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
+  const s2=st&&st.zs?s*st.zs/100:s;ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s2+'px "'+family+'"'+FB;LS=hand?0:s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0)+(fixed||!CC||!CC.ty||CC.type==="outro"?0:((CC.ty[role==="t"?"T":"B"]||TY0).ls)))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
 function M(ctx,t){const w=ctx.measureText(t).width;return NATIVE_LS?w:w+LS*[...t].length}
 function T(ctx,t,x,y){if(NATIVE_LS||!LS){ctx.fillText(t,x,y);return}for(const ch of t){ctx.fillText(ch,x,y);x+=ctx.measureText(ch).width+LS}}
 function TC(ctx,t,x,y){T(ctx,t,x-(M(ctx,t)-LS)/2,y)}
@@ -713,10 +713,10 @@ function wrap(ctx,text,maxW){const lines=[];for(const para of String(text||"").s
 const FMT_KEYS=["hl","b","i","u","s","c"];
 function fmtStep(str,i,st){
   if(str[i]==="="&&str[i+1]==="="){st.hl=!st.hl;return 2}
-  if(str[i]==="<"){const m=/^<(\/?)(w[1-9]?|[biusc])>/.exec(str.slice(i,i+5));if(m){if(m[2][0]==="w")st.wt=m[1]?0:(+m[2][1]||0)*100;else st[m[2]]=!m[1];return m[0].length}}
+  if(str[i]==="<"){const m=/^<(\/?)(w[1-9]?|z\d{0,3}|[biusc])>/.exec(str.slice(i,i+6));if(m){if(m[2][0]==="w")st.wt=m[1]?0:(+m[2][1]||0)*100;else if(m[2][0]==="z")st.zs=m[1]?0:(+m[2].slice(1)||0);else st[m[2]]=!m[1];return m[0].length}}
   return 0}
 function fmtState(str,pos){const st={hl:false,b:false,i:false,u:false,s:false,c:false};for(let i=0;i<pos;){const n=fmtStep(str,i,st);i+=n||1}return st}
-const sameSt=(a,b)=>FMT_KEYS.every(k=>!!a[k]===!!b[k])&&(a.wt||0)===(b.wt||0);
+const sameSt=(a,b)=>FMT_KEYS.every(k=>!!a[k]===!!b[k])&&(a.wt||0)===(b.wt||0)&&(a.zs||0)===(b.zs||0);
 const useRun=(ctx,r)=>font(ctx,FB0.w,FB0.s,FB0.role,r);
 const useBase=ctx=>font(ctx,FB0.w,FB0.s,FB0.role);
 const plain=t=>{let o="",st={};for(let i=0;i<t.length;){const n=fmtStep(t,i,st);if(n){i+=n;continue}o+=t[i++]}return o};
@@ -1184,14 +1184,19 @@ for(const [k,txt,lab] of [["b","B","굵게"],["i","I","기울임"],["u","U","밑
   const sub=document.createElement("div");sub.className="fmtW";sub.hidden=true;
   for(const [v,lab] of [[3,"얇게"],[5,"보통"],[7,"굵게"],[9,"아주 굵게"],[0,"원래대로"]]){const b=document.createElement("button");b.type="button";b.textContent=lab;if(v)b.style.fontWeight=v*100;b.addEventListener("mousedown",e=>e.preventDefault());b.onclick=()=>{applyWeight(v);sub.hidden=true};sub.append(b)}
   wb.onclick=()=>{sub.hidden=!sub.hidden};fmtBar.append(wb,sub)}
-function applyWeight(v){const el=fmtTarget;if(!el||!el.isConnected)return;let [s,e]=document.activeElement===el?[el.selectionStart,el.selectionEnd]:fmtSel;
+function applyWeight(v){applyWrap("w",v)}
+{const zb=document.createElement("button");zb.type="button";zb.className="f-z";zb.textContent="크기";zb.title="고른 부분 크기";zb.dataset.k="z";zb.addEventListener("mousedown",e=>e.preventDefault());
+  const sub=document.createElement("div");sub.className="fmtW";sub.hidden=true;
+  for(const [v,lab] of [[70,"70%"],[85,"85%"],[115,"115%"],[130,"130%"],[150,"150%"],[0,"원래대로"]]){const b=document.createElement("button");b.type="button";b.textContent=lab;b.addEventListener("mousedown",e=>e.preventDefault());b.onclick=()=>{applyWrap("z",v);sub.hidden=true};sub.append(b)}
+  zb.onclick=()=>{for(const x of fmtBar.querySelectorAll(".fmtW"))if(x!==sub)x.hidden=true;sub.hidden=!sub.hidden};fmtBar.append(zb,sub)}
+function applyWrap(tg,v){const el=fmtTarget;if(!el||!el.isConnected)return;let [s,e]=document.activeElement===el?[el.selectionStart,el.selectionEnd]:fmtSel;
   let val=el.value;/* 고른 부분을 감싼 기존 굵기 표시를 벗기고 새로 감쌈 */
-  const before=val.slice(0,s),after=val.slice(e);let mid=val.slice(s,e).replace(/<\/?w[1-9]?>/g,"");let b2=before,a2=after;
-  const mo=/<w[1-9]>$/.exec(b2),mc=/^<\/w>/.exec(a2);if(mo&&mc){b2=b2.slice(0,-mo[0].length);a2=a2.slice(mc[0].length)}
-  if(s===e){say("toast","굵기를 바꿀 글자를 먼저 길게 눌러 골라 주세요");return}
-  const nv=b2+(v?"<w"+v+">":"")+mid+(v?"</w>":"")+a2,ns=b2.length+(v?4:0);el.value=nv;el.dispatchEvent(new Event("input",{bubbles:true}));try{el.focus();el.setSelectionRange(ns,ns+mid.length)}catch(x){}fmtSel=[ns,ns+mid.length]}
+  const before=val.slice(0,s),after=val.slice(e);const reAny=tg==="w"?/<\/?w[1-9]?>/g:/<\/?z\d{0,3}>/g,reO=tg==="w"?/<w[1-9]>$/:/<z\d{2,3}>$/,reC=tg==="w"?/^<\/w>/:/^<\/z>/;let mid=val.slice(s,e).replace(reAny,"");let b2=before,a2=after;
+  const mo=reO.exec(b2),mc=reC.exec(a2);if(mo&&mc){b2=b2.slice(0,-mo[0].length);a2=a2.slice(mc[0].length)}
+  if(s===e){say("toast",(tg==="w"?"굵기":"크기")+"를 바꿀 글자를 먼저 길게 눌러 골라 주세요");return}
+  const op=v?"<"+tg+v+">":"",nv=b2+op+mid+(v?"</"+tg+">":"")+a2,ns=b2.length+op.length;el.value=nv;el.dispatchEvent(new Event("input",{bubbles:true}));try{el.focus();el.setSelectionRange(ns,ns+mid.length)}catch(x){}fmtSel=[ns,ns+mid.length]}
 function fmtSync(){const el=fmtTarget;if(!el)return;if(document.activeElement===el)fmtSel=[el.selectionStart,el.selectionEnd];
-  const st=fmtState(el.value,fmtSel[0]);for(const b of fmtBar.children)if(b.dataset.k)b.setAttribute("aria-pressed",b.dataset.k==="w"?!!st.wt:!!st[b.dataset.k])}
+  const st=fmtState(el.value,fmtSel[0]);for(const b of fmtBar.children)if(b.dataset.k)b.setAttribute("aria-pressed",b.dataset.k==="w"?!!st.wt:b.dataset.k==="z"?!!st.zs:!!st[b.dataset.k])}
 document.addEventListener("focusin",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.fmt){fmtTarget=t;if(fmtBar.nextSibling!==t)t.before(fmtBar);fmtSync()}});
 document.addEventListener("selectionchange",fmtSync);
 for(const ev of ["keyup","mouseup","touchend","input"])document.addEventListener(ev,e=>{if(e.target===fmtTarget)fmtSync()});

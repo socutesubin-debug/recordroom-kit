@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795772882">
+<meta name="rr-build" content="1795773059">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -68,7 +68,8 @@ button,input,select,textarea{font-size:16px}
 .dctl input[type=range]{flex:1;min-width:0;height:28px;accent-color:var(--ink)}
 .dctl .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;padding:2px 0}
 .dctl .chips::-webkit-scrollbar{display:none}
-.dctl.dmemo{flex-direction:column;align-items:stretch;gap:6px}.minput{width:100%;font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:none;font-family:inherit}
+.dctl.dmemo{flex-direction:column;align-items:stretch;gap:6px}.mrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.mstep{flex:none;display:flex;align-items:center;background:var(--raise,var(--surface));border:1px solid var(--line);border-radius:999px}.mstep button{border:0;background:none;min-width:34px;min-height:32px;font-size:17px;font-weight:700;color:var(--ink)}.mstep span{font-size:12.5px;font-weight:700;min-width:62px;text-align:center;white-space:nowrap}.chip.f-i{font-style:italic}.chip.f-u{text-decoration:underline}.chip.f-s{text-decoration:line-through}
+.minput{width:100%;font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:none;font-family:inherit}
 .chip{flex:none;min-height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:var(--raise,var(--surface));color:var(--ink);font-size:13.5px;font-weight:600;white-space:nowrap}
 .chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chip.sw{width:34px;padding:0;border-width:2px}
@@ -653,7 +654,7 @@ function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,
 function fromData(d){
   const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{const t=TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
     if(c.type==="checklist"){n.dim=0;n.decos.push({t:"memo",text:(String(raw.head||"").trim()?raw.head+"\n":"")+String(raw.item||""),x:null,y:null,s:(+c.ms||100)/100,chk:!!c.chk,hf:c.hf,hfH:c.hfH})}
-    if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({chk:o.t==="memo"?!!o.chk:undefined,hf:typeof o.hf==="string"?o.hf:undefined,hfH:typeof o.hfH==="string"?o.hfH:undefined,t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined,rot:+o.rot||0,st:o.st&&typeof o.st==="object"?JSON.parse(JSON.stringify(o.st)):undefined});
+    if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({mst:o.t==="memo"&&o.mst&&typeof o.mst==="object"?JSON.parse(JSON.stringify(o.mst)):undefined,chk:o.t==="memo"?!!o.chk:undefined,hf:typeof o.hf==="string"?o.hf:undefined,hfH:typeof o.hfH==="string"?o.hfH:undefined,t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined,rot:+o.rot||0,st:o.st&&typeof o.st==="object"?JSON.parse(JSON.stringify(o.st)):undefined});
     for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","ox","oy","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;if(c.fw&&typeof c.fw==="object"){n.fw={};for(const k in c.fw)if(+c.fw[k]>=100&&+c.fw[k]<=900)n.fw[k]=+c.fw[k]}
     if(c.fs&&typeof c.fs==="object"){n.fs={};for(const k in c.fs)if(+c.fs[k]>=40&&+c.fs[k]<=250)n.fs[k]=+c.fs[k]}
     if(c.off&&typeof c.off==="object"){n.off={};for(const k in c.off){const q=c.off[k];if(q&&isFinite(q.x)&&isFinite(q.y))n.off[k]={x:Math.max(-W,Math.min(W,+q.x)),y:Math.max(-H,Math.min(H,+q.y))}}}
@@ -670,7 +671,7 @@ function fromData(d){
 }
 function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
   o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
-function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
+function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,mst:o.mst||undefined,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function newPid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
@@ -946,13 +947,15 @@ function handBox(ctx,x,y,sz,on){/* 손으로 그린 듯 살짝 삐뚤한 네모 
   ctx.restore()}
 /* 꾸미기 '체크리스트 메모': 첫 줄 = 소제목, 나머지 = 체크 줄. 끌기·크기·회전은 다른 꾸미기와 같음 */
 function drawMemo(ctx,d,selected){
-  HANDSRC=d;const lines=String(d.text||"").split("\n"),head=lines.length>1?lines[0]:"",item=lines.length>1?lines.slice(1).join("\n"):lines[0];
+  HANDSRC=d;const lines=String(d.text||"").split("\n"),M=d.mst||{},SH=M.H||{},SI=M.I||{};
+  const wrap=(t,q)=>{let o=t;for(const k of ["i","u","s"])if(q[k])o=o.split("\n").map(x=>x.trim()?"<"+k+">"+x+"</"+k+">":x).join("\n");return o};
+  const head=wrap(lines.length>1?lines[0]:"",SH),item=wrap(lines.length>1?lines.slice(1).join("\n"):lines[0],SI),wH=SH.w||400,wI=SI.w||400;
   /* 메모지 폭은 글 길이에 맞춰 늘어남: 줄바꿈 없이 들어가면 한 줄, 카드 폭을 넘을 때만 다음 줄로 */
-  const k=d.s||1,pad=40*k,hk=fl=>{const o=FONTS.find(x=>x.n===chkFont(d,fl));return o&&o.g==="손글씨"?1.3:1},hs=34*k*hk("head"),is=40*k*hk("item"),bx=is*0.92,gap=20*k;
-  font(ctx,400,hs,"h");const hw=plain(head).trim()?widest(rich(ctx,head,1e9)):0;font(ctx,400,is,"h2");const iw=widest(rich(ctx,item,1e9));
+  const k=d.s||1,pad=40*k,hk=fl=>{const o=FONTS.find(x=>x.n===chkFont(d,fl));return o&&o.g==="손글씨"?1.3:1},hs=34*k*hk("head")*(SH.z||100)/100,is=40*k*hk("item")*(SI.z||100)/100,bx=is*0.92,gap=20*k;
+  font(ctx,wH,hs,"h");const hw=plain(head).trim()?widest(rich(ctx,head,1e9)):0;font(ctx,wI,is,"h2");const iw=widest(rich(ctx,item,1e9));
   const mw=Math.min(W-60,Math.max(420*k,pad*2+Math.max(hw,bx+gap+iw)+4)),tw=mw-pad*2-bx-gap;
-  font(ctx,400,hs,"h");const hl=rich(ctx,head,mw-pad*2),hasH=plain(head).trim();
-  font(ctx,400,is,"h2");const il=rich(ctx,item,tw),ilh=is*1.3;
+  font(ctx,wH,hs,"h");const hl=rich(ctx,head,mw-pad*2),hasH=plain(head).trim();
+  font(ctx,wI,is,"h2");const il=rich(ctx,item,tw),ilh=is*1.3;
   const mh=pad*2+(hasH?hl.length*hs*1.3+10*k:0)+is*0.95+(il.length-1)*ilh;
   if(d.x==null||d.y==null){d.x=W/2;d.y=H-90-mh/2}
   const mx=d.x-mw/2,my=d.y-mh/2;
@@ -960,10 +963,10 @@ function drawMemo(ctx,d,selected){
   if(PAPER.complete&&PAPER.naturalWidth){ctx.save();ctx.beginPath();ctx.rect(mx,my,mw,mh);ctx.clip();const sc=Math.max(mw/PAPER.naturalWidth,mh/PAPER.naturalHeight)*Math.max(1,k);ctx.drawImage(PAPER,mx,my,PAPER.naturalWidth*sc,PAPER.naturalHeight*sc);ctx.restore()}
   {const g=ctx.createLinearGradient(0,my,0,my+mh);g.addColorStop(0,"rgba(0,0,0,.035)");g.addColorStop(.2,"rgba(0,0,0,0)");g.addColorStop(.85,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,.05)");ctx.fillStyle=g;ctx.fillRect(mx,my,mw,mh)}
   let y=my+pad;shadow(ctx,false);
-  if(hasH){font(ctx,400,hs,"h");y+=hs*0.9;drawRich(ctx,hl,mx+pad,y,hs*1.3,{size:hs,color:INK,shadow:false});y+=(hl.length-1)*hs*1.3+hs*0.4+10*k}
-  font(ctx,400,is,"h2");y+=is*0.85;
+  if(hasH){font(ctx,wH,hs,"h");y+=hs*0.9;drawRich(ctx,hl,mx+pad,y,hs*1.3,{size:hs,color:SH.c||INK,shadow:false});y+=(hl.length-1)*hs*1.3+hs*0.4+10*k}
+  font(ctx,wI,is,"h2");y+=is*0.85;
   const bxX=mx+pad,bxY=y-is*0.36-bx/2;handBox(ctx,bxX,bxY,bx,!!d.chk);d._box={x:bxX-16,y:bxY-16,w:bx+32,h:bx+32};
-  drawRich(ctx,il,mx+pad+bx+gap,y,ilh,{size:is,color:INK,shadow:false});
+  drawRich(ctx,il,mx+pad+bx+gap,y,ilh,{size:is,color:SI.c||INK,shadow:false});
   HANDSRC=null;
   d._b={x:mx,y:my,w:mw,h:mh};if(selected)selFrame(ctx,d._b)}
 /* 마무리: 가운데 두 줄 멘트 + 굵은 로고 글자 (기존 마무리 카드 비율에 맞춤) */
@@ -1919,8 +1922,9 @@ function renderDock(){const dt=$("dtools");if(!dt)return;let tools=TOOLS[dockCat
     b.onclick=()=>{if(t.act){t.act();if(t.on)renderDock();return}dockTool=dockTool===t.k?null:t.k;renderDock();layoutSoon()};dt.append(b)}
   renderCtl();
   for(const b of document.querySelectorAll(".tabs button"))if(!WIDE.matches)b.setAttribute("aria-selected",b.dataset.tab===dockCat)}
+let memoLine="I";
 const MEMO_TOOLS=[{k:"medit",l:"글 고치기",ic:"edit",type:"memoedit"},
-  {k:"msz",l:"메모지 크기",ic:"size",type:"msz"},{k:"hfontH",l:"소제목 글꼴",ic:"font",type:"hfont",fld:"head"},{k:"hfont",l:"체크 줄 글꼴",ic:"font",type:"hfont",fld:"item"},
+  {k:"mstyle",l:"글자 모양",ic:"font",type:"memostyle"},{k:"msz",l:"메모지 크기",ic:"size",type:"msz"},{k:"hfontH",l:"소제목 글꼴",ic:"font",type:"hfont",fld:"head"},{k:"hfont",l:"체크 줄 글꼴",ic:"font",type:"hfont",fld:"item"},
   {k:"chk",l:"체크 표시",ic:"edit",act:()=>{const d=S.cards[cur].decos[sel];if(d){d.chk=!d.chk;paint()}}}];
 const TXT_TOOLS=[{k:"tfont",l:"글꼴",ic:"font",type:"tfont"},{k:"tfill",l:"글자색",ic:"color",type:"tcolor",path:"fill"},{k:"tstroke",l:"획",ic:"edit",type:"tfx",fx:"stroke",lab:"두께",key:"w",max:100,def:{on:1,c:"#000000",w:15}},
   {k:"tshadow",l:"그림자",ic:"soft",type:"tfx",fx:"shadow",lab:"거리",key:"d",max:20,def:{on:1,c:"#000000",o:100,b:0,d:4,a:-45}},{k:"tsang",l:"그림자 각도",ic:"rot",type:"tnum",fx:"shadow",key:"a",min:-180,max:180,unit:"°"},
@@ -1948,6 +1952,15 @@ function renderCtl(){$("dctl").classList.remove("dmemo");const box=$("dctl"),all
     r.onchange=()=>src.dispatchEvent(new Event("change",{bubbles:true}));
     r.ondblclick=()=>{};box.append(lab,r,v);return}
   if(t.type==="ty"){renderTy(box,t);return}
+  if(t.type==="memostyle"){const d=S.cards[cur].decos[sel];if(!d||d.t!=="memo")return;box.classList.add("dmemo");
+    const R=memoLine,q=((d.mst=d.mst||{})[R]=d.mst[R]||{}),set=(k,v,def)=>{if(v===def||v===false||v==null)delete q[k];else q[k]=v;if(!Object.keys(q).length)delete d.mst[R];if(!Object.keys(d.mst).length)delete d.mst;paint();renderCtl()};
+    const row=()=>{const r=document.createElement("div");r.className="mrow";box.append(r);return r};
+    const r1=row(),seg=document.createElement("div");seg.className="seg";for(const [v,n] of [["H","소제목"],["I","체크 줄"]]){const b=document.createElement("button");b.textContent=n;b.setAttribute("aria-pressed",R===v);b.onclick=()=>{memoLine=v;renderCtl()};seg.append(b)}r1.append(seg);
+    const step=(label,val,show,fn)=>{const g=document.createElement("span");g.className="mstep";const m=document.createElement("button");m.textContent="−";const p2=document.createElement("button");p2.textContent="+";const v=document.createElement("span");v.textContent=label+" "+show(val);m.onclick=()=>fn(-1);p2.onclick=()=>fn(1);g.append(m,v,p2);return g};
+    const w=q.w||400;r1.append(step("굵기",w,x=>x,dir=>set("w",Math.max(100,Math.min(900,w+dir*100)),400)));
+    const z=q.z||100;r1.append(step("크기",z,x=>x+"%",dir=>set("z",Math.max(50,Math.min(250,z+dir*10)),100)));
+    const r2=row();for(const [k,lab,cls] of [["i","기울임","f-i"],["u","밑줄","f-u"],["s","취소선","f-s"]]){const b=document.createElement("button");b.className="chip "+cls;b.textContent=lab;b.setAttribute("aria-pressed",!!q[k]);b.onclick=()=>set(k,!q[k],false);r2.append(b)}
+    const r3=document.createElement("div");r3.className="chips";colorChips(r3,q.c||INK,v=>set("c",v,INK));box.append(r3);return}
   if(t.type==="memoedit"){const d=S.cards[cur].decos[sel];if(!d||d.t!=="memo")return;box.classList.add("dmemo");
     const ls=String(d.text||"").split("\n"),h0=ls.length>1?ls[0]:"",i0=ls.length>1?ls.slice(1).join("\n"):ls[0];
     const mk=(ph,v,multi)=>{const e=document.createElement(multi?"textarea":"input");if(!multi)e.type="text";e.placeholder=ph;e.value=v;e.className="minput";e.setAttribute("aria-label",ph);return e};

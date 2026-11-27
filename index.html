@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795782631">
+<meta name="rr-build" content="1795782660">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -785,7 +785,7 @@ const isSlotted=c=>!!c&&(c.type==="grid"||(!!c.mg&&!!c.slots));
 const newSlots=()=>Array.from({length:9},()=>({img:null,px:50,py:50,zoom:100}));
 const ph=c=>c&&isSlotted(c)&&c.slots?c.slots[c.si||0]:c;
 /* 사진 격자: 가로×세로 칸, 흰 배경 + 여백 */
-const LAYOUTS={"2x3":[2,3],"3x2":[3,2],"2x2":[2,2],"3x3":[3,3]};
+const LAYOUTS={"2x1":[2,1],"1x2":[1,2],"2x2":[2,2],"2x3":[2,3],"3x2":[3,2],"3x3":[3,3]};
 /* 사진 자리(보통 카드는 카드 전체, 사진+글은 위 65%)를 격자로 나눔 */
 function multiRects(c){const [cols,rows]=LAYOUTS[c.mg]||LAYOUTS["2x3"],B=c.type==="split"?{x:0,y:0,w:W,h:SPLIT_H}:{x:0,y:0,w:W,h:H},m=c.gm??48,mT=c.gmT??m,mB=c.gmB??m,mL=c.gmL??m,mR=c.gmR??m,gx=c.gx??c.gg??24,gy=c.gy??c.gg??24,cw=(B.w-mL-mR-(cols-1)*gx)/cols,ch=(B.h-mT-mB-(rows-1)*gy)/rows,out=[];
   for(let r=0;r<rows;r++)for(let k=0;k<cols;k++)out.push({x:B.x+mL+k*(cw+gx),y:B.y+mT+r*(ch+gy),w:Math.max(20,cw),h:Math.max(20,ch)});return out}
@@ -2038,7 +2038,7 @@ function renderDock(){const dt=$("dtools");if(!dt)return;let tools=TOOLS[dockCat
     if(dockTool&&!tools.some(t=>t.k===dockTool))dockTool=null}
   if(dockCat==="photo"&&S&&S.cards[cur]&&S.cards[cur].type!=="grid"){const c=S.cards[cur];
     const setMg=k=>{if(!k){delete c.mg;c.si=0;paint();renderDock();return}if(!c.mg){c.slots=c.slots&&c.slots.length>=9?c.slots:newSlots();if(c.img&&!isVid(c)&&!c.slots.some(q=>q.img))c.slots[0].img=c.img;c.si=0;c.fit=c.fit||"contain"}c.mg=k;if((c.si||0)>=multiRects(c).length)c.si=0;paint();renderDock()};
-    const mgTool={k:"layout",l:"사진 격자",ic:"grid",...chipsFrom([["끄기",()=>setMg(null),()=>!c.mg]].concat(Object.keys(LAYOUTS).map(k=>[k.replace("x"," × "),()=>setMg(k),()=>c.mg===k])))};
+    const mgTool={k:"layout",l:"사진 격자",ic:"grid",...chipsFrom([["끄기",()=>setMg(null),()=>!c.mg]].concat(Object.keys(LAYOUTS).map(k=>[k==="2x1"?"좌우 반반":k==="1x2"?"위아래 반반":k.replace("x"," × "),()=>setMg(k),()=>c.mg===k])))};
     if(c.mg)tools=[tools[0],tools[1],mgTool,{k:"mfit",l:"맞춤",ic:"fit",...chipsFrom([["전체 보이게",()=>{c.fit="contain";for(const q of c.slots){q.px=50;q.py=50;q.zoom=100}paint()},()=>c.fit!=="cover"],["꽉 채우기",()=>{c.fit="cover";for(const q of c.slots){q.px=50;q.py=50;q.zoom=100}paint()},()=>c.fit==="cover"]])},
       {k:"gz",l:"사진 크기",ic:"zoom",type:"cslider",key:"gz",min:30,max:200,def:100,unit:"%"},{k:"gx",l:"좌우 간격",ic:"ls",type:"cslider",key:"gx",min:0,max:160,def:24,unit:""},{k:"gy",l:"상하 간격",ic:"lh",type:"cslider",key:"gy",min:0,max:160,def:24,unit:""},{k:"gm",l:"바깥 여백",ic:"fit",type:"margin"},tools.find(t=>t.k==="zoom"),{k:"rmslot",l:"이 칸 비우기",ic:"trash",act:()=>{const q=ph(c);q.img=null;q.px=50;q.py=50;q.zoom=100;paint()}},tools.find(t=>t.k==="solid"),tools.find(t=>t.k==="dim")].filter(Boolean);
     else tools=tools.slice(0,2).concat([mgTool],tools.slice(2))}

@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795780328">
+<meta name="rr-build" content="1795780434">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -640,7 +640,6 @@ const TYPES={
   qa:{label:"질문·정보",dim:85,fields:[["q","질문 제목",0],["text","설명",1],["note","작은 주석 (줄바꿈 가능)",1]]},
   product:{label:"제품",dim:78,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격",0]]},
   split:{label:"사진+글",dim:0,fields:[["title","제목 (비우면 제목 없이)",0],["text","본문",1]],def:{title:"제목을 적어 주세요",text:"본문을 적어 주세요.\n두 번째 줄도 여기에."}},
-  multi:{label:"사진 격자",dim:0,fields:[]},
   intro:{label:"가운데 글",dim:72,fields:[["title","제목",0],["text","본문",1]]},
   grid:{label:"제품 3컷",dim:0,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격 (예: KRW 48,000)",0],["foot","맨 아래 글자",0]],def:{brand:"BRAND",name:"PRODUCT NAME",price:"KRW 00,000",foot:"recordroom.mag"}},
   outro:{label:"마무리",dim:42,fields:[["text","고정 멘트",1],["mark","로고 글자",0]],def:{text:"오늘 놓치면 아까운 것들,\n취향과 쓸모 사이의 큐레이션",mark:"RecordRoom.mag"}}
@@ -656,9 +655,10 @@ let S, cur=0, sel=-1;
 const $=id=>document.getElementById(id);
 const off=document.createElement("canvas");off.width=W;off.height=H;
 
-function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??(type==="outro"?0:-20),lh:d.lh??100};if(d.fw)c.fw={...d.fw};if(type==="grid"){c.slots=[0,1,2].map(()=>({img:null,px:50,py:50,zoom:100}));c.si=0}if(type==="multi"){c.slots=Array.from({length:9},()=>({img:null,px:50,py:50,zoom:100}));c.si=0;c.layout="2x3";c.fit="contain"}const df=Object.assign({},TYPES[type].def,(getStyle().defF||{})[type]);for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:(df[k]||"");return c}
+function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??(type==="outro"?0:-20),lh:d.lh??100};if(d.fw)c.fw={...d.fw};if(type==="grid"){c.slots=[0,1,2].map(()=>({img:null,px:50,py:50,zoom:100}));c.si=0}const df=Object.assign({},TYPES[type].def,(getStyle().defF||{})[type]);for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:(df[k]||"");return c}
 function fromData(d){
-  const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{if(c&&c.type==="note"){c=Object.assign({},c,{type:"intro",note:true})}const t=TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
+  const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{if(c&&c.type==="note"){c=Object.assign({},c,{type:"intro",note:true})}if(c&&c.type==="multi"){c=Object.assign({},c,{type:"body",mg:c.layout||"2x3",dim:0})}const t=TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
+    if(t!=="grid"&&LAYOUTS[c.mg]){n.mg=c.mg;n.slots=newSlots();n.si=0;if(c.fit==="cover")n.fit="cover"}
     if(c.type==="checklist"){n.dim=0;n.decos.push({t:"memo",text:(String(raw.head||"").trim()?raw.head+"\n":"")+String(raw.item||""),x:null,y:null,s:(+c.ms||100)/100,chk:!!c.chk,hf:c.hf,hfH:c.hfH})}
     if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({mst:o.t==="memo"&&o.mst&&typeof o.mst==="object"?JSON.parse(JSON.stringify(o.mst)):undefined,chk:o.t==="memo"?!!o.chk:undefined,hf:typeof o.hf==="string"?o.hf:undefined,hfH:typeof o.hfH==="string"?o.hfH:undefined,t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined,rot:+o.rot||0,st:o.st&&typeof o.st==="object"?JSON.parse(JSON.stringify(o.st)):undefined});
     for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","ox","oy","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;if(c.fw&&typeof c.fw==="object"){n.fw={};for(const k in c.fw)if(+c.fw[k]>=100&&+c.fw[k]<=900)n.fw[k]=+c.fw[k]}
@@ -669,7 +669,6 @@ function fromData(d){
     if(c.note&&n.type==="intro")n.note=true;
     if(/^#[0-9a-f]{6}$/i.test(c.bg||"")&&n.type!=="grid")n.bg=c.bg;
     if(n.type==="split"&&(c.rule===1||c.rule===2))n.rule=c.rule;
-    if(n.type==="multi"){if(LAYOUTS[c.layout])n.layout=c.layout;if(c.fit==="cover")n.fit="cover"}
     if(n.type==="split"&&c.splitInit)n.splitInit=1;
     if(typeof c.m==="string")n._m=c.m;
     if(Array.isArray(c.slots)&&n.slots)c.slots.slice(0,9).forEach((q,j)=>{if(!q)return;const t=n.slots[j];for(const k of ["px","py","zoom"])if(typeof q[k]==="number")t[k]=q[k];if(typeof q.m==="string")t._m=q.m});
@@ -682,7 +681,7 @@ function fromData(d){
 }
 function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
   o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
-function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,layout:c.layout,fit:c.fit,splitInit:c.splitInit||undefined,rule:c.rule||undefined,bg:c.bg||undefined,note:c.note||undefined,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,mst:o.mst||undefined,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
+function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,mg:c.mg||undefined,fit:c.mg?c.fit:undefined,splitInit:c.splitInit||undefined,rule:c.rule||undefined,bg:c.bg||undefined,note:c.note||undefined,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,mst:o.mst||undefined,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function newPid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
@@ -781,13 +780,15 @@ function drawRich(ctx,lines,x,y,lh,o){
 const isVid=c=>!!(c&&c.img&&c.img.tagName==="VIDEO");
 /* 제품 3컷: 왼쪽 세로 1장 + 오른쪽 2장. 원본 레이아웃에서 잰 칸 위치 */
 const SLOTS=[{x:42,y:265,w:530,h:943},{x:598,y:265,w:441,h:553},{x:598,y:855,w:441,h:353}];
-const isSlotted=c=>!!c&&(c.type==="grid"||c.type==="multi");
+const isSlotted=c=>!!c&&(c.type==="grid"||(!!c.mg&&!!c.slots));
+const newSlots=()=>Array.from({length:9},()=>({img:null,px:50,py:50,zoom:100}));
 const ph=c=>c&&isSlotted(c)&&c.slots?c.slots[c.si||0]:c;
 /* 사진 격자: 가로×세로 칸, 흰 배경 + 여백 */
 const LAYOUTS={"2x3":[2,3],"3x2":[3,2],"2x2":[2,2],"3x3":[3,3]};
-function multiRects(c){const [cols,rows]=LAYOUTS[c.layout]||LAYOUTS["2x3"],m=56,g=28,cw=(W-2*m-(cols-1)*g)/cols,ch=(H-2*m-(rows-1)*g)/rows,out=[];
-  for(let r=0;r<rows;r++)for(let k=0;k<cols;k++)out.push({x:m+k*(cw+g),y:m+r*(ch+g),w:cw,h:ch});return out}
-const slotRects=c=>c.type==="multi"?multiRects(c):SLOTS;
+/* 사진 자리(보통 카드는 카드 전체, 사진+글은 위 65%)를 격자로 나눔 */
+function multiRects(c){const [cols,rows]=LAYOUTS[c.mg]||LAYOUTS["2x3"],B=c.type==="split"?{x:0,y:0,w:W,h:SPLIT_H}:{x:0,y:0,w:W,h:H},m=48,g=24,cw=(B.w-2*m-(cols-1)*g)/cols,ch=(B.h-2*m-(rows-1)*g)/rows,out=[];
+  for(let r=0;r<rows;r++)for(let k=0;k<cols;k++)out.push({x:B.x+m+k*(cw+g),y:B.y+m+r*(ch+g),w:cw,h:ch});return out}
+const slotRects=c=>c.type==="grid"?SLOTS:multiRects(c);
 /* 사진+글: 위 65%는 사진, 아래 35%는 흰 바탕 글 */
 const SPLIT_H=Math.round(H*0.65);
 const photoR=c0=>isSlotted(c0)?slotRects(c0)[c0.si||0]:c0.type==="split"?{x:0,y:0,w:W,h:SPLIT_H}:{x:0,y:0,w:W,h:H};
@@ -1051,7 +1052,7 @@ function drawGrid(ctx,c,showSel,transparent){
   if(line){const nz=23*fz("name");font(ctx,fw("name",500),nz,"x0");drawRich(ctx,rich(ctx,line,W-84).slice(0,1),42,226,nz,{size:nz,color:ink,shadow:false,field:"name"})}
   if(plain(f.foot).trim()){const fz2=21*fz("foot");font(ctx,fw("foot",400),fz2,"x1");drawRich(ctx,rich(ctx,f.foot,W-84).slice(0,1),W/2,1323,fz2,{size:fz2,align:"center",color:"#4a4a4a",shadow:false,field:"foot"})}
 }
-const DRAW={multi:drawMulti,split:drawSplit,grid:drawGrid,cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
+const DRAW={split:drawSplit,grid:drawGrid,cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
 /* ---------- 가이드 선·자석·여러 개 정렬 ---------- */
 let guides=false,multi=false,msel=new Set(),mselCard=-1,snapX=null,snapY=null;
 try{guides=localStorage.getItem("rr-guide")==="1"}catch(e){}
@@ -1083,7 +1084,9 @@ function buildAlign(){const box=$("alignBtns");if(!box)return;const n=selIdx().l
 function toggleM(i){selIdx();if(msel.has(i))msel.delete(i);else msel.add(i);sel=i}
 function render(c,canvas,transparent,showSel){
   CC=c;c._hits=[];const ctx=canvas.getContext("2d");ctx.save();ctx.textBaseline="alphabetic";ctx.textAlign="left";shadow(ctx,false);
-  if(isSlotted(c)){ctx.clearRect(0,0,W,H);if(!transparent){ctx.fillStyle=c.type==="multi"&&c.bg?c.bg:"#fff";ctx.fillRect(0,0,W,H)}}else if(c.type==="split"){ctx.clearRect(0,0,W,H);if(!transparent){ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);drawSplitPhoto(ctx,c)}}else{drawPhoto(ctx,c,transparent);drawDim(ctx,c)}
+  if(c.type==="grid"){ctx.clearRect(0,0,W,H);if(!transparent){ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H)}}
+  else if(isSlotted(c)){ctx.clearRect(0,0,W,H);if(!transparent){ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);if(c.bg){ctx.fillStyle=c.bg;c.type==="split"?ctx.fillRect(0,0,W,SPLIT_H):ctx.fillRect(0,0,W,H)}}drawMulti(ctx,c,!!showSel&&!transparent,transparent);if(c.type!=="split"&&!transparent)drawDim(ctx,c)}
+  else if(c.type==="split"){ctx.clearRect(0,0,W,H);if(!transparent){ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);drawSplitPhoto(ctx,c)}}else{drawPhoto(ctx,c,transparent);drawDim(ctx,c)}
   DRAW[c.type](ctx,c,!!showSel&&!transparent,transparent);const ms=showSel&&multi&&mselCard===cur?msel:null;c.decos.forEach((d,i)=>drawDeco(ctx,d,!!showSel&&(ms?ms.has(i):i===sel)));
   if(showSel&&!transparent){if(guides)drawGuides(ctx);drawSnap(ctx);if(ft&&c===S.cards[cur]){const h=(c._hits||[]).find(x=>x.f===ft.field);if(h){ctx.save();shadow(ctx,false);ctx.lineWidth=4;ctx.strokeStyle="#0A7CFF";ctx.strokeRect(h.x,h.y,h.w,h.h);ctx.restore()}}}ctx.restore();
 }
@@ -1379,7 +1382,7 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     if(drag.mode==="photo"||drag.mode==="tap"||drag.mode==="pzoom"){const c0=S.cards[cur],c=ph(c0),R=photoR(c0);
       if(Math.hypot(p.x-(drag.x0||0),p.y-(drag.y0||0))>12)drag.moved=true;
       if(drag.mode==="pzoom"&&pts.size>=2){const [a,b]=[...pts.values()];c.zoom=Math.round(Math.min(250,Math.max(25,drag.z0*Math.hypot(a.x-b.x,a.y-b.y)/drag.d0)));$("zoom").value=c.zoom;$("zoomV").textContent=c.zoom+"%";drawSoon()}
-      else if(drag.mode==="photo"&&c.img){const iw=c.img.videoWidth||c.img.width,ih=c.img.videoHeight||c.img.height,sc=(c0.type==="multi"&&c0.fit!=="cover"?Math.min:Math.max)(R.w/iw,R.h/ih)*(c.zoom/100),spx=R.w-iw*sc,spy=R.h-ih*sc;
+      else if(drag.mode==="photo"&&c.img){const iw=c.img.videoWidth||c.img.width,ih=c.img.videoHeight||c.img.height,sc=(c0.mg&&c0.fit!=="cover"?Math.min:Math.max)(R.w/iw,R.h/ih)*(c.zoom/100),spx=R.w-iw*sc,spy=R.h-ih*sc;
         if(isSlotted(c0)){if(Math.abs(spx)>1)c.px=Math.min(100,Math.max(0,drag.px0+(p.x-drag.x0)/spx*100));
           if(Math.abs(spy)>1)c.py=Math.min(100,Math.max(0,drag.py0+(p.y-drag.y0)/spy*100))}
         else{/* 자유 이동: 사진이 카드를 덮는 범위 안에서는 px/py, 그 밖으로 끌면 ox/oy(빈 곳은 '빈 곳 배경'으로 채움). 가장자리 근처에선 자석처럼 붙음 */
@@ -1446,7 +1449,7 @@ $("resetStyle").onclick=()=>{try{localStorage.removeItem("rr-style")}catch(e){}s
 for(const sel of [$("typeSel"),$("addType")])for(const k in TYPES){const o=document.createElement("option");o.value=k;o.textContent=TYPES[k].label;sel.append(o)}
 /* 유형 바꾸기: 글·사진·꾸미기를 그대로 옮김. 같은 이름 칸은 그대로, 제목·본문은 비슷한 칸끼리, 남는 글은 본문 끝에 붙임 */
 function changeType(i,type){const o=S.cards[i];if(!o||o.type===type)return;const n=newCard(type);
-  if(isSlotted(n)&&o.slots&&isSlotted(o)){o.slots.forEach((q,j)=>{if(n.slots[j]&&q.img)n.slots[j].img=q.img})}else if(isSlotted(n)&&o.img&&!isVid(o))n.slots[0].img=o.img;n.decos=o.decos;n.img=isSlotted(o)?(o.slots.find(x=>x.img&&true)||{}).img||null:o.img;n.px=o.px;n.py=o.py;n.ox=o.ox||0;n.oy=o.oy||0;n.zoom=o.zoom;
+  if(o.mg&&n.type!=="grid"){n.mg=o.mg;n.slots=o.slots;n.si=o.si||0;n.fit=o.fit}else if(isSlotted(n)&&o.slots&&isSlotted(o)){o.slots.forEach((q,j)=>{if(n.slots[j]&&q.img)n.slots[j].img=q.img})}else if(isSlotted(n)&&o.img&&!isVid(o))n.slots[0].img=o.img;n.decos=o.decos;n.img=isSlotted(o)?(o.slots.find(x=>x.img&&true)||{}).img||null:o.img;n.px=o.px;n.py=o.py;n.ox=o.ox||0;n.oy=o.oy||0;n.zoom=o.zoom;
   if(o.bg&&n.type!=="grid")n.bg=o.bg;if(o.ty)n.ty=JSON.parse(JSON.stringify(o.ty));n.scale=o.scale;
   const odef=TYPES[o.type].def||{},has=k=>typeof o.f[k]==="string"&&plain(o.f[k]).trim()&&odef[k]!==o.f[k],used=new Set(),keys=TYPES[type].fields.map(x=>x[0]);let lost=false;
   if(n.type==="outro"){S.cards[i]=n;buildAll();paint();if(!n.img)fillOutroPhotos();return}
@@ -1509,8 +1512,8 @@ $("photo").onchange=async e=>{const file=e.target.files[0];e.target.value="";if(
   say("mediaStatus",isVid(S.cards[cur])?"영상 "+m.duration.toFixed(1)+"초. 글자와 꾸미기 요소가 영상 위에 그대로 얹혀 저장됩니다.":"");buildAll()};
 $("photoMulti").onchange=async e=>{const files=[...e.target.files];e.target.value="";if(!files.length)return;
   /* 제품 3컷 카드면 남은 칸부터 채우고, 나머지는 다음 카드로 */
-  const targets=[];let idx=cur;const c0=S.cards[cur];if(isSlotted(c0)){const nC=c0.type==="multi"?multiRects(c0).length:3;for(let j=c0.si||0;j<nC;j++)targets.push(c0.slots[j]);idx++}
-  while(targets.length<files.length){if(!S.cards[idx])S.cards.push(newCard("body"));const c=S.cards[idx++];if(isSlotted(c))targets.push(...c.slots.slice(0,c.type==="multi"?multiRects(c).length:3));else targets.push(c)}
+  const targets=[];let idx=cur;const c0=S.cards[cur];if(isSlotted(c0)){const nC=c0.mg?multiRects(c0).length:3;for(let j=c0.si||0;j<nC;j++)targets.push(c0.slots[j]);idx++}
+  while(targets.length<files.length){if(!S.cards[idx])S.cards.push(newCard("body"));const c=S.cards[idx++];if(isSlotted(c))targets.push(...c.slots.slice(0,c.mg?multiRects(c).length:3));else targets.push(c)}
   let bad=0;for(let i=0;i<files.length;i++){say("mediaStatus","사진 넣는 중… "+(i+1)+"/"+files.length);if(!await loadMedia(targets[i],files[i]))bad++}
   buildAll();paint();say("mediaStatus",(files.length-bad)+"장을 "+(isSlotted(c0)?"지금 칸부터":(cur+1)+"번 카드부터")+" 차례로 넣었어요."+(bad?" 열 수 없는 파일 "+bad+"개는 건너뛰었어요.":""),!!bad)};
 $("prevPhoto").onclick=()=>{const p=ph(S.cards[cur-1]),c=ph(S.cards[cur]);c.img=p.img;c.px=p.px;c.py=p.py;c.ox=p.ox||0;c.oy=p.oy||0;c.zoom=p.zoom;buildFields();paint()};
@@ -2023,9 +2026,12 @@ function renderDock(){const dt=$("dtools");if(!dt)return;let tools=TOOLS[dockCat
   if(dockCat==="text"&&S&&S.cards[cur]&&S.cards[cur].type==="intro")tools=tools.slice(0,1).concat([{k:"note",l:S.cards[cur].note?"노트 배경 끄기":"노트 배경 켜기",ic:"bg",act:()=>{const c=S.cards[cur];c.note=!c.note;paint();renderDock();say("toast",c.note?"글 뒤에 노트를 깔았어요":"노트 배경을 껐어요")}}],tools.slice(1));
   if(dockCat==="deco"){const d=S&&S.cards[cur]&&S.cards[cur].decos[sel];tools=(d&&d.t==="memo"?MEMO_TOOLS:[{k:"preset",l:"글자 스타일",ic:"font",type:"preset"}]).concat(d&&d.t==="text"?TXT_TOOLS:[],d&&d.t==="memo"?[]:tools,d?[{k:"del",l:"삭제",ic:"trash",act:()=>{S.cards[cur].decos.splice(sel,1);sel=-1;msel.clear();buildDecos();paint();renderDock();say("toast","지웠어요 · 위의 ↩로 되돌릴 수 있어요")}}]:[]);
     if(dockTool&&!tools.some(t=>t.k===dockTool))dockTool=null}
-  if(dockCat==="photo"&&S&&S.cards[cur]&&S.cards[cur].type==="multi"){const c=S.cards[cur];tools=[tools[0],tools[1],{k:"layout",l:"격자",ic:"grid",...chipsFrom(Object.keys(LAYOUTS).map(k=>[k.replace("x"," × "),()=>{c.layout=k;if((c.si||0)>=multiRects(c).length)c.si=0;paint()},()=>c.layout===k]))},
-    {k:"mfit",l:"맞춤",ic:"fit",...chipsFrom([["전체 보이게",()=>{c.fit="contain";for(const q of c.slots){q.px=50;q.py=50;q.zoom=100}paint()},()=>c.fit!=="cover"],["꽉 채우기",()=>{c.fit="cover";for(const q of c.slots){q.px=50;q.py=50;q.zoom=100}paint()},()=>c.fit==="cover"]])},
-    tools.find(t=>t.k==="zoom"),{k:"rmslot",l:"이 칸 비우기",ic:"trash",act:()=>{const q=ph(c);q.img=null;q.px=50;q.py=50;q.zoom=100;paint()}}].filter(Boolean)}
+  if(dockCat==="photo"&&S&&S.cards[cur]&&S.cards[cur].type!=="grid"){const c=S.cards[cur];
+    const setMg=k=>{if(!k){delete c.mg;c.si=0;paint();renderDock();return}if(!c.mg){c.slots=c.slots&&c.slots.length>=9?c.slots:newSlots();if(c.img&&!isVid(c)&&!c.slots.some(q=>q.img))c.slots[0].img=c.img;c.si=0;c.fit=c.fit||"contain"}c.mg=k;if((c.si||0)>=multiRects(c).length)c.si=0;paint();renderDock()};
+    const mgTool={k:"layout",l:"사진 격자",ic:"grid",...chipsFrom([["끄기",()=>setMg(null),()=>!c.mg]].concat(Object.keys(LAYOUTS).map(k=>[k.replace("x"," × "),()=>setMg(k),()=>c.mg===k])))};
+    if(c.mg)tools=[tools[0],tools[1],mgTool,{k:"mfit",l:"맞춤",ic:"fit",...chipsFrom([["전체 보이게",()=>{c.fit="contain";for(const q of c.slots){q.px=50;q.py=50;q.zoom=100}paint()},()=>c.fit!=="cover"],["꽉 채우기",()=>{c.fit="cover";for(const q of c.slots){q.px=50;q.py=50;q.zoom=100}paint()},()=>c.fit==="cover"]])},
+      tools.find(t=>t.k==="zoom"),{k:"rmslot",l:"이 칸 비우기",ic:"trash",act:()=>{const q=ph(c);q.img=null;q.px=50;q.py=50;q.zoom=100;paint()}},tools.find(t=>t.k==="solid"),tools.find(t=>t.k==="dim")].filter(Boolean);
+    else tools=tools.slice(0,2).concat([mgTool],tools.slice(2))}
   DOCK_TOOLS=tools;
   for(const t of tools){const b=document.createElement("button");b.className="tool"+(t.act?" act":"");b.innerHTML=svg(t.ic)+"<span></span>";b.lastChild.textContent=t.l;
     const on=t.act?(t.on?t.on():false):dockTool===t.k;b.setAttribute("aria-pressed",on);

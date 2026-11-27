@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795774668">
+<meta name="rr-build" content="1795775069">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -661,6 +661,7 @@ function fromData(d){
     if(c.ty&&typeof c.ty==="object"){const t=normTy(c.ty);n.ty={};for(const r of ["T","B"])if(c.ty[r])n.ty[r]=t[r];tyClean(n)}
     if(n.type==="checklist"){n.chk=!!c.chk;if(typeof c.hf==="string"&&FONTS.some(x=>x.n===c.hf))n.hf=c.hf;if(typeof c.hfH==="string"&&FONTS.some(x=>x.n===c.hfH))n.hfH=c.hfH;if(+c.ms>=50&&+c.ms<=170)n.ms=+c.ms}
     if(c.note&&n.type==="intro")n.note=true;
+    if(/^#[0-9a-f]{6}$/i.test(c.bg||"")&&n.type!=="grid")n.bg=c.bg;
     if(typeof c.m==="string")n._m=c.m;
     if(Array.isArray(c.slots)&&n.slots)c.slots.slice(0,3).forEach((q,j)=>{if(!q)return;const t=n.slots[j];for(const k of ["px","py","zoom"])if(typeof q[k]==="number")t[k]=q[k];if(typeof q.m==="string")t._m=q.m});
     if(typeof c.si==="number"&&n.slots)n.si=Math.max(0,Math.min(2,c.si|0));
@@ -672,7 +673,7 @@ function fromData(d){
 }
 function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
   o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
-function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,note:c.note||undefined,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,mst:o.mst||undefined,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
+function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,bg:c.bg||undefined,note:c.note||undefined,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,mst:o.mst||undefined,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function newPid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
@@ -794,6 +795,7 @@ function drawPhoto(ctx,c,transparent){
       }else drawFill(ctx,c,im,iw,ih);
     }
     ctx.drawImage(im,dx,dy,dw,dh);return}
+  if(c.bg){ctx.fillStyle=c.bg;ctx.fillRect(0,0,W,H);return}
   ctx.fillStyle="#C4C6CA";ctx.fillRect(0,0,W,H);
   ctx.save();ctx.strokeStyle="rgba(255,255,255,.35)";ctx.lineWidth=2;for(let i=-H;i<W;i+=46){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i+H,H);ctx.stroke()}ctx.restore();
   font(ctx,600,34,"x");ctx.fillStyle="rgba(30,30,34,.55)";TC(ctx,"사진 자리",W/2,H*0.36);
@@ -1334,7 +1336,7 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     if(drag.tf==="_box"){drag=null;return}
     if(tapped&&drag.tf){const f=drag.tf;drag=null;if(ft&&ft.field===f){hideFT();openField(f)}else showFT(f);return}
     if(tapped)hideFT();
-    if(drag.mode==="tap"){drag=null;if(tapped)$("photo").click();return}
+    if(drag.mode==="tap"){drag=null;if(tapped){if(ph(S.cards[cur]).bg){dockCat="photo";dockTool="solid";renderDock();layoutSoon()}else $("photo").click()}return}
     if(tapped&&drag.mode==="photo"){drag=null;if(WIDE.matches)openSheet("photo","half");else{dockCat="photo";if(!dockTool)dockTool="zoom";renderDock();layoutSoon()}return}
     if(tapped&&drag.mode==="move"){const dd=S.cards[cur].decos[drag.i];if(dd&&dd.t==="memo"&&dd._box){const q=toLocal(dd,{x:drag.x0,y:drag.y0}),b=dd._box;if(q.x>=b.x&&q.x<=b.x+b.w&&q.y>=b.y&&q.y<=b.y+b.h)dd.chk=!dd.chk}}
     if(tapped&&drag.mode==="move"){const i=drag.i;drag=null;buildDecos();paint();if(WIDE.matches)openDecoRow(i);else{dockCat="deco";if(S.cards[cur].decos[i]&&S.cards[cur].decos[i].t==="text"&&!dockTool)dockTool="preset";if(S.cards[cur].decos[i]&&S.cards[cur].decos[i].t==="memo"&&(!dockTool||!MEMO_TOOLS.some(t=>t.k===dockTool)))dockTool="medit";renderDock();layoutSoon()}return}
@@ -1402,7 +1404,7 @@ for(const [hex,name] of [["#ffffff","흰색"],["#141414","검정"],["#0A7CFF","�
   b.onclick=()=>{S.hdr=hex;$("hdrColor").value=hex;paint()};$("hdrSwatches").append(b)}
 $("caption").oninput=e=>{S.caption=e.target.value;persist();recordSoon();saveProjectSoon()};
 function loadMedia(c,file){return new Promise(res=>{
-  const url=URL.createObjectURL(file),set=m=>{if(file.type.startsWith("video/"))m._blob=file;c.orig=null;c.img=m;c.px=50;c.py=50;c.ox=0;c.oy=0;c.zoom=100;res(m)},fail=()=>{URL.revokeObjectURL(url);res(null)};
+  const url=URL.createObjectURL(file),set=m=>{if(file.type.startsWith("video/"))m._blob=file;c.orig=null;c.bg=undefined;c.img=m;c.px=50;c.py=50;c.ox=0;c.oy=0;c.zoom=100;res(m)},fail=()=>{URL.revokeObjectURL(url);res(null)};
   if(file.type.startsWith("video/")){const v=document.createElement("video");v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute("playsinline","");v.preload="auto";
     v.onloadeddata=()=>{set(v);v.play().then(kick).catch(()=>{})};v.onerror=fail;v.src=url;return}
   const im=new Image();
@@ -1891,6 +1893,7 @@ const TOOLS={
   {k:"gs",l:"부드럽게",ic:"soft",...proxySlider("gs","또렷하게")},
   {k:"gc",l:"그라데이션 색",ic:"color",...swatchesOf("gcSw","색")},
   {k:"bgfill",l:"빈 곳 배경",ic:"bg",type:"select",id:"fill"},
+  {k:"solid",l:"단색 배경",ic:"bg",type:"solidbg"},
   {k:"rm",l:"사진 빼기",ic:"trash",act:clickId("rmPhoto")},
   {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("photo","full")}],
  text:[
@@ -1962,6 +1965,21 @@ function renderCtl(){$("dctl").classList.remove("dmemo");const box=$("dctl"),all
     r.onchange=()=>src.dispatchEvent(new Event("change",{bubbles:true}));
     r.ondblclick=()=>{};box.append(lab,r,v);return}
   if(t.type==="ty"){renderTy(box,t);return}
+  if(t.type==="solidbg"){const c=S.cards[cur];if(c.type==="grid"){const h=document.createElement("span");h.className="dl";h.textContent="제품 3컷 카드는 흰 배경 고정이에요";box.append(lab,h);return}
+    box.classList.add("dmemo");const r1=document.createElement("div");r1.className="chips";
+    const BGS=["#000000","#1C1C1E","#3A3A3C","#8E8E93","#F2F0EB","#E9E3D8","#FFFFFF","#8B0A7E","#2F3E2E","#1F2A44"];
+    const setBg=v=>{if(c.img){c.img=null;c.orig=null}c.bg=v;S.sample=false;paint();buildFields&&buildFields();renderCtl()};
+    for(const v of BGS){const b=document.createElement("button");b.className="chip sw";b.style.background=v;b.setAttribute("aria-label",v);b.setAttribute("aria-pressed",(c.bg||"").toLowerCase()===v.toLowerCase());b.onclick=()=>setBg(v);r1.append(b)}
+    const pk=document.createElement("input");pk.type="color";pk.value=c.bg||"#000000";pk.className="chip sw";pk.style.padding="0";pk.setAttribute("aria-label","다른 색");pk.oninput=()=>{if(c.img){c.img=null;c.orig=null}c.bg=pk.value;drawSoon()};pk.onchange=()=>paint();r1.append(pk);
+    const r2=document.createElement("div");r2.className="mrow";
+    const mk=(txt,fn,on)=>{const b=document.createElement("button");b.className="chip";b.textContent=txt;if(on!=null)b.setAttribute("aria-pressed",on);b.onclick=fn;r2.append(b)};
+    if(c.bg){mk(c.dim>0?"그라데이션 끄기":"그라데이션 켜기",()=>{c.dim=c.dim>0?0:(TYPES[c.type].dim||60);$("dim")&&($("dim").value=c.dim);paint();renderCtl()});
+      mk("모든 카드에 적용",()=>{const others=S.cards.filter(o=>o!==c&&o.type!=="grid"),withPh=others.filter(o=>o.img).length;
+        if(withPh&&!confirm("사진이 있는 카드 "+withPh+"장은 사진이 빠지고 이 색으로 바뀌어요. 계속할까요? (↩로 되돌릴 수 있어요)"))return;
+        for(const o of others){o.img=null;o.orig=null;o.bg=c.bg}paint();buildAll();say("toast","모든 카드 배경을 이 색으로 바꿨어요")});
+      mk("단색 빼기",()=>{delete c.bg;paint();renderCtl()})}
+    else{const h=document.createElement("span");h.className="dl";h.textContent=c.img?"색을 고르면 이 카드의 사진이 빠지고 단색이 돼요":"색을 골라 주세요";r2.append(h)}
+    box.append(r1,r2);return}
   if(t.type==="memostyle"){const d=S.cards[cur].decos[sel];if(!d||d.t!=="memo")return;box.classList.add("dmemo");
     const R=memoLine,q=((d.mst=d.mst||{})[R]=d.mst[R]||{}),set=(k,v,def)=>{if(v===def||v===false||v==null)delete q[k];else q[k]=v;if(!Object.keys(q).length)delete d.mst[R];if(!Object.keys(d.mst).length)delete d.mst;paint();renderCtl()};
     const row=()=>{const r=document.createElement("div");r.className="mrow";box.append(r);return r};

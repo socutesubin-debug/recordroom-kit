@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795778466">
+<meta name="rr-build" content="1795778657">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1961,11 +1961,13 @@ const TOOLS={
   {k:"save",l:"기본값 저장",ic:"save",act:()=>{$("saveStyle").click();say("toast","지금 스타일을 기본값으로 저장했어요")}},
   {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("card","full")}]};
 let dockCat="photo",dockTool=null;
+let DOCK_TOOLS=[];
 function renderDock(){const dt=$("dtools");if(!dt)return;let tools=TOOLS[dockCat]||[];dt.textContent="";
   if(dockCat==="text"&&S&&S.cards[cur]&&S.cards[cur].type==="split")tools=tools.slice(0,1).concat([{k:"rule",l:"구분선",ic:"height",...chipsFrom([["없음",()=>{delete S.cards[cur].rule;paint()},()=>!S.cards[cur].rule],["얇게",()=>{S.cards[cur].rule=1;paint()},()=>S.cards[cur].rule===1],["굵게",()=>{S.cards[cur].rule=2;paint()},()=>S.cards[cur].rule===2]])}],tools.slice(1));
   if(dockCat==="text"&&S&&S.cards[cur]&&S.cards[cur].type==="intro")tools=tools.slice(0,1).concat([{k:"note",l:S.cards[cur].note?"노트 배경 끄기":"노트 배경 켜기",ic:"bg",act:()=>{const c=S.cards[cur];c.note=!c.note;paint();renderDock();say("toast",c.note?"글 뒤에 노트를 깔았어요":"노트 배경을 껐어요")}}],tools.slice(1));
   if(dockCat==="deco"){const d=S&&S.cards[cur]&&S.cards[cur].decos[sel];tools=(d&&d.t==="memo"?MEMO_TOOLS:[{k:"preset",l:"글자 스타일",ic:"font",type:"preset"}]).concat(d&&d.t==="text"?TXT_TOOLS:[],d&&d.t==="memo"?[]:tools,d?[{k:"del",l:"삭제",ic:"trash",act:()=>{S.cards[cur].decos.splice(sel,1);sel=-1;msel.clear();buildDecos();paint();renderDock();say("toast","지웠어요 · 위의 ↩로 되돌릴 수 있어요")}}]:[]);
     if(dockTool&&!tools.some(t=>t.k===dockTool))dockTool=null}
+  DOCK_TOOLS=tools;
   for(const t of tools){const b=document.createElement("button");b.className="tool"+(t.act?" act":"");b.innerHTML=svg(t.ic)+"<span></span>";b.lastChild.textContent=t.l;
     const on=t.act?(t.on?t.on():false):dockTool===t.k;b.setAttribute("aria-pressed",on);
     b.onclick=()=>{if(t.act){t.act();if(t.on)renderDock();return}dockTool=dockTool===t.k?null:t.k;renderDock();layoutSoon()};dt.append(b)}
@@ -1999,7 +2001,7 @@ function typeThumb(type){const c=newCard(type,PREVIEW_F[type]);const src=ph(S.ca
 function typePicker(box,lab,onPick,curType){const row=document.createElement("div");row.className="chips tpicks";
   for(const k in TYPES){const b=document.createElement("button");b.className="tpick";b.setAttribute("aria-pressed",k===curType);b.append(typeThumb(k));const sp=document.createElement("span");sp.textContent=TYPES[k].label;b.append(sp);b.onclick=()=>{onPick(k);setTimeout(renderCtl,30)};row.append(b)}
   box.classList.add("dtall");box.append(row);setTimeout(()=>{const a=row.querySelector("[aria-pressed=true]");if(a)a.scrollIntoView({inline:"center",block:"nearest"})},0)}
-function renderCtl(){$("dctl").classList.remove("dtall");$("dctl").classList.remove("dmemo");const box=$("dctl"),all=(TOOLS[dockCat]||[]).concat(dockCat==="deco"?[{k:"preset",l:"글자 스타일",type:"preset"}].concat(TXT_TOOLS,MEMO_TOOLS):[]),t=all.find(x=>x.k===dockTool);box.textContent="";box.hidden=!t;if(!t)return;
+function renderCtl(){$("dctl").classList.remove("dtall");$("dctl").classList.remove("dmemo");const box=$("dctl"),all=DOCK_TOOLS.concat(TOOLS[dockCat]||[]).concat(dockCat==="deco"?[{k:"preset",l:"글자 스타일",type:"preset"}].concat(TXT_TOOLS,MEMO_TOOLS):[]),t=all.find(x=>x.k===dockTool);box.textContent="";box.hidden=!t;if(!t)return;
   const lab=document.createElement("span");lab.className="dl";lab.textContent=t.label||t.l;
   if(t.type==="slider"){const src=$(t.id);if(!src){box.hidden=true;return}
     const r=document.createElement("input");r.type="range";r.min=src.min;r.max=src.max;r.step=src.step||1;r.value=src.value;r.setAttribute("aria-label",t.l);

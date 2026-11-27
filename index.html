@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795783667">
+<meta name="rr-build" content="1795783809">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -624,7 +624,7 @@ function fontChips(chips,curName,pick){
     for(const f of sec.list){linkFont(f.n);const c=document.createElement("button");c.className="chip";c.textContent=(isFav(f.n)?"★ ":"")+f.n;c.style.fontFamily='"'+f.n+'"'+FB;c.setAttribute("aria-pressed",curName===f.n);c.onclick=()=>{useFont(f.n);pick(f.n)};chips.append(c)}}
   setTimeout(()=>{chips.scrollLeft=0},0)}
 /* 제목·본문 따로: 모든 카드 공통 크기·자간·행간·정렬 */
-const FIELD_ROLE={cover:{title:"fontT",sub:"fontB"},body:{text:"fontB"},qa:{q:"fontT",text:"fontB",note:"fontB"},product:{brand:"fontT",name:"fontB",price:"fontB"},intro:{title:"fontT",text:"fontB"},outro:{text:"fontB"},split:{title:"fontT",text:"fontB"}};
+const FIELD_ROLE={cover:{title:"fontT",sub:"fontB"},body:{text:"fontB"},qa:{q:"fontT",text:"fontB",note:"fontB"},product:{brand:"fontT",name:"fontB",price:"fontB"},intro:{title:"fontT",text:"fontB"},outro:{text:"fontB",title:"fontT",lead:"fontB"},split:{title:"fontT",text:"fontB"}};
 const TY0={ls:0,lh:100,sz:100,al:""};
 function normTy(t){const o={};for(const r of ["T","B"]){const q=(t&&t[r])||{};o[r]={ls:Math.max(-60,Math.min(150,+q.ls||0)),lh:Math.max(60,Math.min(200,+q.lh||100)),sz:Math.max(50,Math.min(200,+q.sz||100)),al:["left","center","right"].includes(q.al)?q.al:""}}return o}
 function tyR(f){if(CC&&CC.type==="outro")return null;const r=CC&&(FIELD_ROLE[CC.type]||{})[f];return r==="fontT"?"T":r==="fontB"?"B":null}
@@ -643,7 +643,7 @@ const TYPES={
   split:{label:"사진+글",dim:0,fields:[["title","제목 (비우면 제목 없이)",0],["text","본문",1]],def:{title:"제목을 적어 주세요",text:"본문을 적어 주세요.\n두 번째 줄도 여기에."}},
   intro:{label:"가운데 글",dim:72,fields:[["title","제목",0],["text","본문",1]]},
   grid:{label:"제품 3컷",dim:0,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격 (예: KRW 48,000)",0],["foot","맨 아래 글자",0]],def:{brand:"BRAND",name:"PRODUCT NAME",price:"KRW 00,000",foot:"recordroom.mag"}},
-  outro:{label:"마무리",dim:42,fields:[["text","고정 멘트",1],["mark","로고 글자",0]],def:{text:"오늘 놓치면 아까운 것들,\n취향과 쓸모 사이의 큐레이션",mark:"RecordRoom.mag"}}
+  outro:{label:"마무리",dim:42,fields:[["title","위 제목 (선택)",0],["lead","위 본문 (선택)",1],["text","고정 멘트",1],["mark","로고 글자",0]],def:{text:"오늘 놓치면 아까운 것들,\n취향과 쓸모 사이의 큐레이션",mark:"RecordRoom.mag"}}
 };
 const SAMPLE={id:"",corner:"옷장 기록",hl:"#8B0A7E",showHeader:true,sample:true,check:[],caption:"",cards:[
   {type:"cover",f:{badge:"D-4",sub:"",title:"느좋 레인부츠를\n찾는다면",bubble:""}},
@@ -696,7 +696,7 @@ let FB0={w:400,s:30,role:"b"};
 /* role "s": 표지 작은 줄 — 본문 글꼴, 원본처럼 자간을 4% 더 좁힘 */
 /* role "x0"/"x1": 고정 글꼴에 자간 0 / +1% (제품 3컷 글자) */
 /* 글 굵기: 카드마다 칸별로 바꿀 수 있음(c.fw). 없으면 원래 디자인 굵기 */
-const DEFW={split:{title:600,text:400},checklist:{head:400,item:400},cover:{title:700,sub:600},body:{text:500},qa:{q:700,text:500,note:400},product:{brand:800,name:400,price:500},intro:{title:700,text:500},outro:{text:400,mark:800},grid:{brand:800,name:500,foot:400}};
+const DEFW={split:{title:600,text:400},checklist:{head:400,item:400},cover:{title:700,sub:600},body:{text:500},qa:{q:700,text:500,note:400},product:{brand:800,name:400,price:500},intro:{title:700,text:500},outro:{text:400,mark:800,title:700,lead:500},grid:{brand:800,name:500,foot:400}};
 function fw(f,w){return (CC&&CC.fw&&CC.fw[f])||w}
 function fz(f){return ((CC&&CC.fs&&CC.fs[f])||100)/100*tyOf(f).sz/100}
 const HAND0="Pretendard";
@@ -1028,7 +1028,15 @@ function drawSplit(ctx,c){splitDefaults(c);const f=c.f,x=76,maxW=W-x*2,k=c.scale
 function drawOutro(ctx,c){
   const f=c.f,k=c.scale/100,L=c.lh/100,bs=37.5*k*fz("text"),blh=bs*1.57*L*LH("text"),ms=51*k*fz("mark"),gap=ms*1.52*L;
   font(ctx,fw("text",400),bs,"b");const bl=rich(ctx,f.text,940);const hasM=plain(f.mark).trim();
-  const total=bs*0.9+spanH(bl,blh)+(hasM?gap:0);let y=H*0.465-total/2+bs*0.9;
+  const total=bs*0.9+spanH(bl,blh)+(hasM?gap:0);
+  /* 위 제목·본문(가운데 글처럼)이 있으면 위쪽에 놓고, 고정 멘트+로고는 아래로 내림 */
+  const hasT=plain(f.title||"").trim(),hasL=plain(f.lead||"").trim();let cy=0.465;
+  if(hasT||hasL){const ts=56*k*fz("title"),ls=36*k*fz("lead"),llh=68*k*L*fz("lead");font(ctx,fw("lead",500),ls,"b");const ll=hasL?rich(ctx,f.lead,800):[];
+    const tot=(hasT?ts+(hasL?96:0):0)+(hasL?spanH(ll,llh)+ls:0);let yy=H*0.36-tot/2+(hasT?ts:ls);
+    if(hasT){font(ctx,fw("title",700),ts,"t");drawRich(ctx,rich(ctx,f.title,900).slice(0,2),W/2,yy,ts,{size:ts,align:"center",field:"title"});yy+=96+ls}
+    if(hasL){font(ctx,fw("lead",500),ls,"b");drawRich(ctx,ll,W/2,yy,llh,{size:ls,align:"center",field:"lead"})}
+    cy=0.74;font(ctx,fw("text",400),bs,"b")}
+  let y=H*cy-total/2+bs*0.9;
   drawRich(ctx,bl,W/2,y,blh,{size:bs,align:"center",field:"text"});
   if(hasM){font(ctx,fw("mark",800),ms,"x");drawRich(ctx,rich(ctx,f.mark,1e9).slice(0,1),W/2,y+spanH(bl,blh)+gap,ms,{size:ms,align:"center",field:"mark"})}
 }
@@ -1456,7 +1464,7 @@ function changeType(i,type){const o=S.cards[i];if(!o||o.type===type)return;const
   if(o.mg&&n.type!=="grid"){n.mg=o.mg;n.slots=o.slots;n.si=o.si||0;n.fit=o.fit}else if(isSlotted(n)&&o.slots&&isSlotted(o)){o.slots.forEach((q,j)=>{if(n.slots[j]&&q.img)n.slots[j].img=q.img})}else if(isSlotted(n)&&o.img&&!isVid(o))n.slots[0].img=o.img;n.decos=o.decos;n.img=isSlotted(o)?(o.slots.find(x=>x.img&&true)||{}).img||null:o.img;n.px=o.px;n.py=o.py;n.ox=o.ox||0;n.oy=o.oy||0;n.zoom=o.zoom;
   if(o.bg&&n.type!=="grid")n.bg=o.bg;if(o.ty)n.ty=JSON.parse(JSON.stringify(o.ty));n.scale=o.scale;
   const odef=TYPES[o.type].def||{},has=k=>typeof o.f[k]==="string"&&plain(o.f[k]).trim()&&odef[k]!==o.f[k],used=new Set(),keys=TYPES[type].fields.map(x=>x[0]);let lost=false;
-  if(n.type==="outro"){S.cards[i]=n;buildAll();paint();if(!n.img)fillOutroPhotos();return}
+  if(n.type==="outro"){const t0=["title","q","brand"].map(k=>o.f[k]).find(v=>v&&plain(v).trim()),l0=["text","sub","name","note"].map(k=>o.f[k]).filter(v=>v&&plain(v).trim()&&v!==t0).join("\n");if(t0)n.f.title=t0;if(l0)n.f.lead=l0;S.cards[i]=n;buildAll();paint();if(!n.img)fillOutroPhotos();return}
   if(n.type!=="grid")for(const k of keys)n.f[k]="";
   for(const k of keys)if(has(k)){n.f[k]=o.f[k];used.add(k);if(o.fw&&o.fw[k]){n.fw=n.fw||{};n.fw[k]=o.fw[k]}if(o.fs&&o.fs[k]){n.fs=n.fs||{};n.fs[k]=o.fs[k]}if(o.off&&o.off[k]){n.off=n.off||{};n.off[k]=o.off[k]}}
   const take=list=>{for(const k of list)if(has(k)&&!used.has(k)){used.add(k);return o.f[k]}return null};

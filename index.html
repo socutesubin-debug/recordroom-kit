@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795771900">
+<meta name="rr-build" content="1795772601">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -939,14 +939,14 @@ function drawIntro(ctx,c){
 const PAPER=new Image();PAPER.onload=()=>{if(S)draw()};PAPER.src="textures/paper.jpg";
 const INK="#1E1E22";
 function handBox(ctx,x,y,sz,on){/* 손으로 그린 듯 살짝 삐뚤한 네모 + 체크 */
-  const j=(a,b)=>a+Math.sin(b*12.9898)*sz*0.025;ctx.save();shadow(ctx,false);ctx.strokeStyle=INK;ctx.lineWidth=Math.max(3,sz*0.085);ctx.lineJoin="round";ctx.lineCap="round";
+  const j=(a,b)=>a+Math.sin(b*12.9898)*sz*0.025;ctx.save();shadow(ctx,false);ctx.strokeStyle=INK;ctx.lineWidth=Math.max(3.5,sz*0.11);ctx.lineJoin="round";ctx.lineCap="round";
   ctx.beginPath();ctx.moveTo(j(x,1),j(y,2));ctx.lineTo(j(x+sz,3),j(y+sz*0.02,4));ctx.lineTo(j(x+sz*0.98,5),j(y+sz,6));ctx.lineTo(j(x+sz*0.01,7),j(y+sz*0.98,8));ctx.closePath();ctx.stroke();
-  if(on){ctx.lineWidth=Math.max(4,sz*0.11);ctx.beginPath();ctx.moveTo(x+sz*0.18,y+sz*0.5);ctx.quadraticCurveTo(x+sz*0.32,y+sz*0.66,x+sz*0.42,y+sz*0.82);ctx.quadraticCurveTo(x+sz*0.7,y+sz*0.25,x+sz*1.12,y-sz*0.18);ctx.stroke()}
+  if(on){ctx.lineWidth=Math.max(5,sz*0.16);ctx.beginPath();ctx.moveTo(x+sz*0.18,y+sz*0.5);ctx.quadraticCurveTo(x+sz*0.32,y+sz*0.66,x+sz*0.42,y+sz*0.82);ctx.quadraticCurveTo(x+sz*0.7,y+sz*0.25,x+sz*1.12,y-sz*0.18);ctx.stroke()}
   ctx.restore()}
 /* 꾸미기 '체크리스트 메모': 첫 줄 = 소제목, 나머지 = 체크 줄. 끌기·크기·회전은 다른 꾸미기와 같음 */
 function drawMemo(ctx,d,selected){
   HANDSRC=d;const lines=String(d.text||"").split("\n"),head=lines.length>1?lines[0]:"",item=lines.length>1?lines.slice(1).join("\n"):lines[0];
-  const k=d.s||1,mw=594*k,pad=40*k,hk=fl=>{const o=FONTS.find(x=>x.n===chkFont(d,fl));return o&&o.g==="손글씨"?1.3:1},hs=34*k*hk("head"),is=40*k*hk("item"),bx=is*0.62,gap=14*k,tw=mw-pad*2-bx-gap;
+  const k=d.s||1,mw=594*k,pad=40*k,hk=fl=>{const o=FONTS.find(x=>x.n===chkFont(d,fl));return o&&o.g==="손글씨"?1.3:1},hs=34*k*hk("head"),is=40*k*hk("item"),bx=is*0.92,gap=20*k,tw=mw-pad*2-bx-gap;
   font(ctx,400,hs,"h");const hl=rich(ctx,head,mw-pad*2),hasH=plain(head).trim();
   font(ctx,400,is,"h2");const il=rich(ctx,item,tw),ilh=is*1.3;
   const mh=pad*2+(hasH?hl.length*hs*1.3+10*k:0)+is*0.95+(il.length-1)*ilh;
@@ -958,7 +958,7 @@ function drawMemo(ctx,d,selected){
   let y=my+pad;shadow(ctx,false);
   if(hasH){font(ctx,400,hs,"h");y+=hs*0.9;drawRich(ctx,hl,mx+pad,y,hs*1.3,{size:hs,color:INK,shadow:false});y+=(hl.length-1)*hs*1.3+hs*0.4+10*k}
   font(ctx,400,is,"h2");y+=is*0.85;
-  const bxX=mx+pad,bxY=y-bx*0.95;handBox(ctx,bxX,bxY,bx,!!d.chk);d._box={x:bxX-16,y:bxY-16,w:bx+32,h:bx+32};
+  const bxX=mx+pad,bxY=y-is*0.36-bx/2;handBox(ctx,bxX,bxY,bx,!!d.chk);d._box={x:bxX-16,y:bxY-16,w:bx+32,h:bx+32};
   drawRich(ctx,il,mx+pad+bx+gap,y,ilh,{size:is,color:INK,shadow:false});
   HANDSRC=null;
   d._b={x:mx,y:my,w:mw,h:mh};if(selected)selFrame(ctx,d._b)}

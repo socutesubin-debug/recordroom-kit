@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795772785">
+<meta name="rr-build" content="1795772882">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -947,7 +947,10 @@ function handBox(ctx,x,y,sz,on){/* 손으로 그린 듯 살짝 삐뚤한 네모 
 /* 꾸미기 '체크리스트 메모': 첫 줄 = 소제목, 나머지 = 체크 줄. 끌기·크기·회전은 다른 꾸미기와 같음 */
 function drawMemo(ctx,d,selected){
   HANDSRC=d;const lines=String(d.text||"").split("\n"),head=lines.length>1?lines[0]:"",item=lines.length>1?lines.slice(1).join("\n"):lines[0];
-  const k=d.s||1,mw=594*k,pad=40*k,hk=fl=>{const o=FONTS.find(x=>x.n===chkFont(d,fl));return o&&o.g==="손글씨"?1.3:1},hs=34*k*hk("head"),is=40*k*hk("item"),bx=is*0.92,gap=20*k,tw=mw-pad*2-bx-gap;
+  /* 메모지 폭은 글 길이에 맞춰 늘어남: 줄바꿈 없이 들어가면 한 줄, 카드 폭을 넘을 때만 다음 줄로 */
+  const k=d.s||1,pad=40*k,hk=fl=>{const o=FONTS.find(x=>x.n===chkFont(d,fl));return o&&o.g==="손글씨"?1.3:1},hs=34*k*hk("head"),is=40*k*hk("item"),bx=is*0.92,gap=20*k;
+  font(ctx,400,hs,"h");const hw=plain(head).trim()?widest(rich(ctx,head,1e9)):0;font(ctx,400,is,"h2");const iw=widest(rich(ctx,item,1e9));
+  const mw=Math.min(W-60,Math.max(420*k,pad*2+Math.max(hw,bx+gap+iw)+4)),tw=mw-pad*2-bx-gap;
   font(ctx,400,hs,"h");const hl=rich(ctx,head,mw-pad*2),hasH=plain(head).trim();
   font(ctx,400,is,"h2");const il=rich(ctx,item,tw),ilh=is*1.3;
   const mh=pad*2+(hasH?hl.length*hs*1.3+10*k:0)+is*0.95+(il.length-1)*ilh;

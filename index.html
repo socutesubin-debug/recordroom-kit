@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="rr-build" content="1795771646">
+<meta name="rr-build" content="1795771900">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151517">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -635,7 +635,6 @@ const TYPES={
   product:{label:"제품",dim:78,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격",0]]},
   intro:{label:"가운데 글",dim:72,fields:[["title","제목",0],["text","본문",1]]},
   grid:{label:"제품 3컷",dim:0,fields:[["brand","브랜드",0],["name","제품명",0],["price","가격 (예: KRW 48,000)",0],["foot","맨 아래 글자",0]],def:{brand:"BRAND",name:"PRODUCT NAME",price:"KRW 00,000",foot:"recordroom.mag"}},
-  checklist:{label:"체크리스트",dim:0,fields:[["head","소제목 (메모지 첫 줄)",0],["item","체크할 내용",1]],def:{head:"CHECK 01 — 오버핏",item:"옷은 일단 커야 마음이 편하다."}},
   outro:{label:"마무리",dim:42,fields:[["text","고정 멘트",1],["mark","로고 글자",0]],def:{text:"오늘 놓치면 아까운 것들,\n취향과 쓸모 사이의 큐레이션",mark:"RecordRoom.mag"}}
 };
 const SAMPLE={id:"",corner:"옷장 기록",hl:"#8B0A7E",showHeader:true,sample:true,check:[],caption:"",cards:[
@@ -644,7 +643,7 @@ const SAMPLE={id:"",corner:"옷장 기록",hl:"#8B0A7E",showHeader:true,sample:t
   {type:"product",f:{comment:"레인부츠라고? 비오는 날만 신기에는 아까운 비주얼",brand:"ihcnik X ODOR",name:"[X ODOR] Lace Ribbon Rain Boots",price:"249,000원"}},
   {type:"qa",f:{q:"레인부츠, 뭐부터 볼까?",text:"높은 굽보다 ==바지 밑단과 부츠 입구==가\n만나는 모양부터 비교해요.",note:"*레코드룸이 고르는 기준*"}}
 ]};
-const DECO={bubble:{label:"말풍선",text:"나도 바로 신청함."},box:{label:"흰 박스",text:"에디터 한마디"},badge:{label:"검은 배지",text:"D-4"},text:{label:"글자",text:"@recordroom.mag"}};
+const DECO={memo:{label:"체크리스트 메모",text:"CHECK 01 · 오버핏\n옷은 일단 커야 마음이 편하다."},bubble:{label:"말풍선",text:"나도 바로 신청함."},box:{label:"흰 박스",text:"에디터 한마디"},badge:{label:"검은 배지",text:"D-4"},text:{label:"글자",text:"@recordroom.mag"}};
 let S, cur=0, sel=-1;
 const $=id=>document.getElementById(id);
 const off=document.createElement("canvas");off.width=W;off.height=H;
@@ -652,7 +651,8 @@ const off=document.createElement("canvas");off.width=W;off.height=H;
 function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,f:{},decos:[],img:null,fill:"blur",px:50,py:50,zoom:100,dim:d.dim??TYPES[type].dim,gh:d.gh??(type==="product"?38:58),gs:d.gs??40,gc:d.gc||"#000000",scale:d.scale??100,ls:d.ls??(type==="outro"?0:-20),lh:d.lh??100};if(d.fw)c.fw={...d.fw};if(type==="grid"){c.slots=[0,1,2].map(()=>({img:null,px:50,py:50,zoom:100}));c.si=0}const df=Object.assign({},TYPES[type].def,(getStyle().defF||{})[type]);for(const [k] of TYPES[type].fields)c.f[k]=(f&&typeof f[k]==="string")?f[k]:(df[k]||"");return c}
 function fromData(d){
   const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{const t=TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
-    if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined,rot:+o.rot||0,st:o.st&&typeof o.st==="object"?JSON.parse(JSON.stringify(o.st)):undefined});
+    if(c.type==="checklist"){n.dim=0;n.decos.push({t:"memo",text:(String(raw.head||"").trim()?raw.head+"\n":"")+String(raw.item||""),x:null,y:null,s:(+c.ms||100)/100,chk:!!c.chk,hf:c.hf,hfH:c.hfH})}
+    if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({chk:o.t==="memo"?!!o.chk:undefined,hf:typeof o.hf==="string"?o.hf:undefined,hfH:typeof o.hfH==="string"?o.hfH:undefined,t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined,rot:+o.rot||0,st:o.st&&typeof o.st==="object"?JSON.parse(JSON.stringify(o.st)):undefined});
     for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","ox","oy","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;if(c.fw&&typeof c.fw==="object"){n.fw={};for(const k in c.fw)if(+c.fw[k]>=100&&+c.fw[k]<=900)n.fw[k]=+c.fw[k]}
     if(c.fs&&typeof c.fs==="object"){n.fs={};for(const k in c.fs)if(+c.fs[k]>=40&&+c.fs[k]<=250)n.fs[k]=+c.fs[k]}
     if(c.off&&typeof c.off==="object"){n.off={};for(const k in c.off){const q=c.off[k];if(q&&isFinite(q.x)&&isFinite(q.y))n.off[k]={x:Math.max(-W,Math.min(W,+q.x)),y:Math.max(-H,Math.min(H,+q.y))}}}
@@ -669,7 +669,7 @@ function fromData(d){
 }
 function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
   o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
-function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
+function toDataRaw(){return {id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,chk:c.chk||undefined,hf:c.hf||undefined,hfH:c.hfH||undefined,ms:c.ms||undefined,ty:c.ty||undefined,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,chk:o.chk||undefined,hf:o.hf||undefined,hfH:o.hfH||undefined,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function newPid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
@@ -687,8 +687,9 @@ const DEFW={checklist:{head:400,item:400},cover:{title:700,sub:600},body:{text:5
 function fw(f,w){return (CC&&CC.fw&&CC.fw[f])||w}
 function fz(f){return ((CC&&CC.fs&&CC.fs[f])||100)/100*tyOf(f).sz/100}
 const HAND0="Pretendard";
-const chkFont=(c,f)=>(f==="head"?c.hfH:c.hf)||HAND0;
-function font(ctx,w,s,role,st){const hand=role==="h"||role==="h2",fixed=role==="x"||role==="x0"||role==="x1",family=hand?(CC?chkFont(CC,role==="h"?"head":"item"):HAND0):fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);if(hand)linkFont(family);
+const chkFont=(c,f)=>(c&&(f==="head"?c.hfH:c.hf))||HAND0;
+let HANDSRC=null;
+function font(ctx,w,s,role,st){const hand=role==="h"||role==="h2",fixed=role==="x"||role==="x0"||role==="x1",family=hand?chkFont(HANDSRC||CC,role==="h"?"head":"item"):fixed?"Pretendard":(role==="t"?S.fontT:S.fontB);if(hand)linkFont(family);
   if(!st)FB0={w,s,role};const ww=st&&st.b?Math.min(900,Math.max(w+300,700)):w;
   ctx.font=(st&&st.i?"italic ":"")+near(family,ww)+" "+s+'px "'+family+'"'+FB;LS=hand?0:s*((role==="x0"?0:role==="x1"?10:fixed||!CC?-20:CC.ls)+(role==="t"?-15:role==="s"?-40:0)+(fixed||!CC||!CC.ty||CC.type==="outro"?0:((CC.ty[role==="t"?"T":"B"]||TY0).ls)))/1000;if(NATIVE_LS)ctx.letterSpacing=LS.toFixed(2)+"px"}
 function M(ctx,t){const w=ctx.measureText(t).width;return NATIVE_LS?w:w+LS*[...t].length}
@@ -867,6 +868,7 @@ function drawStyled(ctx,d,selected){
   const m=sw+4;d._b={x:x0-pad[0]-m,y:y0-pad[1]-m,w:tw+2*(pad[0]+m),h:th+2*(pad[1]+m)};if(selected)selFrame(ctx,d._b)}
 function hexA(h,a){const n=parseInt((h||"#000000").slice(1),16);return "rgba("+(n>>16&255)+","+(n>>8&255)+","+(n&255)+","+Math.max(0,Math.min(1,a)).toFixed(2)+")"}
 function drawDeco0(ctx,d,selected){
+  if(d.t==="memo")return drawMemo(ctx,d,selected);
   if(d.t==="img")return drawImgDeco(ctx,d,selected);
   if(d.st)return drawStyled(ctx,d,selected);
   const t=d.t,fs=t==="badge"||t==="bubble"?31:t==="text"?30:29,wt=d.fw||(t==="badge"||t==="text"?600:400);
@@ -941,21 +943,25 @@ function handBox(ctx,x,y,sz,on){/* 손으로 그린 듯 살짝 삐뚤한 네모 
   ctx.beginPath();ctx.moveTo(j(x,1),j(y,2));ctx.lineTo(j(x+sz,3),j(y+sz*0.02,4));ctx.lineTo(j(x+sz*0.98,5),j(y+sz,6));ctx.lineTo(j(x+sz*0.01,7),j(y+sz*0.98,8));ctx.closePath();ctx.stroke();
   if(on){ctx.lineWidth=Math.max(4,sz*0.11);ctx.beginPath();ctx.moveTo(x+sz*0.18,y+sz*0.5);ctx.quadraticCurveTo(x+sz*0.32,y+sz*0.66,x+sz*0.42,y+sz*0.82);ctx.quadraticCurveTo(x+sz*0.7,y+sz*0.25,x+sz*1.12,y-sz*0.18);ctx.stroke()}
   ctx.restore()}
-function drawChecklist(ctx,c){
-  /* 기본: 카드 폭의 55% 작은 메모, 아래 가운데. ms(메모지 크기 %)로 종이·글자가 함께 커지고 작아짐 */
-  const f=c.f,k=(c.ms||100)/100,mw=Math.min(W-60,594*k),mx=(W-mw)/2,pad=40*k,hk=fl=>{const o=FONTS.find(x=>x.n===chkFont(c,fl));return o&&o.g==="손글씨"?1.3:1},hs=34*k*fz("head")*hk("head"),is=40*k*fz("item")*hk("item"),bx=is*0.62,gap=14*k,tw=mw-pad*2-bx-gap;
-  font(ctx,fw("head",400),hs,"h");const hl=rich(ctx,f.head,mw-pad*2),hasH=plain(f.head).trim();
-  font(ctx,fw("item",400),is,"h2");const il=rich(ctx,f.item,tw),ilh=is*1.3;
-  const mh=pad*2+(hasH?hl.length*hs*1.3+10*k:0)+is*0.95+(il.length-1)*ilh,my=H-90-mh;
+/* 꾸미기 '체크리스트 메모': 첫 줄 = 소제목, 나머지 = 체크 줄. 끌기·크기·회전은 다른 꾸미기와 같음 */
+function drawMemo(ctx,d,selected){
+  HANDSRC=d;const lines=String(d.text||"").split("\n"),head=lines.length>1?lines[0]:"",item=lines.length>1?lines.slice(1).join("\n"):lines[0];
+  const k=d.s||1,mw=594*k,pad=40*k,hk=fl=>{const o=FONTS.find(x=>x.n===chkFont(d,fl));return o&&o.g==="손글씨"?1.3:1},hs=34*k*hk("head"),is=40*k*hk("item"),bx=is*0.62,gap=14*k,tw=mw-pad*2-bx-gap;
+  font(ctx,400,hs,"h");const hl=rich(ctx,head,mw-pad*2),hasH=plain(head).trim();
+  font(ctx,400,is,"h2");const il=rich(ctx,item,tw),ilh=is*1.3;
+  const mh=pad*2+(hasH?hl.length*hs*1.3+10*k:0)+is*0.95+(il.length-1)*ilh;
+  if(d.x==null||d.y==null){d.x=W/2;d.y=H-90-mh/2}
+  const mx=d.x-mw/2,my=d.y-mh/2;
   ctx.save();ctx.shadowColor="rgba(0,0,0,.28)";ctx.shadowBlur=26*k;ctx.shadowOffsetY=10*k;ctx.fillStyle="#F3F3F1";ctx.fillRect(mx,my,mw,mh);ctx.restore();
-  if(PAPER.complete&&PAPER.naturalWidth){ctx.save();ctx.beginPath();ctx.rect(mx,my,mw,mh);ctx.clip();const s=Math.max(mw/PAPER.naturalWidth,mh/PAPER.naturalHeight)*Math.max(1,k);ctx.drawImage(PAPER,mx,my,PAPER.naturalWidth*s,PAPER.naturalHeight*s);ctx.restore()}
+  if(PAPER.complete&&PAPER.naturalWidth){ctx.save();ctx.beginPath();ctx.rect(mx,my,mw,mh);ctx.clip();const sc=Math.max(mw/PAPER.naturalWidth,mh/PAPER.naturalHeight)*Math.max(1,k);ctx.drawImage(PAPER,mx,my,PAPER.naturalWidth*sc,PAPER.naturalHeight*sc);ctx.restore()}
   {const g=ctx.createLinearGradient(0,my,0,my+mh);g.addColorStop(0,"rgba(0,0,0,.035)");g.addColorStop(.2,"rgba(0,0,0,0)");g.addColorStop(.85,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,.05)");ctx.fillStyle=g;ctx.fillRect(mx,my,mw,mh)}
-  let y=my+pad;
-  if(hasH){font(ctx,fw("head",400),hs,"h");y+=hs*0.9;drawRich(ctx,hl,mx+pad,y,hs*1.3,{size:hs,color:INK,shadow:false,field:"head"});y+=(hl.length-1)*hs*1.3+hs*0.4+10*k}
-  font(ctx,fw("item",400),is,"h2");y+=is*0.85;
-  const of=OFF("item"),bxX=mx+pad+of.x,bxY=y-bx*0.95+of.y;handBox(ctx,bxX,bxY,bx,!!c.chk);(c._hits||(c._hits=[])).push({f:"_box",x:bxX-16,y:bxY-16,w:bx+32,h:bx+32});
-  drawRich(ctx,il,mx+pad+bx+gap,y,ilh,{size:is,color:INK,shadow:false,field:"item"});
-}
+  let y=my+pad;shadow(ctx,false);
+  if(hasH){font(ctx,400,hs,"h");y+=hs*0.9;drawRich(ctx,hl,mx+pad,y,hs*1.3,{size:hs,color:INK,shadow:false});y+=(hl.length-1)*hs*1.3+hs*0.4+10*k}
+  font(ctx,400,is,"h2");y+=is*0.85;
+  const bxX=mx+pad,bxY=y-bx*0.95;handBox(ctx,bxX,bxY,bx,!!d.chk);d._box={x:bxX-16,y:bxY-16,w:bx+32,h:bx+32};
+  drawRich(ctx,il,mx+pad+bx+gap,y,ilh,{size:is,color:INK,shadow:false});
+  HANDSRC=null;
+  d._b={x:mx,y:my,w:mw,h:mh};if(selected)selFrame(ctx,d._b)}
 /* 마무리: 가운데 두 줄 멘트 + 굵은 로고 글자 (기존 마무리 카드 비율에 맞춤) */
 function drawOutro(ctx,c){
   const f=c.f,k=c.scale/100,L=c.lh/100,bs=37.5*k*fz("text"),blh=bs*1.57*L*LH("text"),ms=51*k*fz("mark"),gap=ms*1.52*L;
@@ -981,7 +987,7 @@ function drawGrid(ctx,c,showSel,transparent){
   if(line){const nz=23*fz("name");font(ctx,fw("name",500),nz,"x0");drawRich(ctx,rich(ctx,line,W-84).slice(0,1),42,226,nz,{size:nz,color:ink,shadow:false,field:"name"})}
   if(plain(f.foot).trim()){const fz2=21*fz("foot");font(ctx,fw("foot",400),fz2,"x1");drawRich(ctx,rich(ctx,f.foot,W-84).slice(0,1),W/2,1323,fz2,{size:fz2,align:"center",color:"#4a4a4a",shadow:false,field:"foot"})}
 }
-const DRAW={checklist:drawChecklist,grid:drawGrid,cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
+const DRAW={grid:drawGrid,cover:drawCover,body:drawBody,qa:drawQA,product:drawProduct,intro:drawIntro,outro:drawOutro};
 /* ---------- 가이드 선·자석·여러 개 정렬 ---------- */
 let guides=false,multi=false,msel=new Set(),mselCard=-1,snapX=null,snapY=null;
 try{guides=localStorage.getItem("rr-guide")==="1"}catch(e){}
@@ -1040,7 +1046,7 @@ function linkFont(family){const f=FONTS.find(x=>x.n===family);if(!f||f.local)ret
 function allText(){return S.cards.map(c=>Object.values(c.f).join("")).join("")+S.corner+"가A1"}
 let fontTimer=0,fontSeq=0;
 function loadFonts(){clearTimeout(fontTimer);fontTimer=setTimeout(async()=>{
-  const seq=++fontSeq,text=allText(),fams=[...new Set([S.fontT,S.fontB,...S.cards.filter(c=>c.type==="checklist").flatMap(c=>[chkFont(c,"head"),chkFont(c,"item")])])];
+  const seq=++fontSeq,text=allText(),fams=[...new Set([S.fontT,S.fontB,...S.cards.flatMap(c=>c.decos.filter(d=>d.t==="memo").flatMap(d=>[chkFont(d,"head"),chkFont(d,"item")]))])];
   try{for(const fm of fams){await linkFont(fm);const ws=[...new Set([300,400,500,600,700,800].map(w=>near(fm,w)))];await Promise.all(ws.map(w=>document.fonts.load(w+' 40px "'+fm+'"',text)))}}catch(e){}
   if(seq!==fontSeq)return;
   let bad=[];try{bad=fams.filter(fm=>!document.fonts.check(near(fm,400)+' 40px "'+fm+'"',"가"))}catch(e){}
@@ -1194,7 +1200,7 @@ function buildDecos(){buildLib();
     if(d.t==="img"){row.append(...imgDecoRow(c,d,i));box.append(row);return}
     const name=document.createElement("b");name.textContent=DECO[d.t].label;
     const del=document.createElement("button");del.className="ghost";del.textContent="삭제";del.onclick=()=>{c.decos.splice(i,1);sel=-1;msel.clear();buildDecos();paint()};
-    const ta=document.createElement("textarea");ta.id="deco-t-"+i;ta.value=d.text;ta.setAttribute("aria-label",DECO[d.t].label+" 글");ta.dataset.fmt="1";ta.onfocus=()=>{if(sel!==i){sel=i;document.querySelectorAll(".deco").forEach((r,j)=>r.dataset.on=j===i);draw()}};ta.oninput=()=>{d.text=ta.value;paint()};
+    const ta=document.createElement("textarea");ta.id="deco-t-"+i;ta.value=d.text;ta.setAttribute("aria-label",DECO[d.t].label+" 글");if(d.t==="memo")ta.placeholder="첫 줄: 소제목 · 둘째 줄부터: 체크할 내용";ta.dataset.fmt="1";ta.onfocus=()=>{if(sel!==i){sel=i;document.querySelectorAll(".deco").forEach((r,j)=>r.dataset.on=j===i);draw()}};ta.oninput=()=>{d.text=ta.value;paint()};
     const lab=document.createElement("label");lab.htmlFor="deco-s-"+i;lab.style.gridColumn="1/-1";lab.textContent="크기";
     const rg=document.createElement("input");rg.type="range";rg.id="deco-s-"+i;rg.min=30;rg.max=300;rg.value=Math.round(d.s*100);rg.oninput=()=>{d.s=rg.value/100;sel=i;paint()};lab.append(rg);
     const keep=document.createElement("button");keep.className="ghost";keep.textContent="보관";keep.onclick=()=>{const a=getLib();a.push({t:d.t,text:d.text,x:d.x,y:d.y,s:d.s});say("libStatus",setLib(a)?"보관함에 넣었어요.":"이 브라우저에는 보관할 수 없어요.",!1);buildLib()};
@@ -1314,6 +1320,7 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     if(tapped)hideFT();
     if(drag.mode==="tap"){drag=null;if(tapped)$("photo").click();return}
     if(tapped&&drag.mode==="photo"){drag=null;if(WIDE.matches)openSheet("photo","half");else{dockCat="photo";if(!dockTool)dockTool="zoom";renderDock();layoutSoon()}return}
+    if(tapped&&drag.mode==="move"){const dd=S.cards[cur].decos[drag.i];if(dd&&dd.t==="memo"&&dd._box){const q=toLocal(dd,{x:drag.x0,y:drag.y0}),b=dd._box;if(q.x>=b.x&&q.x<=b.x+b.w&&q.y>=b.y&&q.y<=b.y+b.h)dd.chk=!dd.chk}}
     if(tapped&&drag.mode==="move"){const i=drag.i;drag=null;buildDecos();paint();if(WIDE.matches)openDecoRow(i);else{dockCat="deco";if(S.cards[cur].decos[i]&&S.cards[cur].decos[i].t==="text"&&!dockTool)dockTool="preset";renderDock();layoutSoon()}return}
     if(drag.mode==="photo"||drag.mode==="pzoom"){if(drag.mode==="pzoom"&&pts.size>=2)return;drag=null;const q=ph(S.cards[cur]);$("px").value=Math.round(q.px);$("py").value=Math.round(q.py);paint();return}
     if(drag.mode!=="pinch"||pts.size<2){drag=null;buildDecos();paint();if(!WIDE.matches&&dockCat==="deco")renderDock()}};
@@ -1880,6 +1887,7 @@ const TOOLS={
   {k:"fontB",l:"본문 글꼴",ic:"font",type:"font",role:"fontB"},
   {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("text","full")}],
  deco:[
+  {k:"memo",l:"체크리스트",ic:"edit",act:()=>{const c=S.cards[cur];c.decos.push({t:"memo",text:DECO.memo.text,x:null,y:null,s:1});sel=c.decos.length-1;buildDecos();paint();renderDock();say("toast","끌어서 옮기고, 모서리 손잡이로 크기 조절 · 네모를 누르면 체크")}},
   {k:"sticker",l:"누끼 이미지",ic:"cut",act:clickId("stickerPick")},
   {k:"shape",l:"도형 사진",ic:"shape",type:"chipsDyn",get:()=>[...document.querySelectorAll("#shapeAdd .shapeBtn")].map(b=>[b.title,()=>b.click()])},
   {k:"textdeco",l:"글 요소",ic:"bubble",type:"chipsDyn",get:()=>[...document.querySelectorAll("#decoAdd button")].map(b=>[b.textContent.replace("+ ",""),()=>b.click()])},
@@ -1900,14 +1908,16 @@ const TOOLS={
   {k:"more",l:"전체 설정",ic:"more",act:()=>openSheet("card","full")}]};
 let dockCat="photo",dockTool=null;
 function renderDock(){const dt=$("dtools");if(!dt)return;let tools=TOOLS[dockCat]||[];dt.textContent="";
-  if(dockCat==="text"&&S&&S.cards[cur]&&S.cards[cur].type==="checklist"){tools=tools.filter(t=>t.k==="edit"||t.k==="more").concat([{k:"msz",l:"메모지 크기",ic:"size",type:"msz"},{k:"hfontH",l:"소제목 글꼴",ic:"font",type:"hfont",fld:"head"},{k:"hfont",l:"체크 줄 글꼴",ic:"font",type:"hfont",fld:"item"},{k:"chk",l:"체크 표시",ic:"edit",act:()=>{const c=S.cards[cur];c.chk=!c.chk;paint()}}]);if(dockTool&&!tools.some(t=>t.k===dockTool))dockTool=null}
-  if(dockCat==="deco"){const d=S&&S.cards[cur]&&S.cards[cur].decos[sel];tools=[{k:"preset",l:"글자 스타일",ic:"font",type:"preset"}].concat(d&&d.t==="text"?TXT_TOOLS:[],tools,d?[{k:"del",l:"삭제",ic:"trash",act:()=>{S.cards[cur].decos.splice(sel,1);sel=-1;msel.clear();buildDecos();paint();renderDock();say("toast","지웠어요 · 위의 ↩로 되돌릴 수 있어요")}}]:[]);
+  if(dockCat==="deco"){const d=S&&S.cards[cur]&&S.cards[cur].decos[sel];tools=(d&&d.t==="memo"?MEMO_TOOLS:[{k:"preset",l:"글자 스타일",ic:"font",type:"preset"}]).concat(d&&d.t==="text"?TXT_TOOLS:[],d&&d.t==="memo"?[]:tools,d?[{k:"del",l:"삭제",ic:"trash",act:()=>{S.cards[cur].decos.splice(sel,1);sel=-1;msel.clear();buildDecos();paint();renderDock();say("toast","지웠어요 · 위의 ↩로 되돌릴 수 있어요")}}]:[]);
     if(dockTool&&!tools.some(t=>t.k===dockTool))dockTool=null}
   for(const t of tools){const b=document.createElement("button");b.className="tool"+(t.act?" act":"");b.innerHTML=svg(t.ic)+"<span></span>";b.lastChild.textContent=t.l;
     const on=t.act?(t.on?t.on():false):dockTool===t.k;b.setAttribute("aria-pressed",on);
     b.onclick=()=>{if(t.act){t.act();if(t.on)renderDock();return}dockTool=dockTool===t.k?null:t.k;renderDock();layoutSoon()};dt.append(b)}
   renderCtl();
   for(const b of document.querySelectorAll(".tabs button"))if(!WIDE.matches)b.setAttribute("aria-selected",b.dataset.tab===dockCat)}
+const MEMO_TOOLS=[{k:"medit",l:"글 고치기",ic:"edit",act:()=>{openSheet("deco","full");setTimeout(()=>{const el=$("deco-t-"+sel);if(el){el.scrollIntoView({block:"center"});el.focus()}},150)}},
+  {k:"msz",l:"메모지 크기",ic:"size",type:"msz"},{k:"hfontH",l:"소제목 글꼴",ic:"font",type:"hfont",fld:"head"},{k:"hfont",l:"체크 줄 글꼴",ic:"font",type:"hfont",fld:"item"},
+  {k:"chk",l:"체크 표시",ic:"edit",act:()=>{const d=S.cards[cur].decos[sel];if(d){d.chk=!d.chk;paint()}}}];
 const TXT_TOOLS=[{k:"tfont",l:"글꼴",ic:"font",type:"tfont"},{k:"tfill",l:"글자색",ic:"color",type:"tcolor",path:"fill"},{k:"tstroke",l:"획",ic:"edit",type:"tfx",fx:"stroke",lab:"두께",key:"w",max:100,def:{on:1,c:"#000000",w:15}},
   {k:"tshadow",l:"그림자",ic:"soft",type:"tfx",fx:"shadow",lab:"거리",key:"d",max:20,def:{on:1,c:"#000000",o:100,b:0,d:4,a:-45}},{k:"tsang",l:"그림자 각도",ic:"rot",type:"tnum",fx:"shadow",key:"a",min:-180,max:180,unit:"°"},
   {k:"tsblur",l:"그림자 흐림",ic:"soft",type:"tnum",fx:"shadow",key:"b",min:0,max:50},{k:"tglow",l:"글로우",ic:"magic",type:"tfx",fx:"glow",lab:"범위",key:"r",max:100,def:{on:1,c:"#000000",s:26,r:66}},
@@ -1925,7 +1935,7 @@ function renderTy(box,t){const seg=document.createElement("div");seg.className="
   const v=document.createElement("span");v.className="dv";v.textContent=R.show(q[t.key]);
   r.oninput=()=>{cardTy(S.cards[cur],tyRole)[t.key]=+r.value;v.textContent=R.show(+r.value);S.sample=false;drawSoon()};r.onchange=()=>{tyClean(S.cards[cur]);paint();if(typeof ftSync==="function")ftSync()};
   r.ondblclick=()=>{setTy(tyRole,t.key,TY0[t.key]);renderCtl()};box.append(r,v)}
-function renderCtl(){const box=$("dctl"),all=(TOOLS[dockCat]||[]).concat(dockCat==="deco"?[{k:"preset",l:"글자 스타일",type:"preset"}].concat(TXT_TOOLS):[]),t=all.find(x=>x.k===dockTool);box.textContent="";box.hidden=!t;if(!t)return;
+function renderCtl(){const box=$("dctl"),all=(TOOLS[dockCat]||[]).concat(dockCat==="deco"?[{k:"preset",l:"글자 스타일",type:"preset"}].concat(TXT_TOOLS,MEMO_TOOLS):[]),t=all.find(x=>x.k===dockTool);box.textContent="";box.hidden=!t;if(!t)return;
   const lab=document.createElement("span");lab.className="dl";lab.textContent=t.label||t.l;
   if(t.type==="slider"){const src=$(t.id);if(!src){box.hidden=true;return}
     const r=document.createElement("input");r.type="range";r.min=src.min;r.max=src.max;r.step=src.step||1;r.value=src.value;r.setAttribute("aria-label",t.l);
@@ -1934,9 +1944,9 @@ function renderCtl(){const box=$("dctl"),all=(TOOLS[dockCat]||[]).concat(dockCat
     r.onchange=()=>src.dispatchEvent(new Event("change",{bubbles:true}));
     r.ondblclick=()=>{};box.append(lab,r,v);return}
   if(t.type==="ty"){renderTy(box,t);return}
-  if(t.type==="hfont"){const ch=document.createElement("div");ch.className="chips";const c=S.cards[cur];fontChips(ch,chkFont(c,t.fld),n=>{if(n){if(t.fld==="head")c.hfH=n;else c.hf=n}paint();renderCtl()});box.append(lab,ch);return}
-  if(t.type==="msz"){const c=S.cards[cur],r=document.createElement("input");r.type="range";r.min=50;r.max=170;r.value=c.ms||100;r.setAttribute("aria-label","메모지 크기");const v=document.createElement("span");v.className="dv";v.textContent=(c.ms||100)+"%";
-    r.oninput=()=>{c.ms=+r.value;v.textContent=r.value+"%";drawSoon()};r.onchange=()=>{if(c.ms===100)delete c.ms;paint()};r.ondblclick=()=>{delete c.ms;paint();renderCtl()};box.append(lab,r,v);return}
+  if(t.type==="hfont"){const c=S.cards[cur].decos[sel];if(!c||c.t!=="memo")return;const ch=document.createElement("div");ch.className="chips";fontChips(ch,chkFont(c,t.fld),n=>{if(n){if(t.fld==="head")c.hfH=n;else c.hf=n}paint();renderCtl()});box.append(lab,ch);return}
+  if(t.type==="msz"){const c=S.cards[cur].decos[sel];if(!c||c.t!=="memo")return;const r=document.createElement("input");r.type="range";r.min=40;r.max=200;r.value=Math.round((c.s||1)*100);r.setAttribute("aria-label","메모지 크기");const v=document.createElement("span");v.className="dv";v.textContent=r.value+"%";
+    r.oninput=()=>{c.s=r.value/100;v.textContent=r.value+"%";drawSoon()};r.onchange=()=>paint();r.ondblclick=()=>{c.s=1;paint();renderCtl()};box.append(lab,r,v);return}
   const chips=document.createElement("div");chips.className="chips";
   const mk=(txt,fn,isOn)=>{const c=document.createElement("button");c.className="chip";c.textContent=txt;c.setAttribute("aria-pressed",!!(isOn&&isOn()));c.onclick=()=>{fn();setTimeout(renderCtl,30)};chips.append(c)};
   if(t.type==="chips")for(const [a,f,o] of t.list)mk(a,f,o);

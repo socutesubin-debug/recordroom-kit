@@ -137,6 +137,7 @@ button,input,select,textarea{font-size:16px}
 #homeCode{flex:none}
 .homeCodeBox{display:flex;flex-direction:column;gap:8px;margin-top:-4px}.homeCodeBox textarea{min-height:120px;width:100%}.homeCodeBox .row{display:flex;gap:8px}.homeCodeBox .row button{flex:1;min-height:44px}
 .updBar{position:fixed;z-index:9999;left:12px;right:12px;top:calc(8px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-radius:14px;background:#F2F2F4;color:#141416;box-shadow:0 6px 24px rgba(0,0,0,.35);font-size:14px;font-weight:700}.updBar[hidden]{display:none}.updBar span{flex:1}.updBar button{min-height:38px;padding:0 14px;border-radius:10px;border:0;background:#141416;color:#fff;font-weight:700}.updBar .ghost{background:none;color:#555}
+.snack{position:absolute;left:50%;transform:translateX(-50%);bottom:12px;z-index:30;display:flex;align-items:center;gap:6px;padding:6px 6px 6px 14px;border-radius:999px;background:rgba(20,20,22,.92);color:#fff;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3)}.snack[hidden]{display:none}.snack button{min-height:34px;padding:0 12px;border-radius:999px;border:0;background:#fff;color:#141416;font-weight:700;font-size:13px}
 .bigrow{display:flex;gap:10px}
 h2 small{display:block;font-weight:500;margin-top:2px}
 .iconBtn{min-height:40px;width:40px;padding:0;display:grid;place-items:center;border:0;background:none}
@@ -285,6 +286,7 @@ ul.check{margin:0;padding-left:18px;color:var(--warn);font-size:13.5px}
     <canvas id="preview" width="1080" height="1350" aria-label="선택한 카드 미리보기. 사진을 끌어 옮기고 두 손가락으로 크기를 바꿉니다"></canvas>
     <button class="stageBtn" id="guideBtn" aria-pressed="false" title="가이드 선 켜기/끄기 (G)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>가이드</button>
     <p class="status toast" id="toast"></p>
+    <div class="snack" id="snack" hidden role="status"><span id="snackMsg"></span><button id="snackUndo">되돌리기</button></div>
     <div class="ftool" id="ftool" hidden role="toolbar" aria-label="글 바로 고치기">
       <div class="frow"><button class="fedit" id="ftEdit">글 고치기</button>
         <span class="fgrp"><button id="ftWm" aria-label="얇게">−</button><span id="ftWv">굵기</span><button id="ftWp" aria-label="굵게">+</button></span>
@@ -616,6 +618,7 @@ function normTy(t){const o={};for(const r of ["T","B"]){const q=(t&&t[r])||{};o[
 function tyR(f){const r=CC&&(FIELD_ROLE[CC.type]||{})[f];return r==="fontT"?"T":r==="fontB"?"B":null}
 function tyOf(f){const r=tyR(f);return r&&S.ty?S.ty[r]:TY0}
 const LH=f=>tyOf(f).lh/100;
+const OFF=f=>(f&&CC&&CC.off&&CC.off[f])||{x:0,y:0};
 function getStyle(){try{const t=JSON.parse(localStorage.getItem("rr-style")||"null");if(t&&typeof t==="object")return t}catch(e){}return {}}
 const TYPES={
   cover:{label:"표지",dim:70,fields:[["sub","작은 줄",0],["title","제목 — 줄바꿈 그대로 들어갑니다",1]]},
@@ -643,6 +646,7 @@ function fromData(d){
     if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined,rot:+o.rot||0,st:o.st&&typeof o.st==="object"?JSON.parse(JSON.stringify(o.st)):undefined});
     for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","ox","oy","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;if(c.fw&&typeof c.fw==="object"){n.fw={};for(const k in c.fw)if(+c.fw[k]>=100&&+c.fw[k]<=900)n.fw[k]=+c.fw[k]}
     if(c.fs&&typeof c.fs==="object"){n.fs={};for(const k in c.fs)if(+c.fs[k]>=40&&+c.fs[k]<=250)n.fs[k]=+c.fs[k]}
+    if(c.off&&typeof c.off==="object"){n.off={};for(const k in c.off){const q=c.off[k];if(q&&isFinite(q.x)&&isFinite(q.y))n.off[k]={x:Math.max(-W,Math.min(W,+q.x)),y:Math.max(-H,Math.min(H,+q.y))}}}
     if(typeof c.m==="string")n._m=c.m;
     if(Array.isArray(c.slots)&&n.slots)c.slots.slice(0,3).forEach((q,j)=>{if(!q)return;const t=n.slots[j];for(const k of ["px","py","zoom"])if(typeof q[k]==="number")t[k]=q[k];if(typeof q.m==="string")t._m=q.m});
     if(typeof c.si==="number"&&n.slots)n.si=Math.max(0,Math.min(2,c.si|0));
@@ -654,7 +658,7 @@ function fromData(d){
 }
 function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
   o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
-function toDataRaw(){return {ty:S.ty,id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
+function toDataRaw(){return {ty:S.ty,id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,off:c.off&&Object.keys(c.off).length?c.off:undefined,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function newPid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
@@ -731,6 +735,7 @@ function decoLines(ctx,st,x,y,w,size,o){if(!st||!(st.u||st.s))return;shadow(ctx,
 /* o: {size, align:"left"|"center", color, shadow, hl} */
 function drawRich(ctx,lines,x,y,lh,o){
   o=Object.assign({align:"left",color:"#fff",shadow:true},o);useBase(ctx);const sw=M(ctx," "),size=o.size;
+  if(o.field&&!o.noOff){const of=OFF(o.field);x+=of.x;y+=of.y}
   const al=o.field&&!o.fixAl&&CC?tyOf(o.field).al:"",col=o.align==="center"?[110,W-110]:[x,W-x];
   const lx=w=>al==="left"?col[0]:al==="center"?(col[0]+col[1])/2-w/2:al==="right"?col[1]-w:(o.align==="center"?x-w/2:x);
   lines.forEach((ln,i)=>{let cx=lx(ln.width);const by=y+i*lh;
@@ -884,7 +889,7 @@ function drawCover(ctx,c){
   const ss=37*k*fz("sub"),slh=ss*1.4*L*LH("sub");font(ctx,fw("sub",600),ss,"s");const sl=rich(ctx,f.sub,maxW-60);
   if(S.subBox){
     const padX=30*k,bh=54*k+(sl.length-1)*slh,bottom=titleTop-39*k,top=bottom-bh,bw=widest(sl)+padX+45*k;
-    shadow(ctx,false);ctx.fillStyle="#161616";ctx.fillRect(x-5,top,bw,bh);
+    shadow(ctx,false);ctx.fillStyle="#161616";{const of=OFF("sub");ctx.fillRect(x-5+of.x,top+of.y,bw,bh)}
     drawRich(ctx,sl,x-5+padX,top+14*k+ss*0.80,slh,{size:ss,shadow:false,field:"sub",fixAl:1});
   }else{
     const base=titleTop-45*k-ss*0.09-(sl.length-1)*slh;
@@ -905,7 +910,7 @@ function drawQA(ctx,c){
 }
 function drawProduct(ctx,c){
   const f=c.f,k=c.scale/100,lim=W-150;
-  if(plain(f.price).trim()){const ps=23*fz("price");font(ctx,fw("price",500),ps,"b");const pl=rich(ctx,f.price,1e9).slice(0,1),pw=Math.max(207,widest(pl)+56),bh=40+ps-23;shadow(ctx,false);ctx.fillStyle="#141414";ctx.fillRect((W-pw)/2,1226-(bh-40)/2,pw,bh);drawRich(ctx,pl,W/2,1254+(ps-23)*0.35,30,{size:ps,align:"center",shadow:false,field:"price",fixAl:1})}
+  if(plain(f.price).trim()){const ps=23*fz("price");font(ctx,fw("price",500),ps,"b");const pl=rich(ctx,f.price,1e9).slice(0,1),pw=Math.max(207,widest(pl)+56),bh=40+ps-23;shadow(ctx,false);ctx.fillStyle="#141414";{const of=OFF("price");ctx.fillRect((W-pw)/2+of.x,1226-(bh-40)/2+of.y,pw,bh)}drawRich(ctx,pl,W/2,1254+(ps-23)*0.35,30,{size:ps,align:"center",shadow:false,field:"price",fixAl:1})}
   let s=41*k*fz("name");font(ctx,fw("name",400),s,"b");while(s>26*fz("name")&&widest(rich(ctx,f.name,1e9))>lim){s-=2;font(ctx,fw("name",400),s,"b")}drawRich(ctx,rich(ctx,f.name,1e9).slice(0,1),W/2,1188,s,{size:s,align:"center",field:"name"});
   const nameS=s;s=64*k*fz("brand");font(ctx,fw("brand",800),s,"t");while(s>36*fz("brand")&&widest(rich(ctx,f.brand,1e9))>lim){s-=2;font(ctx,fw("brand",800),s,"t")}drawRich(ctx,rich(ctx,f.brand,1e9).slice(0,1),W/2,1188-nameS*1.42*c.lh/100,s,{size:s,align:"center",field:"brand"});
 }
@@ -1216,6 +1221,7 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     if(i>=0&&(multi||e.shiftKey)){if(!multi){multi=true;selIdx();if(sel>=0)msel.add(sel)}const was=msel.has(i);if(!was)toggleM(i);else sel=i;
       const ix=selIdx();drag={mode:"group",x0:p.x,y0:p.y,moved:false,was,i,start:ix.map(k=>({d:ds[k],x:ds[k].x,y:ds[k].y}))};try{pv.setPointerCapture(e.pointerId)}catch(x){}buildDecos();draw();return}
     if(i<0){const c0=S.cards[cur];if(multi&&msel.size&&!e.shiftKey){}else if(sel>=0){sel=-1;buildDecos();draw()}
+      {const tf0=pts.size<2&&textAt(p);if(tf0){const o=(c0.off&&c0.off[tf0])||{x:0,y:0};drag={mode:"text",f:tf0,tf:tf0,x0:p.x,y0:p.y,o0:{x:o.x,y:o.y},moved:false};try{pv.setPointerCapture(e.pointerId)}catch(x){}return}}
       if(c0.type==="grid"){const k=slotAt(p);if(k<0){drag=null;return}if((c0.si||0)!==k){c0.si=k;buildFields();draw()}}
       const c=ph(c0);
       if(pts.size>=2&&c.img){const [a,b]=[...pts.values()];drag={mode:"pzoom",d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:c.zoom};return}
@@ -1234,6 +1240,9 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
           [c.px,c.ox]=ax(spx,drag.px0,drag.ox0,p.x-drag.x0,iw*sc);[c.py,c.oy]=ax(spy,drag.py0,drag.oy0,p.y-drag.y0,ih*sc)}
         drawSoon()}
       return}
+    if(drag.mode==="text"){if(Math.hypot(p.x-drag.x0,p.y-drag.y0)>12)drag.moved=true;if(!drag.moved)return;const c0=S.cards[cur];hideFT();
+      let nx=drag.o0.x+p.x-drag.x0,ny=drag.o0.y+p.y-drag.y0;if(Math.hypot(nx,ny)<18){nx=0;ny=0}
+      c0.off=c0.off||{};if(!nx&&!ny)delete c0.off[drag.f];else c0.off[drag.f]={x:Math.round(nx),y:Math.round(ny)};drawSoon();return}
     if(drag.mode==="group"){if(Math.hypot(p.x-drag.x0,p.y-drag.y0)>12)drag.moved=true;if(!drag.moved)return;
       let dx=p.x-drag.x0,dy=p.y-drag.y0;
       if(guides){const bs=drag.start.map(o=>o.d._b&&{x:o.d._b.x-o.d.x+o.x,y:o.d._b.y-o.d.y+o.y,w:o.d._b.w,h:o.d._b.h}).filter(Boolean);
@@ -1251,7 +1260,8 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     drawSoon()});
   const end=e=>{pts.delete(e.pointerId);if(!drag)return;snapX=snapY=null;
     if(drag.mode==="group"){const g=drag;drag=null;if(!g.moved&&g.was&&e.type==="pointerup")msel.delete(g.i);buildDecos();paint();return}
-    const tapped=!drag.moved&&e.type==="pointerup"&&(drag.mode==="tap"||drag.mode==="photo"||drag.mode==="move");
+    if(drag.mode==="text"&&drag.moved){const g=drag;drag=null;paint();const c0=S.cards[cur],now=(c0.off&&c0.off[g.f])||{x:0,y:0};if(now.x!==g.o0.x||now.y!==g.o0.y)undoSnack(c0,g.f,g.o0);return}
+    const tapped=!drag.moved&&e.type==="pointerup"&&(drag.mode==="tap"||drag.mode==="photo"||drag.mode==="move"||drag.mode==="text");
     if(tapped&&drag.tf){const f=drag.tf;drag=null;if(ft&&ft.field===f){hideFT();openField(f)}else showFT(f);return}
     if(tapped)hideFT();
     if(drag.mode==="tap"){drag=null;if(tapped)$("photo").click();return}
@@ -1260,7 +1270,7 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
     if(drag.mode==="photo"||drag.mode==="pzoom"){if(drag.mode==="pzoom"&&pts.size>=2)return;drag=null;const q=ph(S.cards[cur]);$("px").value=Math.round(q.px);$("py").value=Math.round(q.py);paint();return}
     if(drag.mode!=="pinch"||pts.size<2){drag=null;buildDecos();paint();if(!WIDE.matches&&dockCat==="deco")renderDock()}};
   pv.addEventListener("pointerup",end);pv.addEventListener("pointercancel",end);
-  pv.addEventListener("mousemove",e=>{if(drag)return;const p=pos(e),c=S.cards[cur];pv.style.cursor=hit(p)>=0?"move":textAt(p)?"text":(c.type==="grid"&&slotAt(p)<0)?"default":ph(c)&&ph(c).img?"grab":"pointer"});
+  pv.addEventListener("mousemove",e=>{if(drag)return;const p=pos(e),c=S.cards[cur];pv.style.cursor=hit(p)>=0?"move":textAt(p)?"move":(c.type==="grid"&&slotAt(p)<0)?"default":ph(c)&&ph(c).img?"grab":"pointer"});
   for(const ev of ["touchstart","touchmove"])pv.addEventListener(ev,e=>{if(drag)e.preventDefault()},{passive:false});
 })();
 function buildAll(){if(typeof renderDock==="function"&&$("dtools"))setTimeout(renderDock,0);buildStrip();buildFields();if(!$("tab-text").hidden||WIDE.matches)fillFontSelects();buildPMap();$("kid").value=S.id;$("corner").value=S.corner;$("hl").value=S.hl;$("showHeader").checked=S.showHeader;$("ac").value=S.ac;for(const [id,on] of [["hdrTop",S.hdrPos!=="bottom"],["hdrBottom",S.hdrPos==="bottom"],["subPlain",!S.subBox],["subBoxBtn",!!S.subBox]])$(id).setAttribute("aria-pressed",on);$("hdrColor").value=S.hdr;$("caption").value=S.caption;
@@ -1958,6 +1968,10 @@ function openField(field){openSheet("text","text");const el=$("f-"+field)||$("f-
   try{el.focus({preventScroll:true});const n=el.value.length;el.setSelectionRange(n,n)}catch(e){}
   setTimeout(()=>{el.scrollIntoView({block:"center",behavior:"smooth"});el.classList.add("field-hit");setTimeout(()=>el.classList.remove("field-hit"),1300)},80)}
 function openDecoRow(i){openSheet("deco","half");setTimeout(()=>{const r=document.querySelectorAll("#decoList .deco")[i];if(r){r.scrollIntoView({block:"center",behavior:"smooth"});r.classList.add("field-hit");setTimeout(()=>r.classList.remove("field-hit"),1300)}},80)}
+let snackT=0;
+function undoSnack(c,f,prev){const sn=$("snack");clearTimeout(snackT);sn.hidden=false;$("snackMsg").textContent="글 위치를 옮겼어요";
+  $("snackUndo").onclick=()=>{c.off=c.off||{};if(!prev.x&&!prev.y)delete c.off[f];else c.off[f]={x:prev.x,y:prev.y};sn.hidden=true;paint()};
+  snackT=setTimeout(()=>{sn.hidden=true},6000)}
 function textAt(p){const hs=(S.cards[cur]&&S.cards[cur]._hits)||[];for(let i=hs.length-1;i>=0;i--){const h=hs[i];if(p.x>=h.x&&p.x<=h.x+h.w&&p.y>=h.y&&p.y<=h.y+h.h)return h.f}return null}
 try{const t=localStorage.getItem("rr-tab");if(t&&$("tab-"+t))sheetTab=t}catch(e){}
 showTab(sheetTab);

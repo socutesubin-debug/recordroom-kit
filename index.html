@@ -639,7 +639,7 @@ function newCard(type,f){const d=(getStyle().types||{})[type]||{};const c={type,
 function fromData(d){
   const cards=(Array.isArray(d.cards)?d.cards:[]).map(c=>{const t=TYPES[c.type]?c.type:"body";const raw=c.f||c,n=newCard(t,raw);
     if(Array.isArray(c.decos))for(const o of c.decos)if(o&&DECO[o.t])n.decos.push({t:o.t,text:String(o.text||""),x:typeof o.x==="number"?o.x:null,y:typeof o.y==="number"?o.y:null,s:typeof o.s==="number"?o.s:1,fw:+o.fw>=100&&+o.fw<=900?+o.fw:undefined,rot:+o.rot||0,st:o.st&&typeof o.st==="object"?JSON.parse(JSON.stringify(o.st)):undefined});
-    for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;if(c.fw&&typeof c.fw==="object"){n.fw={};for(const k in c.fw)if(+c.fw[k]>=100&&+c.fw[k]<=900)n.fw[k]=+c.fw[k]}
+    for(const [k,dt] of [["badge","badge"],["bubble","bubble"],["comment","box"]])if(typeof raw[k]==="string"&&raw[k].trim())n.decos.push({t:dt,text:raw[k],x:null,y:null,s:1});for(const k of ["px","py","ox","oy","zoom","dim","gh","gs","scale","ls","lh"])if(typeof c[k]==="number")n[k]=c[k];if(["mirror","blur","color","black","white"].includes(c.fill))n.fill=c.fill;if(/^#[0-9a-f]{6}$/i.test(c.gc||""))n.gc=c.gc;if(c.fw&&typeof c.fw==="object"){n.fw={};for(const k in c.fw)if(+c.fw[k]>=100&&+c.fw[k]<=900)n.fw[k]=+c.fw[k]}
     if(c.fs&&typeof c.fs==="object"){n.fs={};for(const k in c.fs)if(+c.fs[k]>=40&&+c.fs[k]<=250)n.fs[k]=+c.fs[k]}
     if(typeof c.m==="string")n._m=c.m;
     if(Array.isArray(c.slots)&&n.slots)c.slots.slice(0,3).forEach((q,j)=>{if(!q)return;const t=n.slots[j];for(const k of ["px","py","zoom"])if(typeof q[k]==="number")t[k]=q[k];if(typeof q.m==="string")t._m=q.m});
@@ -652,7 +652,7 @@ function fromData(d){
 }
 function toData(){const r=toDataRaw();r.pid=S.pid;r.cards.forEach((o,i)=>{const c=S.cards[i];if(c.img)o.m=mid(c.img);if(c.slots)o.slots=c.slots.map(q=>({m:q.img?mid(q.img):null,px:q.px,py:q.py,zoom:q.zoom}));if(c.si)o.si=c.si;
   o.idecos=c.decos.map((d,j)=>d.t==="img"&&d.img?{j,m:mid(d.img),rot:d.rot||0,shape:d.shape,iz:d.iz,ix:d.ix,iy:d.iy,bw:d.bw,bc:d.bc,x:d.x,y:d.y,s:d.s}:null).filter(Boolean);if(c.fs)o.fs=c.fs});return r}
-function toDataRaw(){return {ty:S.ty,id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
+function toDataRaw(){return {ty:S.ty,id:S.id,corner:S.corner,hl:S.hl,hdr:S.hdr,hdrPos:S.hdrPos,subBox:S.subBox,ac:S.ac,fontT:S.fontT,fontB:S.fontB,hwa:S.hwa,hwb:S.hwb,showHeader:S.showHeader,sample:S.sample,check:S.check,caption:S.caption,cards:S.cards.map(c=>({type:c.type,f:c.f,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom,dim:c.dim,scale:c.scale,ls:c.ls,lh:c.lh,gh:c.gh,gs:c.gs,gc:c.gc,fill:c.fill,decos:c.decos.filter(o=>o.t!=="img").map(o=>({t:o.t,text:o.text,x:o.x,y:o.y,s:o.s,fw:o.fw,rot:o.rot||0,st:o.st||undefined})),fw:c.fw}))}}
 function persist(){try{localStorage.setItem("rr-kit",JSON.stringify(toData()))}catch(e){}}
 function newPid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function restore(){try{const t=localStorage.getItem("rr-kit");if(t)return fromData(JSON.parse(t))}catch(e){}return fromData(SAMPLE)}
@@ -757,8 +757,8 @@ function drawPhoto(ctx,c,transparent){
   if(transparent)return;
   const im=c.img,iw=im?(im.videoWidth||im.width):0,ih=im?(im.videoHeight||im.height):0;
   if(iw&&ih){const s=Math.max(W/iw,H/ih)*(c.zoom/100),dw=iw*s,dh=ih*s;
-    const dx=(W-dw)*(c.px/100),dy=(H-dh)*(c.py/100);
-    if(dw<W-1||dh<H-1){
+    const dx=(W-dw)*(c.px/100)+(c.ox||0),dy=(H-dh)*(c.py/100)+(c.oy||0);
+    if(dx>0.5||dy>0.5||dx+dw<W-0.5||dy+dh<H-0.5){
       if(c.fill==="mirror"){
         /* 가장자리를 뒤집어 이어 붙이고, 이음새에서 멀어질수록 흐린 배경으로 섞는다 */
         for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){if(!i&&!j)continue;const fx=i?-1:1,fy=j?-1:1;ctx.save();ctx.translate(dx+i*dw+(fx<0?dw:0),dy+j*dh+(fy<0?dh:0));ctx.scale(fx,fy);ctx.drawImage(im,0,0,dw,dh);ctx.restore()}
@@ -1217,7 +1217,7 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
       if(c0.type==="grid"){const k=slotAt(p);if(k<0){drag=null;return}if((c0.si||0)!==k){c0.si=k;buildFields();draw()}}
       const c=ph(c0);
       if(pts.size>=2&&c.img){const [a,b]=[...pts.values()];drag={mode:"pzoom",d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:c.zoom};return}
-      const tf=textAt(p);drag=c.img?{mode:"photo",x0:p.x,y0:p.y,px0:c.px,py0:c.py,moved:false,tf}:{mode:"tap",x0:p.x,y0:p.y,moved:false,tf};
+      const tf=textAt(p);drag=c.img?{mode:"photo",x0:p.x,y0:p.y,px0:c.px,py0:c.py,ox0:c.ox||0,oy0:c.oy||0,moved:false,tf}:{mode:"tap",x0:p.x,y0:p.y,moved:false,tf};
       try{pv.setPointerCapture(e.pointerId)}catch(x){}return}
     sel=i;drag={mode:"move",ox:p.x-ds[i].x,oy:p.y-ds[i].y,x0:p.x,y0:p.y,moved:false,i};try{pv.setPointerCapture(e.pointerId)}catch(x){}buildDecos();draw()});
   pv.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId))return;const p=pos(e);pts.set(e.pointerId,p);if(!drag)return;
@@ -1225,8 +1225,12 @@ function snapBox(b){const T=16;let dx=0,dy=0,bx=T+1,by=T+1;snapX=snapY=null;
       if(Math.hypot(p.x-(drag.x0||0),p.y-(drag.y0||0))>12)drag.moved=true;
       if(drag.mode==="pzoom"&&pts.size>=2){const [a,b]=[...pts.values()];c.zoom=Math.round(Math.min(250,Math.max(25,drag.z0*Math.hypot(a.x-b.x,a.y-b.y)/drag.d0)));$("zoom").value=c.zoom;$("zoomV").textContent=c.zoom+"%";drawSoon()}
       else if(drag.mode==="photo"&&c.img){const iw=c.img.videoWidth||c.img.width,ih=c.img.videoHeight||c.img.height,sc=Math.max(R.w/iw,R.h/ih)*(c.zoom/100),spx=R.w-iw*sc,spy=R.h-ih*sc;
-        if(Math.abs(spx)>1)c.px=Math.min(100,Math.max(0,drag.px0+(p.x-drag.x0)/spx*100));
-        if(Math.abs(spy)>1)c.py=Math.min(100,Math.max(0,drag.py0+(p.y-drag.y0)/spy*100));drawSoon()}
+        if(c0.type==="grid"){if(Math.abs(spx)>1)c.px=Math.min(100,Math.max(0,drag.px0+(p.x-drag.x0)/spx*100));
+          if(Math.abs(spy)>1)c.py=Math.min(100,Math.max(0,drag.py0+(p.y-drag.y0)/spy*100))}
+        else{/* 자유 이동: 사진이 카드를 덮는 범위 안에서는 px/py, 그 밖으로 끌면 ox/oy(빈 곳은 '빈 곳 배경'으로 채움). 가장자리 근처에선 자석처럼 붙음 */
+          const ax=(sp,p0,o0,d,dim)=>{const lo=Math.min(0,sp),hi=Math.max(0,sp),want=sp*p0/100+o0+d,edge=Math.min(hi,Math.max(lo,want));let o=want-edge;if(Math.abs(o)<22)o=0;o=Math.max(-dim*0.9,Math.min(dim*0.9,o));return [Math.abs(sp)>1?edge/sp*100:p0,o]};
+          [c.px,c.ox]=ax(spx,drag.px0,drag.ox0,p.x-drag.x0,iw*sc);[c.py,c.oy]=ax(spy,drag.py0,drag.oy0,p.y-drag.y0,ih*sc)}
+        drawSoon()}
       return}
     if(drag.mode==="group"){if(Math.hypot(p.x-drag.x0,p.y-drag.y0)>12)drag.moved=true;if(!drag.moved)return;
       let dx=p.x-drag.x0,dy=p.y-drag.y0;
@@ -1278,7 +1282,7 @@ $("saveStyle").onclick=()=>{const types={};for(const c of S.cards)types[c.type]=
   catch(e){say("styleStatus","이 브라우저에는 저장할 수 없어요. 'KIT 코드로 복사'로 보관해 주세요.",true)}};
 $("resetStyle").onclick=()=>{try{localStorage.removeItem("rr-style")}catch(e){}say("styleStatus","기본값을 지웠어요. 새 원고는 처음 설정으로 시작합니다.")};
 for(const sel of [$("typeSel"),$("addType")])for(const k in TYPES){const o=document.createElement("option");o.value=k;o.textContent=TYPES[k].label;sel.append(o)}
-$("typeSel").onchange=e=>{const o=S.cards[cur],n=newCard(e.target.value);if(n.type==="grid"&&o.img&&!isVid(o))n.slots[0].img=o.img;n.decos=o.decos;n.img=o.type==="grid"?(o.slots.find(x=>x.img&&true)||{}).img||null:o.img;n.px=o.px;n.py=o.py;n.zoom=o.zoom;
+$("typeSel").onchange=e=>{const o=S.cards[cur],n=newCard(e.target.value);if(n.type==="grid"&&o.img&&!isVid(o))n.slots[0].img=o.img;n.decos=o.decos;n.img=o.type==="grid"?(o.slots.find(x=>x.img&&true)||{}).img||null:o.img;n.px=o.px;n.py=o.py;n.ox=o.ox||0;n.oy=o.oy||0;n.zoom=o.zoom;
   const txt=o.f.text||o.f.title||o.f.comment||"";if(n.type==="outro"){S.cards[cur]=n;buildAll();if(!n.img)fillOutroPhotos();return}if("text" in n.f)n.f.text=o.f.text||"";if("title" in n.f)n.f.title=o.f.title||o.f.q||"";if("q" in n.f)n.f.q=o.f.q||o.f.title||"";
   S.cards[cur]=n;buildAll()};
 $("addBtn").onclick=()=>{S.cards.splice(cur+1,0,newCard($("addType").value));cur++;buildAll();fillOutroPhotos()};
@@ -1298,8 +1302,8 @@ for(const k of ["px","py","zoom"])$(k).oninput=e=>{const q=ph(S.cards[cur]);q[k]
 $("dim").addEventListener("input",e=>{S.cards[cur].dim=+e.target.value;paint()});
 for(const b of document.querySelectorAll("#slotRow [data-slot]"))b.onclick=()=>{S.cards[cur].si=+b.dataset.slot;buildFields();paint()};
 $("fill").onchange=e=>{S.cards[cur].fill=e.target.value;paint()};
-$("fitCover").onclick=()=>{const c=ph(S.cards[cur]);c.zoom=100;c.px=50;c.py=50;buildFields();paint()};
-$("fitAll").onclick=()=>{const c0=S.cards[cur],c=ph(c0),im=c.img;if(!im)return;const iw=im.videoWidth||im.width,ih=im.videoHeight||im.height,R=c0.type==="grid"?SLOTS[c0.si||0]:{w:W,h:H};c.zoom=Math.max(25,Math.round(100*Math.min(R.w/iw,R.h/ih)/Math.max(R.w/iw,R.h/ih)));c.px=50;c.py=50;buildFields();paint()};
+$("fitCover").onclick=()=>{const c=ph(S.cards[cur]);c.zoom=100;c.px=50;c.py=50;c.ox=0;c.oy=0;buildFields();paint()};
+$("fitAll").onclick=()=>{const c0=S.cards[cur],c=ph(c0),im=c.img;if(!im)return;const iw=im.videoWidth||im.width,ih=im.videoHeight||im.height,R=c0.type==="grid"?SLOTS[c0.si||0]:{w:W,h:H};c.zoom=Math.max(25,Math.round(100*Math.min(R.w/iw,R.h/ih)/Math.max(R.w/iw,R.h/ih)));c.px=50;c.py=50;c.ox=0;c.oy=0;buildFields();paint()};
 $("playBtn").onclick=()=>{const c=S.cards[cur];if(!isVid(c))return;if(c.img.paused)c.img.play().then(kick).catch(()=>{});else c.img.pause();setTimeout(showMedia,60)};
 $("kid").oninput=e=>{S.id=e.target.value;persist();saveProjectSoon()};
 $("corner").oninput=e=>{S.corner=e.target.value;paint()};
@@ -1315,7 +1319,7 @@ for(const [hex,name] of [["#ffffff","흰색"],["#141414","검정"],["#0A7CFF","�
   b.onclick=()=>{S.hdr=hex;$("hdrColor").value=hex;paint()};$("hdrSwatches").append(b)}
 $("caption").oninput=e=>{S.caption=e.target.value;persist();recordSoon();saveProjectSoon()};
 function loadMedia(c,file){return new Promise(res=>{
-  const url=URL.createObjectURL(file),set=m=>{if(file.type.startsWith("video/"))m._blob=file;c.orig=null;c.img=m;c.px=50;c.py=50;c.zoom=100;res(m)},fail=()=>{URL.revokeObjectURL(url);res(null)};
+  const url=URL.createObjectURL(file),set=m=>{if(file.type.startsWith("video/"))m._blob=file;c.orig=null;c.img=m;c.px=50;c.py=50;c.ox=0;c.oy=0;c.zoom=100;res(m)},fail=()=>{URL.revokeObjectURL(url);res(null)};
   if(file.type.startsWith("video/")){const v=document.createElement("video");v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute("playsinline","");v.preload="auto";
     v.onloadeddata=()=>{set(v);v.play().then(kick).catch(()=>{})};v.onerror=fail;v.src=url;return}
   const im=new Image();
@@ -1334,7 +1338,7 @@ $("photoMulti").onchange=async e=>{const files=[...e.target.files];e.target.valu
   while(targets.length<files.length){if(!S.cards[idx])S.cards.push(newCard("body"));const c=S.cards[idx++];if(c.type==="grid")targets.push(...c.slots);else targets.push(c)}
   let bad=0;for(let i=0;i<files.length;i++){say("mediaStatus","사진 넣는 중… "+(i+1)+"/"+files.length);if(!await loadMedia(targets[i],files[i]))bad++}
   buildAll();say("mediaStatus",(files.length-bad)+"장을 "+(c0.type==="grid"?"지금 칸부터":(cur+1)+"번 카드부터")+" 차례로 넣었어요."+(bad?" 열 수 없는 파일 "+bad+"개는 건너뛰었어요.":""),!!bad)};
-$("prevPhoto").onclick=()=>{const p=ph(S.cards[cur-1]),c=ph(S.cards[cur]);c.img=p.img;c.px=p.px;c.py=p.py;c.zoom=p.zoom;buildFields();paint()};
+$("prevPhoto").onclick=()=>{const p=ph(S.cards[cur-1]),c=ph(S.cards[cur]);c.img=p.img;c.px=p.px;c.py=p.py;c.ox=p.ox||0;c.oy=p.oy||0;c.zoom=p.zoom;buildFields();paint()};
 $("rmPhoto").onclick=()=>{ph(S.cards[cur]).img=null;buildFields();paint()};
 
 /* ---------- 복사 ---------- */
@@ -1483,7 +1487,7 @@ async function cutDeco(d){
 
 /* 지금 카드의 사진 배치를 그대로 그린 장면과, 사진이 덮은 영역(가려진 부분 = 아는 부분) */
 function photoLayer(c){
-  const im=c.img,iw=im.width,ih=im.height,s=Math.max(W/iw,H/ih)*(c.zoom/100),dw=iw*s,dh=ih*s,dx=(W-dw)*(c.px/100),dy=(H-dh)*(c.py/100);
+  const im=c.img,iw=im.width,ih=im.height,s=Math.max(W/iw,H/ih)*(c.zoom/100),dw=iw*s,dh=ih*s,dx=(W-dw)*(c.px/100)+(c.ox||0),dy=(H-dh)*(c.py/100)+(c.oy||0);
   const cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d",{willReadFrequently:true});
   x.fillStyle="#808080";x.fillRect(0,0,W,H);x.imageSmoothingQuality="high";x.drawImage(im,dx,dy,dw,dh);
   const r={x0:Math.max(0,Math.ceil(dx)),y0:Math.max(0,Math.ceil(dy)),x1:Math.min(W,Math.floor(dx+dw)),y1:Math.min(H,Math.floor(dy+dh))};
@@ -1557,7 +1561,7 @@ async function doFill(mode){
     else{const sess=await getSession(p=>say("mediaStatus","AI 모델 내려받는 중… "+Math.round(p*100)+"% (처음 한 번만)"));
       say("mediaStatus","AI가 빈 곳을 그리는 중… 기기에 따라 몇 초에서 30초쯤 걸려요.");await new Promise(r=>setTimeout(r,60));gen=await runFill(sess,scene,scene.r)}
     const out=compose(gen,scene,scene.r,m==="flat"?30:14);
-    c.orig={img:c.img,px:c.px,py:c.py,zoom:c.zoom};c.img=out;c.px=50;c.py=50;c.zoom=100;c._fill=m;
+    c.orig={img:c.img,px:c.px,py:c.py,ox:c.ox||0,oy:c.oy||0,zoom:c.zoom};c.img=out;c.px=50;c.py=50;c.ox=0;c.oy=0;c.zoom=100;c._fill=m;
     buildFields();paint();
     say("mediaStatus",(m==="flat"?"배경색을 이어 붙였어요":"AI가 빈 곳을 그렸어요")+" ("+((performance.now()-t)/1000).toFixed(1)+"초)."+(mode==="auto"?(m==="flat"?" 무늬가 있는 배경이면 아래 'AI로 그리기'를 눌러 보세요.":" 배경이 단순하면 아래 '배경색 이어 붙이기'가 더 깔끔해요."):""))}
   catch(e){console.error(e);say("mediaStatus",String(e&&e.message||e).startsWith("model")?"AI 모델 파일을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.":"채우기에 실패했어요. 페이지를 새로고침한 뒤 다시 해 보세요.",true)}
@@ -1936,13 +1940,13 @@ let armed=-1;
 function buildPMap(){const g=$("pgrid");if(!g)return;g.textContent="";
   S.cards.forEach((c,i)=>{const q=ph(c)&&c.type!=="grid"?c:null,b=document.createElement("button");b.className="ptile"+(armed===i?" armed":"");b.setAttribute("aria-current",i===cur);
     const cv=document.createElement("canvas");cv.width=136;cv.height=170;const x=cv.getContext("2d");const im=c.type==="grid"?(c.slots.find(z=>z.img)||{}).img:c.img;
-    if(im&&!isVid({img:im})){const iw=im.width,ih=im.height,sc=Math.max(136/iw,170/ih),dw=iw*sc,dh=ih*sc;x.drawImage(im,(136-dw)*(c.px??50)/100,(170-dh)*(c.py??50)/100,dw,dh)}
+    if(im&&!isVid({img:im})){const iw=im.width,ih=im.height,sc=Math.max(136/iw,170/ih),dw=iw*sc,dh=ih*sc;x.drawImage(im,(136-dw)*(c.px??50)/100+(c.ox||0)*136/W,(170-dh)*(c.py??50)/100+(c.oy||0)*170/H,dw,dh)}
     else if(im){x.fillStyle="#333";x.fillRect(0,0,136,170);x.fillStyle="#fff";x.font="bold 26px sans-serif";x.textAlign="center";x.fillText("영상",68,94)}
     else{x.fillStyle="#9a9ca3";x.font="300 48px sans-serif";x.textAlign="center";x.fillText("+",68,100)}
     const sp=document.createElement("span");sp.textContent=(i+1)+" "+TYPES[c.type].label;b.append(cv,sp);
     if(c.type!=="grid"&&c.img){const sw=document.createElement("button");sw.className="sw";sw.textContent="⇄";sw.setAttribute("aria-label",(i+1)+"번 카드 사진을 다른 카드와 바꾸기");
       sw.onclick=e=>{e.stopPropagation();armed=armed===i?-1:i;$("pmapHint").textContent=armed>=0?"바꿀 카드를 눌러요":"눌러서 고르기 · ⇄로 서로 바꾸기";buildPMap()};b.append(sw)}
-    b.onclick=()=>{if(armed>=0&&armed!==i&&c.type!=="grid"){const a=S.cards[armed];for(const k of ["img","px","py","zoom","orig"]){const t=a[k];a[k]=c[k];c[k]=t}armed=-1;$("pmapHint").textContent="사진을 바꿨어요";cur=i;buildAll();return}
+    b.onclick=()=>{if(armed>=0&&armed!==i&&c.type!=="grid"){const a=S.cards[armed];for(const k of ["img","px","py","ox","oy","zoom","orig"]){const t=a[k];a[k]=c[k];c[k]=t}armed=-1;$("pmapHint").textContent="사진을 바꿨어요";cur=i;buildAll();return}
       armed=-1;if(cur!==i){cur=i;sel=-1;buildAll();if(!im)$("photo").click()}else $("photo").click()};
     g.append(b)});
   const cur0=g.children[cur];if(cur0)cur0.scrollIntoView({inline:"nearest",block:"nearest"})}

@@ -899,6 +899,7 @@ for(const k in DECO){const b=document.createElement("button");b.textContent="+ "
     if(drag.mode==="photo"||drag.mode==="pzoom"){if(drag.mode==="pzoom"&&pts.size>=2)return;drag=null;const q=ph(S.cards[cur]);$("px").value=Math.round(q.px);$("py").value=Math.round(q.py);paint();return}
     if(drag.mode!=="pinch"||pts.size<2){drag=null;buildDecos();paint()}};
   pv.addEventListener("pointerup",end);pv.addEventListener("pointercancel",end);
+  pv.addEventListener("mousemove",e=>{if(drag)return;const p=pos(e),c=S.cards[cur];pv.style.cursor=hit(p)>=0?"move":textAt(p)?"text":(c.type==="grid"&&slotAt(p)<0)?"default":ph(c)&&ph(c).img?"grab":"pointer"});
   for(const ev of ["touchstart","touchmove"])pv.addEventListener(ev,e=>{if(drag)e.preventDefault()},{passive:false});
 })();
 function buildAll(){buildStrip();buildFields();fillFontSelects();$("kid").value=S.id;$("corner").value=S.corner;$("hl").value=S.hl;$("showHeader").checked=S.showHeader;$("ac").value=S.ac;for(const [id,on] of [["hdrTop",S.hdrPos!=="bottom"],["hdrBottom",S.hdrPos==="bottom"],["subPlain",!S.subBox],["subBoxBtn",!!S.subBox]])$(id).setAttribute("aria-pressed",on);$("hdrColor").value=S.hdr;$("caption").value=S.caption;

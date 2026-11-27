@@ -8,7 +8,7 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
   const u = new URL(req.url);
-  const heavy = /\.(onnx|wasm|woff2)$/.test(u.pathname) || (u.hostname === "cdn.jsdelivr.net" && u.pathname.includes("onnxruntime-web"));
+  const heavy = /\.(onnx|wasm|woff2?)$/.test(u.pathname) || (u.hostname === "cdn.jsdelivr.net" && u.pathname.includes("onnxruntime-web"));
   if (heavy) {
     e.respondWith(caches.open(CACHE).then(async c => {
       const hit = await c.match(req);
